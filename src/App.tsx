@@ -164,7 +164,7 @@ function App() {
             <>
               <div className="main-content-flex">
                 <div className="main-form-col">
-                  <QueryForm onSearch={handleSearch} onClear={handleClear} />
+                  <QueryForm onSearch={handleSearch} onClear={handleClear} resultCount={activities.length} />
                 </div>
                 <div className="main-map-col">
                   <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} mapHeight={"520px"} />

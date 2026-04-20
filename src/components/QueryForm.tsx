@@ -21,9 +21,10 @@ export const CATEGORIES: CategoryChip[] = [
 interface QueryFormProps {
   onSearch: (filters: { location: string; startDate: string; endDate: string; radius: number; categories: string[] }) => void;
   onClear?: () => void;
+  resultCount?: number;
 }
 
-const QueryForm: React.FC<QueryFormProps> = ({ onSearch, onClear }) => {
+const QueryForm: React.FC<QueryFormProps> = ({ onSearch, onClear, resultCount }) => {
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -69,6 +70,11 @@ const QueryForm: React.FC<QueryFormProps> = ({ onSearch, onClear }) => {
       <div className="query-form-header">
         <span style={{ fontSize: "1rem" }}>🔍</span>
         <h2 className="query-form-header-title">Búsqueda</h2>
+        {resultCount !== undefined && (
+          <span className="result-count-badge">
+            {resultCount} {resultCount === 1 ? 'actividad' : 'actividades'}
+          </span>
+        )}
       </div>
       <div className="query-form-body">
         <div className="form-row">
