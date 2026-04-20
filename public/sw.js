@@ -6,8 +6,7 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'Barcelona Activities', {
       body: data.body || '',
-      icon: '/logo192.png',
-      badge: '/logo192.png'
+      icon: '/logo192.png'
     })
   );
 });
