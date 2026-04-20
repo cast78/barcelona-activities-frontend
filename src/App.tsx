@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
-
 import QueryForm, { CATEGORIES } from './components/QueryForm';
 import ActivityList from './components/ActivityList';
-import MapComponent from './components/MapComponent';
+import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
-
 import { fetchEvents, fetchActivities, Activity } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
+
+const HomeIcon = FaHome as React.ElementType;
+const EditIcon = FaRegEdit as React.ElementType;
 
 type Page = 'main' | 'register';
 
@@ -17,7 +18,18 @@ function App() {
   const [allActivities, setAllActivities] = useState<Activity[]>([]);
   const [lastLocation, setLastLocation] = useState<string | undefined>(undefined);
   const [lastRadius, setLastRadius] = useState<number | undefined>(undefined);
+  const [centerOn, setCenterOn] = useState<CenterOn | null>(null);
+
+  const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
+  const handleGoToMyLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      pos => setCenterOn({ lat: pos.coords.latitude, lng: pos.coords.longitude, zoom: 14 }),
+      () => alert('No se pudo obtener tu ubicación')
+    );
+  };
   const [page, setPage] = useState<Page>('main');
+  const [panelOpen, setPanelOpen] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -135,16 +147,14 @@ function App() {
             onClick={() => setPage('main')}
             aria-label="Home"
           >
-            {/* @ts-expect-error React-icons type workaround */}
-            <FaHome style={{ marginRight: 10 }} /> Home
+            <HomeIcon style={{ marginRight: 10 }} /> Home
           </button>
           <button
             className={page === 'register' ? 'sidebar-btn active' : 'sidebar-btn'}
             onClick={() => setPage('register')}
             aria-label="Register Activities"
           >
-            {/* @ts-expect-error React-icons type workaround */}
-            <FaRegEdit style={{ marginRight: 10 }} /> Register Activities
+            <EditIcon style={{ marginRight: 10 }} /> Register Activities
           </button>
         </nav>
       </aside>
@@ -158,30 +168,54 @@ function App() {
                 : "Añade una nueva actividad al mapa"}
             </p>
           </div>
+          {page === 'main' && (
+            <div className="map-nav-btns">
+              <button className="map-nav-btn" onClick={handleGoToMyLocation} title="Centrar en mi ubicación">📍</button>
+              <button className="map-nav-btn" onClick={handleGoToBarcelona} title="Volver a Barcelona">🏠</button>
+            </div>
+          )}
         </header>
         <main className="App-main">
           {page === 'main' && (
             <>
-              <div className="main-content-flex">
-                <div className="main-form-col">
-                  <QueryForm onSearch={handleSearch} onClear={handleClear} resultCount={activities.length} />
-                </div>
-                <div className="main-map-col">
-                  <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} mapHeight={"520px"} />
-                </div>
+              {/* Mapa a pantalla completa como fondo */}
+              <div className="map-fullscreen">
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
               </div>
-              <ActivityList activities={activities} />
+
+              {/* Panel flotante colapsable */}
+              <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
+                <button
+                  className="panel-toggle-btn"
+                  onClick={() => setPanelOpen(o => !o)}
+                  aria-expanded={panelOpen}
+                >
+                  <span className="panel-toggle-icon">🔍</span>
+                  {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
+                  {panelOpen && activities.length > 0 && (
+                    <span className="result-count-badge" style={{ marginLeft: 0 }}>
+                      {activities.length} {activities.length === 1 ? 'actividad' : 'actividades'}
+                    </span>
+                  )}
+                  <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
+                </button>
+                {panelOpen && (
+                  <QueryForm onSearch={handleSearch} onClear={handleClear} />
+                )}
+              </div>
+
+              {/* Lista de actividades como drawer inferior */}
+              <div className={`activities-drawer${activities.length === 0 ? ' activities-drawer--hidden' : ''}`}>
+                <ActivityList activities={activities} />
+              </div>
             </>
           )}
           {page === 'register' && (
-            <div style={{ maxWidth: 580, margin: '2rem auto' }}>
+            <div style={{ maxWidth: 580, margin: '2rem auto', padding: '0 1rem' }}>
               <RegistrationForm />
             </div>
           )}
         </main>
-        <footer className="App-footer">
-          <p>&copy; 2026 Barcelona Activities</p>
-        </footer>
       </div>
     </div>
   );

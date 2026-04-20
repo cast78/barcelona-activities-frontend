@@ -23,21 +23,48 @@ interface Activity {
   body: string;
 }
 
+export interface CenterOn {
+  lat: number;
+  lng: number;
+  zoom: number;
+}
+
 interface MapComponentProps {
   activities: Activity[];
   userLocation?: string;
   radiusKm?: number;
-  mapHeight?: string;
+  centerOn?: CenterOn | null;
 }
 
 // Componente auxiliar para manejar el mapa
-const MapContent: React.FC<{ activities: Activity[]; userLocation?: string; radiusKm?: number }> = ({ activities, userLocation, radiusKm }) => {
+const MapContent: React.FC<{
+  activities: Activity[];
+  userLocation?: string;
+  radiusKm?: number;
+  centerOn?: CenterOn | null;
+}> = ({ activities, userLocation, radiusKm, centerOn }) => {
   const map = useMap();
 
-  // Centrar en Barcelona al montar
+  // Centrar en Barcelona al montar y mover zoom a la derecha
   React.useEffect(() => {
     map.setView([41.3851, 2.1734], 11);
+    map.zoomControl.setPosition('topright');
   }, [map]);
+
+  // Re-centrar cuando cambia userLocation (búsqueda)
+  React.useEffect(() => {
+    if (!userLocation) return;
+    const parts = userLocation.split(',').map(Number);
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      map.setView([parts[0], parts[1]], 13, { animate: true });
+    }
+  }, [userLocation, map]);
+
+  // Re-centrar cuando se pide desde fuera (botones 📍 y 🏠)
+  React.useEffect(() => {
+    if (!centerOn) return;
+    map.setView([centerOn.lat, centerOn.lng], centerOn.zoom, { animate: true });
+  }, [centerOn, map]);
 
   let userCoords: [number, number] | null = null;
   if (userLocation) {
@@ -86,16 +113,12 @@ const MapContent: React.FC<{ activities: Activity[]; userLocation?: string; radi
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, mapHeight }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn }) => {
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', margin: 0 }}>
-      <h2>📍 Mapa de Actividades</h2>
-      <MapContainer style={{ flex: '1 1 0', minHeight: '400px', width: '100%', borderRadius: '8px' }}>
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} />
+    <div style={{ height: '100%', width: '100%' }}>
+      <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} />
       </MapContainer>
-      <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#666' }}>
-        {activities.length} actividades mostradas en el mapa
-      </p>
     </div>
   );
 };

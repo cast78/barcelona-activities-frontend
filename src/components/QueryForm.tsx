@@ -67,15 +67,6 @@ const QueryForm: React.FC<QueryFormProps> = ({ onSearch, onClear, resultCount })
 
   return (
     <form onSubmit={handleSubmit} className="query-form">
-      <div className="query-form-header">
-        <span style={{ fontSize: "1rem" }}>🔍</span>
-        <h2 className="query-form-header-title">Búsqueda</h2>
-        {resultCount !== undefined && (
-          <span className="result-count-badge">
-            {resultCount} {resultCount === 1 ? 'actividad' : 'actividades'}
-          </span>
-        )}
-      </div>
       <div className="query-form-body">
         <div className="form-row">
           <label htmlFor="location">Ubicación</label>

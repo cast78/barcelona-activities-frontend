@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Generador de iconos</title></head>
+<body>
+<script>
+function generateIcon(size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo degradado
+  const gradient = ctx.createLinearGradient(0, 0, size, size);
+  gradient.addColorStop(0, '#667eea');
+  gradient.addColorStop(1, '#764ba2');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.roundRect(0, 0, size, size, size * 0.18);
+  ctx.fill();
+
+  // Emoji centrado
+  ctx.font = `${size * 0.55}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🏙️', size / 2, size / 2 + size * 0.03);
+
+  return canvas.toDataURL('image/png');
+}
+
+function download(dataUrl, filename) {
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  a.click();
+}
+
+// Generar y descargar ambos tamaños
+download(generateIcon(192), 'logo192.png');
+setTimeout(() => download(generateIcon(512), 'logo512.png'), 500);
+setTimeout(() => document.body.innerHTML = '<h2 style="font-family:sans-serif;padding:2rem">✅ Descargados logo192.png y logo512.png<br><br><small>Cópialos a: barcelona-activities-mvp/public/</small></h2>', 1000);
+</script>
+</body>
+</html>
