@@ -214,7 +214,7 @@ body {
   width: 260px;
   max-width: calc(100vw - 2rem);
   height: auto;
-  max-height: 85vh;
+  max-height: 65vh;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 4px 24px rgba(34,34,59,0.18);
@@ -328,6 +328,15 @@ body {
     left: 0.5rem;
     width: calc(100vw - 1rem);
     max-width: 100%;
+    max-height: 65vh;
+  }
+}
+
+/* === SMALL SCREENS === */
+@media (max-width: 480px) {
+  .floating-panel {
+    width: 95vw;
+    max-width: 380px;
   }
 }
 
