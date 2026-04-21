@@ -132,8 +132,8 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: '1.25rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
+          gap: '1rem',
           marginBottom: '1.5rem'
         }}>
           {activities.map(activity => {
@@ -159,37 +159,35 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                 {/* Header */}
                 <div style={{
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white', padding: '1rem',
-                  display: 'flex', flexDirection: 'column', gap: '0.35rem'
+                  color: 'white', padding: '0.75rem 1rem',
+                  display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem'
                 }}>
                   {cat && (
                     <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                      fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase',
-                      letterSpacing: '0.5px', background: 'rgba(255,255,255,0.22)',
-                      borderRadius: '20px', padding: '0.15rem 0.55rem', width: 'fit-content'
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '1rem', lineHeight: 1, flexShrink: 0
                     }}>
-                      {cat.emoji} {cat.label}
+                      {cat.emoji}
                     </span>
                   )}
-                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, lineHeight: 1.3 }}>
+                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, lineHeight: 1.2 }}>
                     {activity.name}
                   </h3>
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: '0.9rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ padding: '0.75rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {/* Descripción truncada */}
                   <p style={{
-                    margin: 0, color: '#444', fontSize: '0.88rem', lineHeight: '1.55',
-                    display: '-webkit-box', WebkitLineClamp: 3,
+                    margin: 0, color: '#444', fontSize: '0.84rem', lineHeight: '1.5',
+                    display: '-webkit-box', WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical', overflow: 'hidden'
                   } as React.CSSProperties}>
                     {activity.body}
                   </p>
 
                   {/* Fechas compactas */}
-                  <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.78rem', color: '#6b7280' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
                     <span>📅 {formatDate(activity.start_date)}</span>
                     {activity.end_date && activity.end_date !== activity.start_date && (
                       <span>→ {formatDate(activity.end_date)}</span>
@@ -200,10 +198,10 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                   <button
                     onClick={() => setSelected(activity)}
                     style={{
-                      marginTop: 'auto', paddingTop: '0.6rem',
+                      marginTop: 'auto', paddingTop: '0.4rem',
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#667eea', fontSize: '0.82rem', fontWeight: 600,
-                      textAlign: 'left', padding: '0.5rem 0 0', display: 'flex',
+                      color: '#667eea', fontSize: '0.78rem', fontWeight: 600,
+                      textAlign: 'left', padding: '0.3rem 0 0', display: 'flex',
                       alignItems: 'center', gap: '0.25rem', fontFamily: 'inherit'
                     }}
                   >

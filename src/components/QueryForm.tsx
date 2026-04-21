@@ -22,19 +22,39 @@ interface QueryFormProps {
   onSearch: (filters: { location: string; startDate: string; endDate: string; radius: number; categories: string[] }) => void;
   onClear?: () => void;
   resultCount?: number;
+  location: string;
+  setLocation: (value: string) => void;
+  startDate: string;
+  setStartDate: (value: string) => void;
+  endDate: string;
+  setEndDate: (value: string) => void;
+  radius: number;
+  setRadius: (value: number) => void;
+  selectedCategories: string[];
+  setSelectedCategories: (value: string[]) => void;
 }
 
-const QueryForm: React.FC<QueryFormProps> = ({ onSearch, onClear, resultCount }) => {
-  const [location, setLocation] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [radius, setRadius] = useState(5);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+const QueryForm: React.FC<QueryFormProps> = ({ 
+  onSearch, 
+  onClear, 
+  resultCount,
+  location,
+  setLocation,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  radius,
+  setRadius,
+  selectedCategories,
+  setSelectedCategories
+}) => {
 
   const toggleCategory = (id: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
+    const newCategories = selectedCategories.includes(id) 
+      ? selectedCategories.filter((c: string) => c !== id) 
+      : [...selectedCategories, id];
+    setSelectedCategories(newCategories);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -115,10 +135,10 @@ const QueryForm: React.FC<QueryFormProps> = ({ onSearch, onClear, resultCount })
             onChange={e => setRadius(Number(e.target.value))}
           >
             <option value={1}>1 km</option>
+            <option value={2}>2 km</option>
             <option value={5}>5 km</option>
             <option value={10}>10 km</option>
             <option value={20}>20 km</option>
-            <option value={50}>50 km</option>
           </select>
         </div>
         <div className="form-row">

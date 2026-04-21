@@ -19,6 +19,13 @@ function App() {
   const [lastLocation, setLastLocation] = useState<string | undefined>(undefined);
   const [lastRadius, setLastRadius] = useState<number | undefined>(undefined);
   const [centerOn, setCenterOn] = useState<CenterOn | null>(null);
+  
+  // Estado del formulario
+  const [location, setLocation] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [radius, setRadius] = useState(5);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
   const handleGoToMyLocation = () => {
@@ -132,6 +139,11 @@ function App() {
     setActivities(allActivities);
     setLastLocation(undefined);
     setLastRadius(undefined);
+    setLocation("");
+    setStartDate("");
+    setEndDate("");
+    setRadius(5);
+    setSelectedCategories([]);
   };
 
   return (
@@ -168,40 +180,48 @@ function App() {
                 : "Añade una nueva actividad al mapa"}
             </p>
           </div>
-          {page === 'main' && (
-            <div className="map-nav-btns">
-              <button className="map-nav-btn" onClick={handleGoToMyLocation} title="Centrar en mi ubicación">📍</button>
-              <button className="map-nav-btn" onClick={handleGoToBarcelona} title="Volver a Barcelona">🏠</button>
-            </div>
-          )}
         </header>
         <main className="App-main">
           {page === 'main' && (
             <>
-              {/* Mapa a pantalla completa como fondo */}
+              {/* Mapa con panel flotante dentro */}
               <div className="map-fullscreen">
                 <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
-              </div>
-
-              {/* Panel flotante colapsable */}
-              <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
-                <button
-                  className="panel-toggle-btn"
-                  onClick={() => setPanelOpen(o => !o)}
-                  aria-expanded={panelOpen}
-                >
-                  <span className="panel-toggle-icon">🔍</span>
-                  {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
-                  {panelOpen && activities.length > 0 && (
-                    <span className="result-count-badge" style={{ marginLeft: 0 }}>
-                      {activities.length} {activities.length === 1 ? 'actividad' : 'actividades'}
-                    </span>
+                {/* Botón de navegación del mapa */}
+                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Volver a Barcelona">🏠</button>
+                {/* Panel flotante colapsable */}
+                <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
+                  <button
+                    className="panel-toggle-btn"
+                    onClick={() => setPanelOpen(o => !o)}
+                    aria-expanded={panelOpen}
+                  >
+                    <span className="panel-toggle-icon">🔍</span>
+                    {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
+                    {panelOpen && activities.length > 0 && (
+                      <span className="result-count-badge" style={{ marginLeft: 0 }}>
+                        {activities.length} {activities.length === 1 ? 'actividad' : 'actividades'}
+                      </span>
+                    )}
+                    <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
+                  </button>
+                  {panelOpen && (
+                    <QueryForm 
+                      onSearch={handleSearch} 
+                      onClear={handleClear}
+                      location={location}
+                      setLocation={setLocation}
+                      startDate={startDate}
+                      setStartDate={setStartDate}
+                      endDate={endDate}
+                      setEndDate={setEndDate}
+                      radius={radius}
+                      setRadius={setRadius}
+                      selectedCategories={selectedCategories}
+                      setSelectedCategories={setSelectedCategories}
+                    />
                   )}
-                  <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
-                </button>
-                {panelOpen && (
-                  <QueryForm onSearch={handleSearch} onClear={handleClear} />
-                )}
+                </div>
               </div>
 
               {/* Lista de actividades como drawer inferior */}
