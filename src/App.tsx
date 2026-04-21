@@ -178,29 +178,30 @@ function App() {
         <main className="App-main">
           {page === 'main' && (
             <>
-              {/* Mapa con panel flotante dentro */}
+              {/* Mapa a pantalla completa como fondo */}
               <div className="map-fullscreen">
                 <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
-                {/* Panel flotante colapsable */}
-                <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
-                  <button
-                    className="panel-toggle-btn"
-                    onClick={() => setPanelOpen(o => !o)}
-                    aria-expanded={panelOpen}
-                  >
-                    <span className="panel-toggle-icon">🔍</span>
-                    {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
-                    {panelOpen && activities.length > 0 && (
-                      <span className="result-count-badge" style={{ marginLeft: 0 }}>
-                        {activities.length} {activities.length === 1 ? 'actividad' : 'actividades'}
-                      </span>
-                    )}
-                    <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
-                  </button>
-                  {panelOpen && (
-                    <QueryForm onSearch={handleSearch} onClear={handleClear} />
+              </div>
+
+              {/* Panel flotante colapsable */}
+              <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
+                <button
+                  className="panel-toggle-btn"
+                  onClick={() => setPanelOpen(o => !o)}
+                  aria-expanded={panelOpen}
+                >
+                  <span className="panel-toggle-icon">🔍</span>
+                  {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
+                  {panelOpen && activities.length > 0 && (
+                    <span className="result-count-badge" style={{ marginLeft: 0 }}>
+                      {activities.length} {activities.length === 1 ? 'actividad' : 'actividades'}
+                    </span>
                   )}
-                </div>
+                  <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
+                </button>
+                {panelOpen && (
+                  <QueryForm onSearch={handleSearch} onClear={handleClear} />
+                )}
               </div>
 
               {/* Lista de actividades como drawer inferior */}
