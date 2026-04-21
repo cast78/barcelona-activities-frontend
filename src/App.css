@@ -147,7 +147,7 @@ body {
 /* === LAYOUT MAP-FIRST === */
 .map-fullscreen {
   position: relative;
-  flex: 0 0 50%;
+  flex: 0 0 53%;
   min-height: 0;
   z-index: 0;
 }
@@ -211,10 +211,10 @@ body {
   top: 1rem;
   left: 1rem;
   z-index: 1001;
-  width: 250px;
+  width: 260px;
   max-width: calc(100vw - 2rem);
   height: auto;
-  max-height: calc(100% - 2rem);
+  max-height: 85vh;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 4px 24px rgba(34,34,59,0.18);
