@@ -28,13 +28,6 @@ function App() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
-  const handleGoToMyLocation = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      pos => setCenterOn({ lat: pos.coords.latitude, lng: pos.coords.longitude, zoom: 14 }),
-      () => alert('No se pudo obtener tu ubicación')
-    );
-  };
   const [page, setPage] = useState<Page>('main');
   const [panelOpen, setPanelOpen] = useState(true);
 
