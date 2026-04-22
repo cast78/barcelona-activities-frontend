@@ -166,12 +166,7 @@ function App() {
       <div className="App-content">
         <header className="App-header">
           <div>
-            <h1>{page === "main" ? "Home" : "Register Activities"}</h1>
-            <p className="header-subtitle">
-              {page === "main"
-                ? "Explora actividades y eventos en Barcelona"
-                : "Añade una nueva actividad al mapa"}
-            </p>
+            <h1>{page === "main" ? "Explore nearby activities and events" : "Register Activities"}</h1>
           </div>
         </header>
         <main className="App-main">
