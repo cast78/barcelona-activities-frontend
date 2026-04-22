@@ -42,7 +42,7 @@ function App() {
         setActivities(all);
         setAllActivities(all);
         if (events.length > 0) {
-          showNotification('Barcelona Activities', `Found ${events.length} events nearby!`);
+          showNotification('CityRadar Barcelona', `Found ${events.length} events nearby!`);
         }
       } catch (error) {
         console.error('Failed to load data', error);
