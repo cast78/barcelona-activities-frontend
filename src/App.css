@@ -354,7 +354,7 @@ body {
   .floating-panel {
     width: 95vw;
     max-width: 340px;
-    max-height: 35vh;
+    max-height: 50vh;
   }
 
   .floating-panel--collapsed {
