@@ -140,6 +140,18 @@
   border-color: #b0b7c3;
 }
 
+.btn-icon:disabled {
+  background: #e8e8f0;
+  border-color: #d0d0e0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-icon:disabled:hover {
+  background: #e8e8f0;
+  border-color: #d0d0e0;
+}
+
 /* === FORM ACTIONS === */
 .form-actions {
   display: flex;

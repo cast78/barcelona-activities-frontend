@@ -122,7 +122,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
   return (
     <div style={{ margin: '2rem 0' }}>
       <h2 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
-        📋 Actividades Disponibles
+        📋 Actividades Disponibles {activities.length > 0 && <span style={{color: '#667eea', fontWeight: 800}}>({activities.length})</span>}
       </h2>
 
       {activities.length === 0 ? (
@@ -213,15 +213,6 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
           })}
         </div>
       )}
-
-      {/* Resumen */}
-      <div style={{
-        backgroundColor: '#f0f4ff', padding: '0.75rem 1rem', borderRadius: '8px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        color: '#667eea', fontWeight: 600, fontSize: '0.88rem'
-      }}>
-        <span>{activities.length} actividades</span>
-      </div>
 
       {/* Modal de detalle */}
       {selected && <ActivityModal activity={selected} onClose={() => setSelected(null)} />}

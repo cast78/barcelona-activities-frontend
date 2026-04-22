@@ -31,6 +31,7 @@ function App() {
   const [page, setPage] = useState<Page>('main');
   const [panelOpen, setPanelOpen] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -148,8 +149,8 @@ function App() {
     <div className="App">
       <aside className="App-sidebar">
         <div className="sidebar-logo">
-          <span style={{ fontSize: "1.4rem" }}>🏙️</span>
-          <div className="sidebar-title">Barcelona<br/>Activities</div>
+          <img src="/logo192.png" alt="CityRadar" style={{height: 50, width: 50}} />
+          <div className="sidebar-title">CityRadar<br/>Barcelona</div>
         </div>
         <nav className="sidebar-nav">
           <button
@@ -191,18 +192,20 @@ function App() {
                   >
                     <span className="panel-toggle-icon">🔍</span>
                     {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
+                    <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
                     {panelOpen && activities.length > 0 && (
                       <span className="result-count-badge" style={{ marginLeft: 0 }}>
                         {activities.length} {activities.length === 1 ? 'actividad' : 'actividades'}
                       </span>
                     )}
-                    <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
                   </button>
                   {panelOpen && (
                     <QueryForm 
                       onSearch={handleSearch} 
                       onClear={handleClear}
                       isSearching={isSearching}
+                      isLoadingLocation={isLoadingLocation}
+                      setIsLoadingLocation={setIsLoadingLocation}
                       location={location}
                       setLocation={setLocation}
                       startDate={startDate}
@@ -230,6 +233,9 @@ function App() {
             </div>
           )}
         </main>
+        <footer className="App-footer">
+          <p>CityRadar Barcelona &copy; 2026 | Discover activities and events near you</p>
+        </footer>
       </div>
     </div>
   );

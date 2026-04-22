@@ -23,6 +23,8 @@ interface QueryFormProps {
   onClear?: () => void;
   resultCount?: number;
   isSearching?: boolean;
+  isLoadingLocation?: boolean;
+  setIsLoadingLocation?: (loading: boolean) => void;
   location: string;
   setLocation: (value: string) => void;
   startDate: string;
@@ -40,6 +42,8 @@ const QueryForm: React.FC<QueryFormProps> = ({
   onClear, 
   resultCount,
   isSearching = false,
+  isLoadingLocation = false,
+  setIsLoadingLocation,
   location,
   setLocation,
   startDate,
@@ -75,12 +79,17 @@ const QueryForm: React.FC<QueryFormProps> = ({
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
+      setIsLoadingLocation?.(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           setLocation(`${latitude},${longitude}`);
+          setIsLoadingLocation?.(false);
         },
-        () => alert("Unable to get location")
+        () => {
+          alert("Unable to get location");
+          setIsLoadingLocation?.(false);
+        }
       );
     } else {
       alert("Geolocation not supported");
@@ -105,9 +114,10 @@ const QueryForm: React.FC<QueryFormProps> = ({
               type="button"
               className="btn-icon"
               onClick={getCurrentLocation}
+              disabled={isLoadingLocation}
               title="Usar mi ubicación actual"
             >
-              📍
+              {isLoadingLocation ? <span className="spinner">⟳</span> : '📍'}
             </button>
           </div>
         </div>
