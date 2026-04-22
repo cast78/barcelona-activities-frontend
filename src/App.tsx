@@ -30,6 +30,7 @@ function App() {
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
   const [page, setPage] = useState<Page>('main');
   const [panelOpen, setPanelOpen] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -65,6 +66,7 @@ function App() {
   }
 
   const handleSearch = async ({ location, startDate, endDate, radius, categories }: { location: string, startDate: string, endDate: string, radius: number, categories: string[] }) => {
+    setIsSearching(true);
     try {
       const events = await fetchEvents();
       const registered = await fetchActivities();
@@ -123,8 +125,11 @@ function App() {
       }
       setActivities(filtered);
       setAllActivities([...events, ...registered]);
+      setPanelOpen(false);
     } catch (error) {
       console.error('Error fetching activities for search', error);
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -197,6 +202,7 @@ function App() {
                     <QueryForm 
                       onSearch={handleSearch} 
                       onClear={handleClear}
+                      isSearching={isSearching}
                       location={location}
                       setLocation={setLocation}
                       startDate={startDate}

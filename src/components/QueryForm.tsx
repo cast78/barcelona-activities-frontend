@@ -22,6 +22,7 @@ interface QueryFormProps {
   onSearch: (filters: { location: string; startDate: string; endDate: string; radius: number; categories: string[] }) => void;
   onClear?: () => void;
   resultCount?: number;
+  isSearching?: boolean;
   location: string;
   setLocation: (value: string) => void;
   startDate: string;
@@ -38,6 +39,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
   onSearch, 
   onClear, 
   resultCount,
+  isSearching = false,
   location,
   setLocation,
   startDate,
@@ -159,7 +161,13 @@ const QueryForm: React.FC<QueryFormProps> = ({
           </div>
         </div>
         <div className="form-actions">
-          <button type="submit" className="btn-primary">Buscar</button>
+          <button type="submit" className="btn-primary" disabled={isSearching}>
+            {isSearching ? (
+              <span className="spinner">⟳</span>
+            ) : (
+              'Buscar'
+            )}
+          </button>
           {onClear && (
             <button type="button" className="btn-secondary" onClick={handleClear}>
               Limpiar
