@@ -41,6 +41,26 @@
   gap: 0.5rem;
 }
 
+@media (max-width: 480px) {
+  .query-form-body {
+    padding: 0.5rem 0.75rem 0 0.75rem;
+  }
+
+  .form-row input,
+  .form-row select {
+    height: 28px;
+    padding: 0 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-icon {
+    height: 32px;
+    width: 32px;
+    min-width: 32px;
+    font-size: 0.9rem;
+  }
+}
+
 /* === FORM ROW === */
 .form-row {
   display: flex;
