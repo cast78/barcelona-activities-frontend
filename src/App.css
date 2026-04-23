@@ -283,8 +283,8 @@ body {
     color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     position: fixed;
-    right: 0.85rem;
-    top: 0.65rem;
+    right: 0.3rem;
+    top: 0.3rem;
     left: auto;
   }
 
