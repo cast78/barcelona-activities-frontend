@@ -126,7 +126,10 @@ function App() {
       }
       setActivities(filtered);
       setAllActivities([...events, ...registered]);
-      setPanelOpen(false);
+      // Auto-hide panel when there are activities to show, keep open if empty state
+      if (filtered.length > 0) {
+        setPanelOpen(false);
+      }
     } catch (error) {
       console.error('Error fetching activities for search', error);
     } finally {
@@ -182,7 +185,7 @@ function App() {
               <div className="map-fullscreen">
                 <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
                 {/* Botón de navegación del mapa */}
-                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Volver a Barcelona">🏠</button>
+                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona">🏠</button>
                 {/* Panel flotante colapsable */}
                 <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
                   <button
@@ -191,7 +194,7 @@ function App() {
                     aria-expanded={panelOpen}
                   >
                     <span className="panel-toggle-icon">🔍</span>
-                    {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
+                    {panelOpen && <span className="panel-toggle-label">Search</span>}
                     <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
                   </button>
                   {panelOpen && (
@@ -217,7 +220,7 @@ function App() {
               </div>
 
               {/* Lista de actividades como drawer inferior */}
-              <div className={`activities-drawer${activities.length === 0 ? ' activities-drawer--hidden' : ''}`}>
+              <div className="activities-drawer">
                 <ActivityList activities={activities} />
               </div>
             </>
@@ -229,7 +232,7 @@ function App() {
           )}
         </main>
         <footer className="App-footer">
-          <p>CityRadar Barcelona &copy; 2026 | Discover activities and events near you</p>
+          <p>CityRadar &copy; 2026 | Discover activities and events near you</p>
         </footer>
       </div>
     </div>

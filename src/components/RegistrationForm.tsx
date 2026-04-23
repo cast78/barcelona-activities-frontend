@@ -41,22 +41,22 @@ const RegistrationForm: React.FC = () => {
     setMessage(null);
 
     if (new Date(endDate) < new Date(startDate)) {
-      setMessage({ type: "error", text: "La fecha de fin debe ser posterior a la de inicio." });
+      setMessage({ type: "error", text: "End date must be after start date." });
       return;
     }
     if (!location.includes(",")) {
-      setMessage({ type: "error", text: "La ubicacion debe tener el formato latitud,longitud." });
+      setMessage({ type: "error", text: "Location must be in latitude,longitude format." });
       return;
     }
 
     setLoading(true);
     try {
       await addActivity({ name, body, start_date: startDate, end_date: endDate, geo_epgs_4326_latlon: location, category });
-      setMessage({ type: "success", text: "Actividad registrada correctamente." });
+      setMessage({ type: "success", text: "Activity registered successfully." });
       handleReset();
     } catch (error) {
       console.error("Failed to add activity", error);
-      setMessage({ type: "error", text: "Error al registrar la actividad. Intenta de nuevo." });
+      setMessage({ type: "error", text: "Error registering activity. Try again." });
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ const RegistrationForm: React.FC = () => {
     <div className="registration-card">
       <div className="registration-card-header">
         <span style={{ fontSize: "1.1rem" }}>📝</span>
-        <h2 className="registration-card-title">Nueva Actividad</h2>
+        <h2 className="registration-card-title">New Activity</h2>
       </div>
       <form onSubmit={handleSubmit} className="registration-card-body">
         {message && (
@@ -75,34 +75,34 @@ const RegistrationForm: React.FC = () => {
           </div>
         )}
         <div className="reg-field">
-          <label htmlFor="reg-name">Nombre de la actividad</label>
+          <label htmlFor="reg-name">Activity Name</label>
           <input
             id="reg-name"
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Ej: Senderismo por Montjuïc"
+            placeholder="E.g.: Hiking in Montjuïc"
             required
           />
         </div>
         <div className="reg-field">
-          <label htmlFor="reg-body">Descripción</label>
+          <label htmlFor="reg-body">Description</label>
           <textarea
             id="reg-body"
             value={body}
             onChange={e => setBody(e.target.value)}
-            placeholder="Describe la actividad..."
+            placeholder="Describe the activity..."
             required
           />
         </div>
         <div className="reg-field">
-          <label htmlFor="reg-category">Categoría</label>
+          <label htmlFor="reg-category">Category</label>
           <select
             id="reg-category"
             value={category}
             onChange={e => setCategory(e.target.value)}
           >
-            <option value="">— Sin categoría —</option>
+            <option value="">— No Category —</option>
             {CATEGORIES.map(cat => (
               <option key={cat.id} value={cat.id}>
                 {cat.emoji} {cat.label}
@@ -112,7 +112,7 @@ const RegistrationForm: React.FC = () => {
         </div>
         <div className="reg-date-row">
           <div className="reg-field">
-            <label htmlFor="reg-start">Fecha inicio</label>
+            <label htmlFor="reg-start">Start Date</label>
             <input
               id="reg-start"
               type="date"
@@ -122,7 +122,7 @@ const RegistrationForm: React.FC = () => {
             />
           </div>
           <div className="reg-field">
-            <label htmlFor="reg-end">Fecha fin</label>
+            <label htmlFor="reg-end">End Date</label>
             <input
               id="reg-end"
               type="date"
@@ -133,17 +133,17 @@ const RegistrationForm: React.FC = () => {
           </div>
         </div>
         <div className="reg-field">
-          <label htmlFor="reg-location">Ubicación</label>
+          <label htmlFor="reg-location">Location</label>
           <div className="location-input-group">
             <input
               id="reg-location"
               type="text"
               value={location}
               onChange={e => setLocation(e.target.value)}
-              placeholder="latitud,longitud"
+              placeholder="latitude,longitude"
               required
             />
-            <button type="button" className="btn-icon" onClick={getCurrentLocation} title="Usar mi ubicación">
+            <button type="button" className="btn-icon" onClick={getCurrentLocation} title="Use my location">
               📍
             </button>
           </div>
@@ -151,10 +151,10 @@ const RegistrationForm: React.FC = () => {
         </div>
         <div className="reg-actions">
           <button type="submit" className="reg-btn-submit" disabled={loading}>
-            {loading ? "Registrando..." : "Registrar Actividad"}
+            {loading ? "Registering..." : "Register Activity"}
           </button>
           <button type="button" className="reg-btn-reset" onClick={handleReset}>
-            Limpiar
+            Clear
           </button>
         </div>
       </form>

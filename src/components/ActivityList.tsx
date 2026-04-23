@@ -71,7 +71,7 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
               fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
               lineHeight: 1
             }}
-            aria-label="Cerrar"
+            aria-label="Close"
           >
             ✕
           </button>
@@ -79,10 +79,10 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
 
         {/* Modal body */}
         <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Descripción */}
+          {/* Description */}
           <div>
             <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
-              Descripción
+              Description
             </p>
             <p style={{ margin: 0, color: '#22223b', lineHeight: '1.7', fontSize: '0.95rem', whiteSpace: 'pre-line' }}>
               {activity.body || '—'}
@@ -92,11 +92,11 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
           {/* Fechas */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Fecha inicio</p>
+              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Start Date</p>
               <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.95rem' }}>📅 {formatDate(activity.start_date)}</p>
             </div>
             <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Fecha fin</p>
+              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>End Date</p>
               <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.95rem' }}>📅 {formatDate(activity.end_date)}</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
           {/* Ubicación */}
           {activity.geo_epgs_4326_latlon && (
             <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Ubicación</p>
+              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Location</p>
               <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.9rem', fontFamily: 'monospace' }}>
                 📍 {activity.geo_epgs_4326_latlon}
               </p>
@@ -122,13 +122,16 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
   return (
     <div style={{ margin: '2rem 0' }}>
       <h2 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
-        📋 Actividades Disponibles {activities.length > 0 && <span style={{color: '#667eea', fontWeight: 800}}>({activities.length})</span>}
+        📋 Available Activities <span style={{color: '#667eea', fontWeight: 800}}>({activities.length})</span>
       </h2>
 
       {activities.length === 0 ? (
-        <p style={{ color: '#999', textAlign: 'center', padding: '2rem' }}>
-          No hay actividades disponibles
-        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', textAlign: 'center', gap: '1.5rem' }}>
+          <img src="/City.jpeg" alt="No activities" style={{ width: '220px', height: '220px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
+          <p style={{ color: '#6b7280', fontSize: '0.95rem', margin: 0, lineHeight: '1.6', maxWidth: '300px' }}>
+            There are no activities nearby, based on the search parameters.
+          </p>
+        </div>
       ) : (
         <div style={{
           display: 'grid',

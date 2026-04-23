@@ -9,13 +9,13 @@ export interface CategoryChip {
 }
 
 export const CATEGORIES: CategoryChip[] = [
-  { id: "sport",    label: "Deporte",     emoji: "🏃", keywords: ["sport","deporte","running","futbol","basket","tennis","nataci","esport","atletis","padel","ciclis"] },
-  { id: "culture",  label: "Cultura",     emoji: "🎭", keywords: ["cultur","museu","museo","teatr","exposici","exposici","art","cine","cinema","patrimoni","literatu"] },
-  { id: "music",    label: "Música",      emoji: "🎵", keywords: ["music","concert","festival","jazz","rock","orquestr","dansa","ball","flamenco"] },
-  { id: "food",     label: "Gastro",      emoji: "🍽️", keywords: ["gastronom","restaurant","mercat","food","cuina","tast","vi","vermut","fira aliment"] },
-  { id: "family",   label: "Familiar",    emoji: "👨‍👩‍👧", keywords: ["famili","familiar","nens","kids","infantil","infants","jovent","escola"] },
-  { id: "nature",   label: "Natura",      emoji: "🌿", keywords: ["natura","parc","senderis","jardi","medi ambient","ecolog","bosc","platj","mar"] },
-  { id: "night",    label: "Ocio Nocturno", emoji: "🌙", keywords: ["nocturno","noche","nit","bar","discoteca","club","cocktail","pub","after","festa","party","nightclub","boite","copa","karaoke","flaming","brunch nocturn"] },
+  { id: "sport",    label: "Sport",     emoji: "🏃", keywords: ["sport","deporte","running","futbol","basket","tennis","nataci","esport","atletis","padel","ciclis"] },
+  { id: "culture",  label: "Culture",     emoji: "🎭", keywords: ["cultur","museu","museo","teatr","exposici","exposici","art","cine","cinema","patrimoni","literatu"] },
+  { id: "music",    label: "Music",      emoji: "🎵", keywords: ["music","concert","festival","jazz","rock","orquestr","dansa","ball","flamenco"] },
+  { id: "food",     label: "Gastronomy",      emoji: "🍽️", keywords: ["gastronom","restaurant","mercat","food","cuina","tast","vi","vermut","fira aliment"] },
+  { id: "family",   label: "Family",    emoji: "👨‍👩‍👧", keywords: ["famili","familiar","nens","kids","infantil","infants","jovent","escola"] },
+  { id: "nature",   label: "Nature",      emoji: "🌿", keywords: ["natura","parc","senderis","jardi","medi ambient","ecolog","bosc","platj","mar"] },
+  { id: "night",    label: "Night Life", emoji: "🌙", keywords: ["nocturno","noche","nit","bar","discoteca","club","cocktail","pub","after","festa","party","nightclub","boite","copa","karaoke","flaming","brunch nocturn"] },
 ];
 
 interface QueryFormProps {
@@ -100,14 +100,14 @@ const QueryForm: React.FC<QueryFormProps> = ({
     <form onSubmit={handleSubmit} className="query-form">
       <div className="query-form-body">
         <div className="form-row">
-          <label htmlFor="location">Ubicación</label>
+          <label htmlFor="location">Location</label>
           <div className="location-input-group">
             <input
               id="location"
               type="text"
               value={location}
               onChange={e => setLocation(e.target.value)}
-              placeholder="latitud,longitud"
+              placeholder="latitude,longitude"
               autoComplete="off"
             />
             <button
@@ -115,14 +115,14 @@ const QueryForm: React.FC<QueryFormProps> = ({
               className="btn-icon"
               onClick={getCurrentLocation}
               disabled={isLoadingLocation}
-              title="Usar mi ubicación actual"
+              title="Use my current location"
             >
               {isLoadingLocation ? <span className="spinner">⟳</span> : '📍'}
             </button>
           </div>
         </div>
         <div className="form-row">
-          <label htmlFor="startDate">Fecha inicio</label>
+          <label htmlFor="startDate">Start Date</label>
           <input
             id="startDate"
             type="date"
@@ -131,7 +131,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
           />
         </div>
         <div className="form-row">
-          <label htmlFor="endDate">Fecha fin</label>
+          <label htmlFor="endDate">End Date</label>
           <input
             id="endDate"
             type="date"
@@ -140,7 +140,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
           />
         </div>
         <div className="form-row">
-          <label htmlFor="radius">Radio de búsqueda</label>
+          <label htmlFor="radius">Search Radius</label>
           <select
             id="radius"
             value={radius}
@@ -154,7 +154,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
           </select>
         </div>
         <div className="form-row">
-          <label>Tipo de actividad</label>
+          <label>Activity Type</label>
           <div className="chip-group">
             {CATEGORIES.map(cat => (
               <button
@@ -175,12 +175,12 @@ const QueryForm: React.FC<QueryFormProps> = ({
             {isSearching ? (
               <span className="spinner">⟳</span>
             ) : (
-              'Buscar'
+              'Search'
             )}
           </button>
           {onClear && (
             <button type="button" className="btn-secondary" onClick={handleClear}>
-              Limpiar
+              Clear
             </button>
           )}
         </div>
