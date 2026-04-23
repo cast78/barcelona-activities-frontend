@@ -182,7 +182,7 @@ function App() {
               <div className="map-fullscreen">
                 <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
                 {/* Botón de navegación del mapa */}
-                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Volver a Barcelona">🏠</button>
+                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Volver a Barcelona"><img src="/punto.jfif" alt="Barcelona" style={{width: '20px', height: '20px'}} /></button>
                 {/* Panel flotante colapsable */}
                 <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
                   <button
