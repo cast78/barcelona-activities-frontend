@@ -273,7 +273,7 @@ body {
     background: #ffffff;
     left: 0.75rem;
     top: 0.75rem;
-    transform: translateX(-90%);
+    transform: translateX(-85%);
   }
 
   .floating-panel--collapsed .panel-toggle-btn {
