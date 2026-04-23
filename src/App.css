@@ -264,16 +264,16 @@ body {
 /* Mobile: Collapsed panel adjustments */
 @media (max-width: 480px) {
   .floating-panel--collapsed {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    min-height: 10px;
     background: #ffffff;
   }
 
   .floating-panel--collapsed .panel-toggle-btn {
-    width: 40px;
-    height: 40px;
+    width: 10px;
+    height: 10px;
     background: #ffffff;
     color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
@@ -284,7 +284,7 @@ body {
   }
 
   .floating-panel--collapsed .panel-toggle-icon {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 }
 
