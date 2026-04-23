@@ -126,9 +126,9 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
       </h2>
 
       {activities.length === 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', textAlign: 'center', gap: '1.5rem' }}>
-          <img src="/City.jpeg" alt="No activities" style={{ width: '220px', height: '220px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
-          <p style={{ color: '#6b7280', fontSize: '0.95rem', margin: 0, lineHeight: '1.6', maxWidth: '300px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem 1rem 2rem', textAlign: 'center', gap: '1rem' }}>
+          <img src="/City.jpeg" alt="No activities" style={{ width: '140px', height: '140px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
+          <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0, lineHeight: '1.6', maxWidth: '280px' }}>
             There are no activities nearby, based on the search parameters.
           </p>
         </div>

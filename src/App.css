@@ -261,6 +261,33 @@ body {
   display: none;
 }
 
+/* Mobile: Collapsed panel adjustments */
+@media (max-width: 480px) {
+  .floating-panel--collapsed {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    background: #ffffff;
+  }
+
+  .floating-panel--collapsed .panel-toggle-btn {
+    width: 40px;
+    height: 40px;
+    background: #ffffff;
+    color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+
+  .floating-panel--collapsed .panel-toggle-btn:hover {
+    background: #f5f5f5;
+  }
+
+  .floating-panel--collapsed .panel-toggle-icon {
+    font-size: 1.1rem;
+  }
+}
+
 /* Botón toggle del panel */
 .panel-toggle-btn {
   display: flex;
