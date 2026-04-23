@@ -182,7 +182,7 @@ function App() {
               <div className="map-fullscreen">
                 <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
                 {/* Botón de navegación del mapa */}
-                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Volver a Barcelona"><img src="/punto.jfif" alt="Barcelona" style={{width: '20px', height: '20px'}} /></button>
+                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Volver a Barcelona">🏠</button>
                 {/* Panel flotante colapsable */}
                 <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
                   <button
@@ -193,11 +193,6 @@ function App() {
                     <span className="panel-toggle-icon">🔍</span>
                     {panelOpen && <span className="panel-toggle-label">Búsqueda</span>}
                     <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
-                    {panelOpen && activities.length > 0 && (
-                      <span className="result-count-badge" style={{ marginLeft: 0 }}>
-                        {activities.length} {activities.length === 1 ? 'actividad' : 'actividades'}
-                      </span>
-                    )}
                   </button>
                   {panelOpen && (
                     <QueryForm 
