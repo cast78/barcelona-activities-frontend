@@ -230,9 +230,11 @@ body {
   height: 50px;
   min-width: 50px;
   min-height: 50px;
-  transform: translateX(0);
+  transform: translateX(-90%);
   background: var(--color-primary);
   overflow: visible;
+  left: 4rem;
+  top: 1rem;
 }
 
 .floating-panel--collapsed .panel-toggle-btn {
@@ -264,16 +266,19 @@ body {
 /* Mobile: Collapsed panel adjustments */
 @media (max-width: 480px) {
   .floating-panel--collapsed {
-    width: 10px;
-    height: 10px;
-    min-width: 10px;
-    min-height: 10px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     background: #ffffff;
+    left: 0.75rem;
+    top: 0.75rem;
+    transform: translateX(-90%);
   }
 
   .floating-panel--collapsed .panel-toggle-btn {
-    width: 10px;
-    height: 10px;
+    width: 40px;
+    height: 40px;
     background: #ffffff;
     color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
@@ -284,7 +289,7 @@ body {
   }
 
   .floating-panel--collapsed .panel-toggle-icon {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 }
 
