@@ -282,6 +282,10 @@ body {
     background: #ffffff;
     color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    position: fixed;
+    right: 0.75rem;
+    top: 0.75rem;
+    left: auto;
   }
 
   .floating-panel--collapsed .panel-toggle-btn:hover {
