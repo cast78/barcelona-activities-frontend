@@ -34,103 +34,100 @@ function App() {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Cargar actividades base
-        const events = await fetchEvents();
-        const registered = await fetchActivities();
-        const all = [...events, ...registered];
-        setAllActivities(all);
+    // Calcular fechas siempre: hoy y +10 días
+    const today = new Date();
+    const startDateStr = today.toISOString().split('T')[0];
+    const endDateObj = new Date(today);
+    endDateObj.setDate(endDateObj.getDate() + 10);
+    const endDateStr = endDateObj.toISOString().split('T')[0];
 
-        // Auto-obtener geolocalización y hacer búsqueda automática
-        if (navigator.geolocation) {
-          setIsLoadingLocation(true);
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const { latitude, longitude } = position.coords;
-              const locationStr = `${latitude},${longitude}`;
-              
-              // Calcular fechas (hoy y +10 días)
-              const today = new Date();
-              const startDateStr = today.toISOString().split('T')[0];
-              
-              const endDateObj = new Date(today);
-              endDateObj.setDate(endDateObj.getDate() + 10);
-              const endDateStr = endDateObj.toISOString().split('T')[0];
-              
-              // Establecer estados
-              setLocation(locationStr);
-              setStartDate(startDateStr);
-              setEndDate(endDateStr);
-              setRadius(5);
-              
-              // Ejecutar búsqueda automática
-              setIsLoadingLocation(false);
-              setIsSearching(true);
-              
-              try {
-                const searchEvents = await fetchEvents();
-                const searchRegistered = await fetchActivities();
-                let filtered = [...searchEvents, ...searchRegistered];
-                const userCoords: [number, number] = [latitude, longitude];
-                
-                // Aplicar filtros
-                filtered = filtered.filter(act => {
-                  if (!act.geo_epgs_4326_latlon) return false;
-                  const coords = act.geo_epgs_4326_latlon.split(',').map(Number);
-                  if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
-                  const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
-                  return dist <= 5;
-                });
-                
-                const startDate = new Date(startDateStr);
-                filtered = filtered.filter(act => {
-                  if (!act.start_date) return true;
-                  const actStart = new Date(act.start_date);
-                  return actStart >= startDate;
-                });
-                
-                const endDate = new Date(endDateStr);
-                filtered = filtered.filter(act => {
-                  if (!act.end_date) return true;
-                  const actEnd = new Date(act.end_date);
-                  return actEnd <= endDate;
-                });
-                
-                setActivities(filtered);
-                setLastLocation(locationStr);
-                setLastRadius(5);
-                
-                // Auto-hide panel si hay resultados
-                if (filtered.length > 0) {
-                  setPanelOpen(false);
-                }
-                
-                if (filtered.length > 0) {
-                  showNotification('CityRadar Barcelona', `Found ${filtered.length} activities nearby!`);
-                }
-              } catch (error) {
-                console.error('Failed to perform auto-search', error);
-                setActivities(all);
-              } finally {
-                setIsSearching(false);
-              }
-            },
-            () => {
-              setIsLoadingLocation(false);
-              // Si falla la geolocalización, mostrar todas las actividades
-              setActivities(all);
-            }
-          );
-        } else {
-          setActivities(all);
+    // Función de búsqueda con coordenadas y fechas
+    const runSearch = async (lat: number, lon: number, locStr: string) => {
+      setIsSearching(true);
+      try {
+        const searchEvents = await fetchEvents();
+        const searchRegistered = await fetchActivities();
+        let filtered = [...searchEvents, ...searchRegistered];
+        setAllActivities(filtered);
+
+        const userCoords: [number, number] = [lat, lon];
+        filtered = filtered.filter(act => {
+          if (!act.geo_epgs_4326_latlon) return false;
+          const coords = act.geo_epgs_4326_latlon.split(',').map(Number);
+          if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
+          const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
+          return dist <= 5;
+        });
+
+        const startObj = new Date(startDateStr);
+        const endObj = new Date(endDateStr);
+        filtered = filtered.filter(act => {
+          const actStart = act.start_date ? new Date(act.start_date) : null;
+          const actEnd = act.end_date ? new Date(act.end_date) : null;
+          // Excluir eventos que ya terminaron antes del inicio del rango
+          if (actEnd && !isNaN(actEnd.getTime()) && actEnd < startObj) return false;
+          // Excluir eventos que empiezan después del fin del rango
+          if (actStart && !isNaN(actStart.getTime()) && actStart > endObj) return false;
+          // Excluir eventos que empezaron antes de hoy y no tienen fecha de fin
+          if (actStart && !isNaN(actStart.getTime()) && actStart < startObj && (!actEnd || isNaN(actEnd.getTime()))) return false;
+          return true;
+        });
+
+        setActivities(filtered);
+        setLastLocation(locStr);
+        setLastRadius(5);
+
+        if (filtered.length > 0) {
+          setPanelOpen(false);
+          showNotification('CityRadar Barcelona', `Found ${filtered.length} activities nearby!`);
         }
       } catch (error) {
-        console.error('Failed to load data', error);
+        console.error('Failed to perform auto-search', error);
+      } finally {
+        setIsSearching(false);
       }
     };
-    
-    requestNotificationPermission();
+
+    const loadData = async () => {
+      // Establecer fechas en el formulario siempre
+      setStartDate(startDateStr);
+      setEndDate(endDateStr);
+
+      requestNotificationPermission();
+
+      // Barcelona como fallback
+      const BARCELONA_LAT = 41.3851;
+      const BARCELONA_LON = 2.1734;
+
+      if (navigator.geolocation) {
+        setIsLoadingLocation(true);
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            const locStr = `${latitude},${longitude}`;
+            setLocation(locStr);
+            setRadius(5);
+            setIsLoadingLocation(false);
+            await runSearch(latitude, longitude, locStr);
+          },
+          async () => {
+            // Sin permiso o error: usar Barcelona como centro
+            setIsLoadingLocation(false);
+            const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
+            setLocation(locStr);
+            setRadius(5);
+            await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
+          },
+          { timeout: 5000 }
+        );
+      } else {
+        const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
+        setLocation(locStr);
+        setRadius(5);
+        await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
+      }
+    };
+
     loadData();
   }, []);
 
@@ -178,20 +175,19 @@ function App() {
           return dist <= radius;
         });
       }
-      if (startDate) {
-        const start = new Date(startDate);
+      if (startDate || endDate) {
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
         filtered = filtered.filter(act => {
-          if (!act.start_date) return true;
-          const actStart = new Date(act.start_date);
-          return actStart >= start;
-        });
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        filtered = filtered.filter(act => {
-          if (!act.end_date) return true;
-          const actEnd = new Date(act.end_date);
-          return actEnd <= end;
+          const actStart = act.start_date ? new Date(act.start_date) : null;
+          const actEnd = act.end_date ? new Date(act.end_date) : null;
+          // Excluir eventos que ya terminaron antes del inicio del rango
+          if (start && actEnd && !isNaN(actEnd.getTime()) && actEnd < start) return false;
+          // Excluir eventos que empiezan después del fin del rango
+          if (end && actStart && !isNaN(actStart.getTime()) && actStart > end) return false;
+          // Excluir eventos que empezaron antes del inicio del rango y no tienen fecha de fin
+          if (start && actStart && !isNaN(actStart.getTime()) && actStart < start && (!actEnd || isNaN(actEnd.getTime()))) return false;
+          return true;
         });
       }
       if (categories && categories.length > 0) {
