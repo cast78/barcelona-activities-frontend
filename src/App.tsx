@@ -50,12 +50,12 @@ function App() {
               const { latitude, longitude } = position.coords;
               const locationStr = `${latitude},${longitude}`;
               
-              // Calcular fechas (hoy y +5 días)
+              // Calcular fechas (hoy y +10 días)
               const today = new Date();
               const startDateStr = today.toISOString().split('T')[0];
               
               const endDateObj = new Date(today);
-              endDateObj.setDate(endDateObj.getDate() + 5);
+              endDateObj.setDate(endDateObj.getDate() + 10);
               const endDateStr = endDateObj.toISOString().split('T')[0];
               
               // Establecer estados
