@@ -284,7 +284,7 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     position: fixed;
     right: 0.3rem;
-    top: 0.3rem;
+    top: 0.35rem;
     left: auto;
   }
 
@@ -445,7 +445,7 @@ body {
   }
   .floating-panel {
     width: 75vw;
-    max-width: 210px;
+    max-width: 240px;
     max-height: 58vh;
     top: 0.4rem;
     left: 0.4rem;
@@ -453,7 +453,7 @@ body {
 
   .floating-panel--collapsed {
     min-width: 45px;
-    min-height: 60px;
+    min-height: 10px;
   }
 
   .App-footer {
