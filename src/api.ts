@@ -10,6 +10,8 @@ export interface Activity {
   geo_epgs_4326_latlon: string;
   body: string;
   category?: string;
+  origen?: string;
+  direccion?: string;
 }
 
 export const fetchEvents = async (): Promise<Activity[]> => {
