@@ -36,18 +36,100 @@ function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Cargar actividades base
         const events = await fetchEvents();
         const registered = await fetchActivities();
         const all = [...events, ...registered];
-        setActivities(all);
         setAllActivities(all);
-        if (events.length > 0) {
-          showNotification('CityRadar Barcelona', `Found ${events.length} events nearby!`);
+
+        // Auto-obtener geolocalización y hacer búsqueda automática
+        if (navigator.geolocation) {
+          setIsLoadingLocation(true);
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+              const locationStr = `${latitude},${longitude}`;
+              
+              // Calcular fechas (hoy y +5 días)
+              const today = new Date();
+              const startDateStr = today.toISOString().split('T')[0];
+              
+              const endDateObj = new Date(today);
+              endDateObj.setDate(endDateObj.getDate() + 5);
+              const endDateStr = endDateObj.toISOString().split('T')[0];
+              
+              // Establecer estados
+              setLocation(locationStr);
+              setStartDate(startDateStr);
+              setEndDate(endDateStr);
+              setRadius(5);
+              
+              // Ejecutar búsqueda automática
+              setIsLoadingLocation(false);
+              setIsSearching(true);
+              
+              try {
+                const searchEvents = await fetchEvents();
+                const searchRegistered = await fetchActivities();
+                let filtered = [...searchEvents, ...searchRegistered];
+                const userCoords: [number, number] = [latitude, longitude];
+                
+                // Aplicar filtros
+                filtered = filtered.filter(act => {
+                  if (!act.geo_epgs_4326_latlon) return false;
+                  const coords = act.geo_epgs_4326_latlon.split(',').map(Number);
+                  if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
+                  const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
+                  return dist <= 5;
+                });
+                
+                const startDate = new Date(startDateStr);
+                filtered = filtered.filter(act => {
+                  if (!act.start_date) return true;
+                  const actStart = new Date(act.start_date);
+                  return actStart >= startDate;
+                });
+                
+                const endDate = new Date(endDateStr);
+                filtered = filtered.filter(act => {
+                  if (!act.end_date) return true;
+                  const actEnd = new Date(act.end_date);
+                  return actEnd <= endDate;
+                });
+                
+                setActivities(filtered);
+                setLastLocation(locationStr);
+                setLastRadius(5);
+                
+                // Auto-hide panel si hay resultados
+                if (filtered.length > 0) {
+                  setPanelOpen(false);
+                }
+                
+                if (filtered.length > 0) {
+                  showNotification('CityRadar Barcelona', `Found ${filtered.length} activities nearby!`);
+                }
+              } catch (error) {
+                console.error('Failed to perform auto-search', error);
+                setActivities(all);
+              } finally {
+                setIsSearching(false);
+              }
+            },
+            () => {
+              setIsLoadingLocation(false);
+              // Si falla la geolocalización, mostrar todas las actividades
+              setActivities(all);
+            }
+          );
+        } else {
+          setActivities(all);
         }
       } catch (error) {
         console.error('Failed to load data', error);
       }
     };
+    
     requestNotificationPermission();
     loadData();
   }, []);
