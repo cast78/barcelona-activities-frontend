@@ -9,6 +9,8 @@ interface Activity {
   geo_epgs_4326_latlon?: string;
   body: string;
   category?: string;
+  origen?: string;
+  direccion?: string;
 }
 
 interface ActivityListProps {
@@ -101,12 +103,22 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
             </div>
           </div>
 
-          {/* Ubicación */}
-          {activity.geo_epgs_4326_latlon && (
+          {/* Dirección */}
+          {activity.direccion && (
             <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Location</p>
-              <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.9rem', fontFamily: 'monospace' }}>
-                📍 {activity.geo_epgs_4326_latlon}
+              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Dirección</p>
+              <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.9rem' }}>
+                📍 {activity.direccion}
+              </p>
+            </div>
+          )}
+
+          {/* Fuente */}
+          {activity.origen && (
+            <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
+              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Fuente</p>
+              <p style={{ margin: 0, fontWeight: 500, color: activity.origen === 'mock' ? '#d97706' : '#059669', fontSize: '0.9rem' }}>
+                {activity.origen === 'mock' ? '⚠️ Datos de ejemplo' : `🌐 ${activity.origen}`}
               </p>
             </div>
           )}
@@ -189,6 +201,14 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                     {activity.body}
                   </p>
 
+                  {/* Dirección en tarjeta */}
+                  {activity.direccion && (
+                    <div style={{ fontSize: '0.75rem', color: '#6b7280', display: 'flex', alignItems: 'flex-start', gap: '0.25rem' }}>
+                      <span style={{ flexShrink: 0 }}>📍</span>
+                      <span style={{ lineHeight: 1.4 }}>{activity.direccion}</span>
+                    </div>
+                  )}
+
                   {/* Fechas compactas */}
                   <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
                     <span>📅 {formatDate(activity.start_date)}</span>
@@ -196,6 +216,19 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                       <span>→ {formatDate(activity.end_date)}</span>
                     )}
                   </div>
+
+                  {/* Badge de fuente */}
+                  {activity.origen && (
+                    <span style={{
+                      alignSelf: 'flex-start',
+                      fontSize: '0.68rem', fontWeight: 600,
+                      padding: '0.15rem 0.5rem', borderRadius: '20px',
+                      background: activity.origen === 'mock' ? '#fef3c7' : '#d1fae5',
+                      color: activity.origen === 'mock' ? '#92400e' : '#065f46'
+                    }}>
+                      {activity.origen === 'mock' ? '⚠️ ejemplo' : `🌐 ${activity.origen}`}
+                    </span>
+                  )}
 
                   {/* Botón detalle */}
                   <button
