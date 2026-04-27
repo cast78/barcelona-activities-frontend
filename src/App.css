@@ -279,12 +279,12 @@ body {
   .floating-panel--collapsed .panel-toggle-btn {
     width: 40px;
     height: 40px;
-    background: #ffffff;
+    background: #ffffffb7;
     color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     position: fixed;
     right: 0.3rem;
-    top: 0.3rem;
+    top: 0.25rem;
     left: auto;
   }
 
