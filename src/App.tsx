@@ -51,9 +51,10 @@ function App() {
         setAllActivities(filtered);
 
         const userCoords: [number, number] = [lat, lon];
+        const BCNFALLBACK = '41.3851,2.1734';
         filtered = filtered.filter(act => {
-          if (!act.geo_epgs_4326_latlon) return false;
-          const coords = act.geo_epgs_4326_latlon.split(',').map(Number);
+          const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
+          const coords = coordStr.split(',').map(Number);
           if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
           const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
           return dist <= 5;
@@ -167,9 +168,10 @@ function App() {
         setLastRadius(undefined);
       }
       if (userCoords) {
+        const BCNFALLBACK = '41.3851,2.1734';
         filtered = filtered.filter(act => {
-          if (!act.geo_epgs_4326_latlon) return false;
-          const coords = act.geo_epgs_4326_latlon.split(',').map(Number);
+          const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
+          const coords = coordStr.split(',').map(Number);
           if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1]) || !userCoords) return false;
           const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
           return dist <= radius;

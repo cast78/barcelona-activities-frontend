@@ -5,12 +5,14 @@ interface Activity {
   id: string;
   name: string;
   start_date: string;
+  start_time?: string;
   end_date: string;
   geo_epgs_4326_latlon?: string;
   body: string;
   category?: string;
   origen?: string;
   direccion?: string;
+  venue_name?: string;
 }
 
 interface ActivityListProps {
@@ -22,6 +24,13 @@ function formatDate(d: string) {
   const date = new Date(d);
   if (isNaN(date.getTime())) return d;
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatTime(t?: string): string {
+  if (!t) return '';
+  // HH:MM:SS → HH:MM
+  const match = t.match(/^(\d{2}:\d{2})/);
+  return match ? match[1] : '';
 }
 
 const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
@@ -96,6 +105,9 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
             <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
               <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Start Date</p>
               <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.95rem' }}>📅 {formatDate(activity.start_date)}</p>
+              {formatTime(activity.start_time) && (
+                <p style={{ margin: '0.2rem 0 0', fontWeight: 500, color: '#667eea', fontSize: '0.88rem' }}>🕐 {formatTime(activity.start_time)}</p>
+              )}
             </div>
             <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
               <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>End Date</p>
@@ -103,13 +115,20 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
             </div>
           </div>
 
-          {/* Dirección */}
-          {activity.direccion && (
+          {/* Lugar / Venue */}
+          {(activity.venue_name || activity.direccion) && (
             <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Dirección</p>
-              <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.9rem' }}>
-                📍 {activity.direccion}
-              </p>
+              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Lugar</p>
+              {activity.venue_name && (
+                <p style={{ margin: '0 0 0.15rem', fontWeight: 600, color: '#22223b', fontSize: '0.95rem' }}>
+                  🏛️ {activity.venue_name}
+                </p>
+              )}
+              {activity.direccion && (
+                <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.88rem' }}>
+                  📍 {activity.direccion}
+                </p>
+              )}
             </div>
           )}
 
@@ -201,17 +220,23 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                     {activity.body}
                   </p>
 
-                  {/* Dirección en tarjeta */}
-                  {activity.direccion && (
+                  {/* Lugar del evento */}
+                  {(activity.venue_name || activity.direccion) && (
                     <div style={{ fontSize: '0.75rem', color: '#6b7280', display: 'flex', alignItems: 'flex-start', gap: '0.25rem' }}>
                       <span style={{ flexShrink: 0 }}>📍</span>
-                      <span style={{ lineHeight: 1.4 }}>{activity.direccion}</span>
+                      <span style={{ lineHeight: 1.4 }}>
+                        {activity.venue_name
+                          ? (activity.direccion
+                            ? `${activity.venue_name} · ${activity.direccion}`
+                            : activity.venue_name)
+                          : activity.direccion}
+                      </span>
                     </div>
                   )}
 
                   {/* Fechas compactas */}
-                  <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
-                    <span>📅 {formatDate(activity.start_date)}</span>
+                  <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#6b7280', flexWrap: 'wrap' }}>
+                    <span>📅 {formatDate(activity.start_date)}{formatTime(activity.start_time) ? ` · 🕐 ${formatTime(activity.start_time)}` : ''}</span>
                     {activity.end_date && activity.end_date !== activity.start_date && (
                       <span>→ {formatDate(activity.end_date)}</span>
                     )}

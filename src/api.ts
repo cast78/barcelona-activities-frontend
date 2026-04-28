@@ -6,12 +6,14 @@ export interface Activity {
   id: string;
   name: string;
   start_date: string;
+  start_time?: string;
   end_date: string;
   geo_epgs_4326_latlon: string;
   body: string;
   category?: string;
   origen?: string;
   direccion?: string;
+  venue_name?: string;
 }
 
 export const fetchEvents = async (startDate?: string, endDate?: string): Promise<Activity[]> => {
