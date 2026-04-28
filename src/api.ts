@@ -14,8 +14,11 @@ export interface Activity {
   direccion?: string;
 }
 
-export const fetchEvents = async (): Promise<Activity[]> => {
-  const response = await axios.get(`${API_BASE_URL}/events`);
+export const fetchEvents = async (startDate?: string, endDate?: string): Promise<Activity[]> => {
+  const params: Record<string, string> = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  const response = await axios.get(`${API_BASE_URL}/events`, { params });
   return response.data;
 };
 

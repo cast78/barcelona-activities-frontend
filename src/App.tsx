@@ -45,7 +45,7 @@ function App() {
     const runSearch = async (lat: number, lon: number, locStr: string) => {
       setIsSearching(true);
       try {
-        const searchEvents = await fetchEvents();
+        const searchEvents = await fetchEvents(startDateStr, endDateStr);
         const searchRegistered = await fetchActivities();
         let filtered = [...searchEvents, ...searchRegistered];
         setAllActivities(filtered);
@@ -148,7 +148,7 @@ function App() {
   const handleSearch = async ({ location, startDate, endDate, radius, categories }: { location: string, startDate: string, endDate: string, radius: number, categories: string[] }) => {
     setIsSearching(true);
     try {
-      const events = await fetchEvents();
+      const events = await fetchEvents(startDate, endDate);
       const registered = await fetchActivities();
       let filtered = [...events, ...registered];
       let userCoords: [number, number] | null = null;
@@ -177,7 +177,7 @@ function App() {
       }
       if (startDate || endDate) {
         const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
+        const end = endDate ? new Date(endDate + 'T23:59:59') : null;
         filtered = filtered.filter(act => {
           const actStart = act.start_date ? new Date(act.start_date) : null;
           const actEnd = act.end_date ? new Date(act.end_date) : null;
