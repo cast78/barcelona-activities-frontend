@@ -232,7 +232,7 @@ body {
   min-width: 50px;
   min-height: 50px;
   transform: translateX(-90%);
-  background: var(--color-primary);
+  background: #ffffff; 
   overflow: visible;
   left: 4rem;
   top: 1rem;
@@ -243,7 +243,7 @@ body {
   height: 50px;
   padding: 0;
   gap: 0;
-  background: var(--color-primary);
+  background: #ffffff; 
   color: #fff;
   border-radius: 50%;
   display: flex;
@@ -252,7 +252,7 @@ body {
 }
 
 .floating-panel--collapsed .panel-toggle-btn:hover {
-  background: var(--color-primary-hover);
+  background: #bae2f6a4;
 }
 
 .floating-panel--collapsed .panel-toggle-icon {
@@ -285,7 +285,7 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     position: fixed;
     right: 0.3rem;
-    top: 0.15rem;
+    top: 0.1rem;
     left: auto;
   }
 
@@ -632,8 +632,8 @@ body {
   }
 
   .radar-widget {
-    width: 310px;
-    height: 310px;
+    width: 410px;
+    height: 410px;
   }
 
   .App-footer {
@@ -675,8 +675,8 @@ body {
   }
 
   .radar-widget {
-    width: 270px;
-    height: 270px;
+    width: 370px;
+    height: 370px;
   }
 
   .App-footer {
