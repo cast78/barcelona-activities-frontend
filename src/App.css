@@ -147,9 +147,10 @@ body {
 /* === LAYOUT MAP-FIRST === */
 .map-fullscreen {
   position: relative;
-  flex: 0 0 53%;
+  flex: 1;
   min-height: 0;
   z-index: 0;
+  overflow: hidden;
 }
 
 /* Botones de navegación del mapa */
@@ -183,10 +184,10 @@ body {
 /* Botón de navegación del mapa (Barcelona) */
 .map-nav-btn-barcelona {
   position: absolute;
-  bottom: 1.5rem;
-  right: 1rem;
+  top: 86px;
+  right: 10px;
   width: 30px;
-  height: 40px;
+  height: 30px;
   background: #fff;
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 4px;
@@ -198,7 +199,7 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   transition: background 0.15s;
   padding: 0;
-  z-index: 1000;
+  z-index: 1002;
 }
 
 .map-nav-btn-barcelona:hover {
@@ -340,18 +341,214 @@ body {
   transform: rotate(180deg);
 }
 
-/* Lista de actividades (debajo del mapa, flujo normal) */
-.activities-drawer {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+/* === BOTTOM SHEET === */
+.bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: 0.75rem 1rem 1rem;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 32px rgba(34,34,59,0.2);
+  transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1001;
+  max-height: 42vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.activities-drawer--hidden {
-  display: none;
+.bottom-sheet--collapsed {
+  transform: translateY(calc(100% - 64px));
+}
+
+.bottom-sheet--expanded {
+  transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.2rem;
+  height: 64px;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  gap: 0.75rem;
+  user-select: none;
+}
+
+.bottom-sheet-handle:hover {
+  background: #f8f8fc;
+  border-radius: 16px 16px 0 0;
+}
+
+.bottom-sheet-pill-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bottom-sheet-pill {
+  width: 36px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+.bottom-sheet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.bottom-sheet-count {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.bottom-sheet-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.bottom-sheet-chevron {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  transition: transform 0.3s;
+}
+
+.bottom-sheet-chevron--up {
+  transform: rotate(180deg);
+}
+
+.bottom-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 1rem 1rem;
+  min-height: 0;
+}
+
+/* === RADAR LOADING OVERLAY === */
+.radar-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 34, 59, 0.12);
+  backdrop-filter: blur(1.5px);
+  pointer-events: none;
+}
+
+.radar-widget {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  animation: radarPulse 2.4s ease-in-out infinite;
+}
+
+.radar-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(102, 126, 234, 0.45);
+}
+
+.radar-ring--outer {
+  inset: 0;
+}
+
+.radar-ring--mid {
+  inset: 22%;
+  border-color: rgba(102, 126, 234, 0.55);
+}
+
+.radar-ring--inner {
+  inset: 42%;
+  border-color: rgba(102, 126, 234, 0.65);
+}
+
+.radar-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 260deg,
+    rgba(102, 126, 234, 0.08) 280deg,
+    rgba(102, 126, 234, 0.35) 350deg,
+    rgba(102, 126, 234, 0.6) 358deg,
+    transparent 360deg
+  );
+  animation: radarSweep 1.8s linear infinite;
+}
+
+.radar-crosshair {
+  position: absolute;
+  inset: 0;
+}
+
+.radar-crosshair::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: rgba(102, 126, 234, 0.25);
+  transform: translateX(-50%);
+}
+
+.radar-crosshair::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(102, 126, 234, 0.25);
+  transform: translateY(-50%);
+}
+
+.radar-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px 3px rgba(102, 126, 234, 0.5);
+}
+
+.radar-label {
+  position: absolute;
+  bottom: -2.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(255,255,255,0.95);
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes radarPulse {
+  0%   { opacity: 0.75; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.75; }
 }
 
 
@@ -430,6 +627,15 @@ body {
     min-height: 45px;
   }
 
+  .bottom-sheet {
+    max-height: 55vh;
+  }
+
+  .radar-widget {
+    width: 160px;
+    height: 160px;
+  }
+
   .App-footer {
     padding: 1rem 1rem;
     font-size: 0.75rem;
@@ -454,6 +660,23 @@ body {
   .floating-panel--collapsed {
     min-width: 45px;
     min-height: 10px;
+  }
+
+  .bottom-sheet {
+    max-height: 50vh;
+  }
+
+  .bottom-sheet-handle {
+    height: 54px;
+  }
+
+  .bottom-sheet--collapsed {
+    transform: translateY(calc(100% - 54px));
+  }
+
+  .radar-widget {
+    width: 130px;
+    height: 130px;
   }
 
   .App-footer {

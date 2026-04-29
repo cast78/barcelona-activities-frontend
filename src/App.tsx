@@ -13,6 +13,52 @@ const EditIcon = FaRegEdit as React.ElementType;
 
 type Page = 'main' | 'register';
 
+// Bottom sheet component that manages its own open/close state
+function BottomSheetPanel({ activities, isSearching }: { activities: Activity[]; isSearching: boolean }) {
+  const [open, setOpen] = useState(false);
+
+  // Auto-open when results arrive, auto-close when searching starts
+  useEffect(() => {
+    if (isSearching) {
+      setOpen(false);
+    } else if (activities.length > 0) {
+      setOpen(true);
+    }
+  }, [isSearching, activities.length]);
+
+  return (
+    <div className={`bottom-sheet${open ? ' bottom-sheet--expanded' : ' bottom-sheet--collapsed'}`}>
+      <div
+        className="bottom-sheet-handle"
+        role="button"
+        aria-expanded={open}
+        aria-label="Toggle activity list"
+        onClick={() => setOpen(o => !o)}
+      >
+        <div className="bottom-sheet-pill-wrap">
+          <div className="bottom-sheet-pill" />
+        </div>
+        <div className="bottom-sheet-info">
+          <span className="bottom-sheet-count">
+            {isSearching
+              ? 'Searching activities...'
+              : activities.length > 0
+                ? `${activities.length} activit${activities.length === 1 ? 'y' : 'ies'} found`
+                : 'No activities — adjust filters'}
+          </span>
+          {!isSearching && activities.length > 0 && (
+            <span className="bottom-sheet-hint">Tap to {open ? 'hide' : 'see'} the list</span>
+          )}
+        </div>
+        <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
+      </div>
+      <div className="bottom-sheet-body">
+        <ActivityList activities={activities} />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [allActivities, setAllActivities] = useState<Activity[]>([]);
@@ -29,7 +75,7 @@ function App() {
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
   const [page, setPage] = useState<Page>('main');
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
@@ -77,9 +123,9 @@ function App() {
         setActivities(filtered);
         setLastLocation(locStr);
         setLastRadius(5);
+        setPanelOpen(false);
 
         if (filtered.length > 0) {
-          setPanelOpen(false);
           showNotification('CityRadar Barcelona', `Found ${filtered.length} activities nearby!`);
         }
       } catch (error) {
@@ -148,6 +194,7 @@ function App() {
 
   const handleSearch = async ({ location, startDate, endDate, radius, categories }: { location: string, startDate: string, endDate: string, radius: number, categories: string[] }) => {
     setIsSearching(true);
+    setPanelOpen(false);
     try {
       const events = await fetchEvents(startDate, endDate);
       const registered = await fetchActivities();
@@ -206,10 +253,6 @@ function App() {
       }
       setActivities(filtered);
       setAllActivities([...events, ...registered]);
-      // Auto-hide panel when there are activities to show, keep open if empty state
-      if (filtered.length > 0) {
-        setPanelOpen(false);
-      }
     } catch (error) {
       console.error('Error fetching activities for search', error);
     } finally {
@@ -261,12 +304,26 @@ function App() {
         <main className="App-main">
           {page === 'main' && (
             <>
-              {/* Mapa con panel flotante dentro */}
+              {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
                 <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
-                {/* Botón de navegación del mapa */}
-                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona">🏠</button>
-                {/* Panel flotante colapsable */}
+
+                {/* Radar overlay mientras se buscan/cargan actividades */}
+                {isSearching && (
+                  <div className="radar-overlay">
+                    <div className="radar-widget">
+                      <div className="radar-ring radar-ring--outer" />
+                      <div className="radar-ring radar-ring--mid" />
+                      <div className="radar-ring radar-ring--inner" />
+                      <div className="radar-sweep" />
+                      <div className="radar-crosshair" />
+                      <div className="radar-dot" />
+                      <span className="radar-label">Scanning...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Panel flotante de búsqueda (arriba-izquierda) */}
                 <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
                   <button
                     className="panel-toggle-btn"
@@ -278,8 +335,8 @@ function App() {
                     <span className={`panel-toggle-chevron${panelOpen ? ' panel-toggle-chevron--open' : ''}`}>▲</span>
                   </button>
                   {panelOpen && (
-                    <QueryForm 
-                      onSearch={handleSearch} 
+                    <QueryForm
+                      onSearch={handleSearch}
                       onClear={handleClear}
                       isSearching={isSearching}
                       isLoadingLocation={isLoadingLocation}
@@ -297,11 +354,12 @@ function App() {
                     />
                   )}
                 </div>
-              </div>
 
-              {/* Lista de actividades como drawer inferior */}
-              <div className="activities-drawer">
-                <ActivityList activities={activities} />
+                {/* Botón volver a Barcelona */}
+                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona">🏠</button>
+
+                {/* Bottom sheet de actividades — se abre de abajo hacia arriba */}
+                <BottomSheetPanel activities={activities} isSearching={isSearching} />
               </div>
             </>
           )}

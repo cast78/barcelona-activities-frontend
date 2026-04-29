@@ -171,12 +171,8 @@ const QueryForm: React.FC<QueryFormProps> = ({
           </div>
         </div>
         <div className="form-actions">
-          <button type="submit" className="btn-primary" disabled={isSearching}>
-            {isSearching ? (
-              <span className="spinner">⟳</span>
-            ) : (
-              'Search'
-            )}
+          <button type="submit" className="btn-primary">
+            Search
           </button>
           {onClear && (
             <button type="button" className="btn-secondary" onClick={handleClear}>

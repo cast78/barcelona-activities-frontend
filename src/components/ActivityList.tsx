@@ -151,11 +151,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
 
   return (
-    <div style={{ margin: '2rem 0' }}>
-      <h2 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
-        📋 Available Activities <span style={{color: '#667eea', fontWeight: 800}}>({activities.length})</span>
-      </h2>
-
+    <div style={{ margin: '0.5rem 0' }}>
       {activities.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem 1rem 2rem', textAlign: 'center', gap: '1rem' }}>
           <img src="/City.jpeg" alt="No activities" style={{ width: '140px', height: '140px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
