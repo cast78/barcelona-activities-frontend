@@ -186,8 +186,8 @@ body {
   position: absolute;
   top: 86px;
   right: 10px;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   background: #fff;
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 4px;
@@ -280,7 +280,7 @@ body {
   .floating-panel--collapsed .panel-toggle-btn {
     width: 40px;
     height: 40px;
-    background: #ffffffb7;
+    background: #ffffff8a;
     color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     position: fixed;
@@ -632,8 +632,8 @@ body {
   }
 
   .radar-widget {
-    width: 410px;
-    height: 410px;
+    width: 510px;
+    height: 510px;
   }
 
   .App-footer {
@@ -675,8 +675,8 @@ body {
   }
 
   .radar-widget {
-    width: 370px;
-    height: 370px;
+    width: 470px;
+    height: 470px;
   }
 
   .App-footer {
