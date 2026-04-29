@@ -318,7 +318,7 @@ function App() {
                       <div className="radar-sweep" />
                       <div className="radar-crosshair" />
                       <div className="radar-dot" />
-                      <span className="radar-label">Scanning...</span>
+                      <span className="radar-label">CityRadar Scanning...</span>
                     </div>
                   </div>
                 )}

@@ -186,20 +186,20 @@ body {
   position: absolute;
   top: 86px;
   right: 10px;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   background: #fff;
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65);
   transition: background 0.15s;
   padding: 0;
-  z-index: 1002;
+  z-index: 400;
 }
 
 .map-nav-btn-barcelona:hover {
@@ -446,8 +446,8 @@ body {
 
 .radar-widget {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 550px;
+  height: 550px;
   animation: radarPulse 2.4s ease-in-out infinite;
 }
 
@@ -632,8 +632,8 @@ body {
   }
 
   .radar-widget {
-    width: 160px;
-    height: 160px;
+    width: 310px;
+    height: 310px;
   }
 
   .App-footer {
@@ -675,8 +675,8 @@ body {
   }
 
   .radar-widget {
-    width: 130px;
-    height: 130px;
+    width: 270px;
+    height: 270px;
   }
 
   .App-footer {
