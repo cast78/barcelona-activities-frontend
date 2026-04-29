@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
+import { MdGpsFixed } from 'react-icons/md';
 import QueryForm, { CATEGORIES } from './components/QueryForm';
 import ActivityList from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
@@ -10,6 +11,7 @@ import { requestNotificationPermission, showNotification } from './notifications
 
 const HomeIcon = FaHome as React.ElementType;
 const EditIcon = FaRegEdit as React.ElementType;
+const GpsIcon = MdGpsFixed as React.ElementType;
 
 type Page = 'main' | 'register';
 
@@ -356,7 +358,7 @@ function App() {
                 </div>
 
                 {/* Botón volver a Barcelona */}
-                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona">🏠</button>
+                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona"><GpsIcon size={16} color="#333" /></button>
 
                 {/* Bottom sheet de actividades — se abre de abajo hacia arriba */}
                 <BottomSheetPanel activities={activities} isSearching={isSearching} />
