@@ -300,7 +300,7 @@ function App() {
       <div className="App-content">
         <header className="App-header">
           <div>
-            <h1>{page === "main" ? "Explore nearby activities and events" : "Register Activities"}</h1>
+            <h1>{page === "main" ? "Explore nearby activities" : "Register Activities"}</h1>
           </div>
         </header>
         <main className="App-main">
@@ -320,7 +320,7 @@ function App() {
                       <div className="radar-sweep" />
                       <div className="radar-crosshair" />
                       <div className="radar-dot" />
-                      <span className="radar-label">CityRadar Scanning...</span>
+                      <span className="radar-label">CityRadar Scanning</span>
                     </div>
                   </div>
                 )}

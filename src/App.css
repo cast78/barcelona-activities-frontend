@@ -123,7 +123,7 @@ body {
   font-size: 1.4rem;
   font-weight: 600;
   margin: 0;
-  color: var(--color-text);
+  color: var(--color-primary);
   letter-spacing: -0.2px;
 }
 
@@ -531,11 +531,10 @@ body {
   bottom: -2.8rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.78rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--color-primary);
-  letter-spacing: 3px;
-  text-transform: uppercase;
+  letter-spacing: 2px;
   white-space: nowrap;
   text-shadow: 0 1px 6px rgba(255,255,255,0.95);
 }

@@ -48,7 +48,7 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: '16px', maxWidth: '540px', width: '100%',
+          background: '#fff', borderRadius: '16px', maxWidth: '420px', width: '100%',
           boxShadow: '0 8px 40px rgba(34,34,59,0.18)', overflow: 'hidden',
           display: 'flex', flexDirection: 'column', maxHeight: '90vh'
         }}
@@ -56,7 +56,7 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
         {/* Modal header */}
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: '#fff', padding: '1.5rem 1.5rem 1.25rem',
+          color: '#fff', padding: '1.1rem 1.1rem 1rem',
           position: 'relative'
         }}>
           {cat && (
@@ -89,43 +89,42 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
         </div>
 
         {/* Modal body */}
-        <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ padding: '0.9rem 1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
           {/* Description */}
           <div>
-            <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
+            <p style={{ margin: '0 0 0.25rem', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
               Description
             </p>
-            <p style={{ margin: 0, color: '#22223b', lineHeight: '1.7', fontSize: '0.95rem', whiteSpace: 'pre-line' }}>
+            <p style={{ margin: 0, color: '#22223b', lineHeight: '1.55', fontSize: '0.85rem', whiteSpace: 'pre-line' }}>
               {activity.body || '—'}
             </p>
           </div>
 
-          {/* Fechas */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Start Date</p>
-              <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.95rem' }}>📅 {formatDate(activity.start_date)}</p>
-              {formatTime(activity.start_time) && (
-                <p style={{ margin: '0.2rem 0 0', fontWeight: 500, color: '#667eea', fontSize: '0.88rem' }}>🕐 {formatTime(activity.start_time)}</p>
-              )}
+          {/* Fecha + Hora en fila */}
+          <div style={{ display: 'grid', gridTemplateColumns: formatTime(activity.start_time) ? '1fr 1fr' : '1fr', gap: '0.5rem' }}>
+            <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+              <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Date</p>
+              <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>📅 {formatDate(activity.start_date)}</p>
             </div>
-            <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>End Date</p>
-              <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.95rem' }}>📅 {formatDate(activity.end_date)}</p>
-            </div>
+            {formatTime(activity.start_time) && (
+              <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+                <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Time</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#667eea', fontSize: '0.85rem' }}>🕐 {formatTime(activity.start_time)}</p>
+              </div>
+            )}
           </div>
 
           {/* Lugar / Venue */}
           {(activity.venue_name || activity.direccion) && (
-            <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Lugar</p>
+            <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+              <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Lugar</p>
               {activity.venue_name && (
-                <p style={{ margin: '0 0 0.15rem', fontWeight: 600, color: '#22223b', fontSize: '0.95rem' }}>
+                <p style={{ margin: activity.direccion ? '0 0 0.1rem' : '0', fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>
                   🏛️ {activity.venue_name}
                 </p>
               )}
               {activity.direccion && (
-                <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.88rem' }}>
+                <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.8rem' }}>
                   📍 {activity.direccion}
                 </p>
               )}
@@ -134,9 +133,9 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
 
           {/* Fuente */}
           {activity.origen && (
-            <div style={{ background: '#f7f7fa', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Fuente</p>
-              <p style={{ margin: 0, fontWeight: 500, color: activity.origen === 'mock' ? '#d97706' : '#059669', fontSize: '0.9rem' }}>
+            <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+              <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Fuente</p>
+              <p style={{ margin: 0, fontWeight: 500, color: activity.origen === 'mock' ? '#d97706' : '#059669', fontSize: '0.82rem' }}>
                 {activity.origen === 'mock' ? '⚠️ Datos de ejemplo' : `🌐 ${activity.origen}`}
               </p>
             </div>
