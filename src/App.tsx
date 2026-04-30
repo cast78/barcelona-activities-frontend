@@ -3,7 +3,7 @@ import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
 import QueryForm, { CATEGORIES } from './components/QueryForm';
-import ActivityList from './components/ActivityList';
+import ActivityList, { ActivityModal } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
 import { fetchEvents, fetchActivities, Activity } from './api';
@@ -67,12 +67,13 @@ function App() {
   const [lastLocation, setLastLocation] = useState<string | undefined>(undefined);
   const [lastRadius, setLastRadius] = useState<number | undefined>(undefined);
   const [centerOn, setCenterOn] = useState<CenterOn | null>(null);
+  const [selectedMapActivity, setSelectedMapActivity] = useState<Activity | null>(null);
   
   // Estado del formulario
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [radius, setRadius] = useState(5);
+  const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
@@ -86,7 +87,7 @@ function App() {
     const today = new Date();
     const startDateStr = today.toISOString().split('T')[0];
     const endDateObj = new Date(today);
-    endDateObj.setDate(endDateObj.getDate() + 10);
+    endDateObj.setDate(endDateObj.getDate() + 3);
     const endDateStr = endDateObj.toISOString().split('T')[0];
 
     // Función de búsqueda con coordenadas y fechas
@@ -138,6 +139,8 @@ function App() {
     };
 
     const loadData = async () => {
+      // Mostrar radar inmediatamente al cargar
+      setIsSearching(true);
       // Establecer fechas en el formulario siempre
       setStartDate(startDateStr);
       setEndDate(endDateStr);
@@ -155,7 +158,7 @@ function App() {
             const { latitude, longitude } = position.coords;
             const locStr = `${latitude},${longitude}`;
             setLocation(locStr);
-            setRadius(5);
+            setRadius(2);
             setIsLoadingLocation(false);
             await runSearch(latitude, longitude, locStr);
           },
@@ -164,7 +167,7 @@ function App() {
             setIsLoadingLocation(false);
             const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
             setLocation(locStr);
-            setRadius(5);
+            setRadius(2);
             await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
           },
           { timeout: 5000 }
@@ -172,7 +175,7 @@ function App() {
       } else {
         const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
         setLocation(locStr);
-        setRadius(5);
+        setRadius(2);
         await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
       }
     };
@@ -269,7 +272,7 @@ function App() {
     setLocation("");
     setStartDate("");
     setEndDate("");
-    setRadius(5);
+    setRadius(2);
     setSelectedCategories([]);
   };
 
@@ -300,7 +303,7 @@ function App() {
       <div className="App-content">
         <header className="App-header">
           <div>
-            <h1>{page === "main" ? "Explore nearby activities" : "Register Activities"}</h1>
+            <h1>{page === "main" ? "Explore nearby activities and events" : "Register Activities"}</h1>
           </div>
         </header>
         <main className="App-main">
@@ -308,7 +311,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} />
 
                 {/* Radar overlay mientras se buscan/cargan actividades */}
                 {isSearching && (
@@ -318,9 +321,10 @@ function App() {
                       <div className="radar-ring radar-ring--mid" />
                       <div className="radar-ring radar-ring--inner" />
                       <div className="radar-sweep" />
+                      <div className="radar-sweep radar-sweep--reverse" />
                       <div className="radar-crosshair" />
                       <div className="radar-dot" />
-                      <span className="radar-label">CityRadar Scanning</span>
+                      <span className="radar-label">CityRadar Scanning...</span>
                     </div>
                   </div>
                 )}
@@ -375,6 +379,14 @@ function App() {
           <p>CityRadar &copy; 2026 | Discover activities and events near you</p>
         </footer>
       </div>
+
+      {/* Modal de detalle abierto desde el mapa */}
+      {selectedMapActivity && (
+        <ActivityModal
+          activity={selectedMapActivity}
+          onClose={() => setSelectedMapActivity(null)}
+        />
+      )}
     </div>
   );
 }

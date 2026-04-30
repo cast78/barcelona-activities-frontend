@@ -7,6 +7,7 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { Activity } from '../api';
 
 // Fix Leaflet marker icons for React-Leaflet
 // @ts-ignore
@@ -15,13 +16,6 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
-
-interface Activity {
-  id: string;
-  name: string;
-  geo_epgs_4326_latlon: string;
-  body: string;
-}
 
 export interface CenterOn {
   lat: number;
@@ -34,6 +28,7 @@ interface MapComponentProps {
   userLocation?: string;
   radiusKm?: number;
   centerOn?: CenterOn | null;
+  onActivitySelect?: (activity: Activity) => void;
 }
 
 // Componente auxiliar para manejar el mapa
@@ -42,7 +37,8 @@ const MapContent: React.FC<{
   userLocation?: string;
   radiusKm?: number;
   centerOn?: CenterOn | null;
-}> = ({ activities, userLocation, radiusKm, centerOn }) => {
+  onActivitySelect?: (activity: Activity) => void;
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect }) => {
   const map = useMap();
 
   // Centrar en Barcelona al montar y mover zoom a la derecha
@@ -74,9 +70,21 @@ const MapContent: React.FC<{
     }
   }
 
+  const userIcon = (L as any).divIcon({
+    className: '',
+    html: '<div style="width:14px;height:14px;background:#1a73e8;border:2.5px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #1a73e8"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+
   return (
     <>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {userCoords && (
+        <Marker position={userCoords} {...{ icon: userIcon } as any}>
+          <Popup><strong>Tu ubicación</strong></Popup>
+        </Marker>
+      )}
       {userCoords && radiusKm !== undefined && (
         <Circle
           {...{
@@ -96,9 +104,17 @@ const MapContent: React.FC<{
             return (
               <Marker key={activity.id} position={[coords[0], coords[1]] as [number, number]}>
                 <Popup>
-                  <div>
-                    <h4 style={{ margin: '0 0 0.5rem 0' }}>{activity.name}</h4>
-                    <p style={{ margin: '0', fontSize: '0.9rem' }}>{activity.body}</p>
+                  <div style={{ minWidth: '180px' }}>
+                    <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', fontWeight: 700 }}>{activity.name}</h4>
+                    <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#555' }}>{activity.body}</p>
+                    {onActivitySelect && (
+                      <button
+                        onClick={() => onActivitySelect(activity)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667eea', fontSize: '0.75rem', fontWeight: 600, padding: 0, fontFamily: 'inherit' }}
+                      >
+                        Ver detalle →
+                      </button>
+                    )}
                   </div>
                 </Popup>
               </Marker>
@@ -113,11 +129,11 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect }) => {
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} />
       </MapContainer>
     </div>
   );

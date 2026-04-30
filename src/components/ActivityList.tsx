@@ -33,7 +33,18 @@ function formatTime(t?: string): string {
   return match ? match[1] : '';
 }
 
-const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
+function getMapsUrl(activity: Activity): string | null {
+  if (activity.geo_epgs_4326_latlon) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(activity.geo_epgs_4326_latlon)}`;
+  }
+  if (activity.venue_name || activity.direccion) {
+    const query = [activity.venue_name, activity.direccion, 'Barcelona'].filter(Boolean).join(', ');
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+  return null;
+}
+
+export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
   const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null;
 
   return (
@@ -56,7 +67,7 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
         {/* Modal header */}
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: '#fff', padding: '1.1rem 1.1rem 1rem',
+          color: '#ffffff', padding: '1.1rem 1.1rem 1rem',
           position: 'relative'
         }}>
           {cat && (
@@ -70,7 +81,7 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
               {cat.emoji} {cat.label}
             </span>
           )}
-          <h2 style={{ margin: '0', fontSize: '1.25rem', fontWeight: 700, paddingRight: '2rem' }}>
+          <h2 style={{ margin: '0', fontSize: '1rem', fontWeight: 700, paddingRight: '1rem' }}>
             {activity.name}
           </h2>
           <button
@@ -127,6 +138,16 @@ const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ 
                 <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.8rem' }}>
                   📍 {activity.direccion}
                 </p>
+              )}
+              {getMapsUrl(activity) && (
+                <a
+                  href={getMapsUrl(activity)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'inline-block', marginTop: '0.4rem', color: '#667eea', fontWeight: 600, fontSize: '0.78rem', textDecoration: 'none' }}
+                >
+                  🗺️ Ver en Google Maps →
+                </a>
               )}
             </div>
           )}
