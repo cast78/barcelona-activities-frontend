@@ -44,6 +44,19 @@ function getMapsUrl(activity: Activity): string | null {
   return null;
 }
 
+function isHappeningNow(activity: Activity): boolean {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  if (activity.start_date !== todayStr) return false;
+  if (!activity.start_time) return false;
+  const match = activity.start_time.match(/^(\d{2}):(\d{2})/);
+  if (!match) return false;
+  const eventMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+  const nowMinutes = today.getHours() * 60 + today.getMinutes();
+  // Considera "ahora" si empezó hace menos de 2h o está a punto de empezar (próximos 15 min)
+  return eventMinutes >= nowMinutes - 120 && eventMinutes <= nowMinutes + 15;
+}
+
 export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
   const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null;
 
@@ -193,7 +206,9 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                 key={activity.id}
                 style={{
                   backgroundColor: '#fff', borderRadius: '12px', overflow: 'hidden',
-                  boxShadow: '0 2px 12px rgba(34,34,59,0.08)',
+                  boxShadow: isHappeningNow(activity)
+                    ? '0 2px 12px rgba(245,158,11,0.25), 0 0 0 2px #f59e0b'
+                    : '0 2px 12px rgba(34,34,59,0.08)',
                   transition: 'transform 0.18s, box-shadow 0.18s',
                   display: 'flex', flexDirection: 'column', cursor: 'pointer'
                 }}
@@ -220,9 +235,21 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                       {cat.emoji}
                     </span>
                   )}
-                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, lineHeight: 1.2 }}>
+                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, lineHeight: 1.2, flex: 1 }}>
                     {activity.name}
                   </h3>
+                  {isHappeningNow(activity) && (
+                    <span style={{
+                      flexShrink: 0,
+                      background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                      color: '#fff', fontSize: '0.62rem', fontWeight: 800,
+                      padding: '0.15rem 0.5rem', borderRadius: '20px',
+                      letterSpacing: '0.3px', textTransform: 'uppercase',
+                      animation: 'pulse 1.5s infinite'
+                    }}>
+                      ⚡ Ahora
+                    </span>
+                  )}
                 </div>
 
                 {/* Body */}

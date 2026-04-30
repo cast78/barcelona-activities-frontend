@@ -9,7 +9,8 @@ const RegistrationForm: React.FC = () => {
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [venueName, setVenueName] = useState("");
   const [location, setLocation] = useState("");
   const [message, setMessage] = useState<MessageState>(null);
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,8 @@ const RegistrationForm: React.FC = () => {
     setName("");
     setBody("");
     setStartDate("");
-    setEndDate("");
+    setStartTime("");
+    setVenueName("");
     setLocation("");
     setCategory("");
     setMessage(null);
@@ -36,14 +38,22 @@ const RegistrationForm: React.FC = () => {
     }
   };
 
+  const handleVenYa = () => {
+    const now = new Date();
+    setStartDate(now.toISOString().split('T')[0]);
+    setStartTime(now.toTimeString().slice(0, 5));
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setLocation(`${pos.coords.latitude},${pos.coords.longitude}`),
+        () => {}
+      );
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
 
-    if (new Date(endDate) < new Date(startDate)) {
-      setMessage({ type: "error", text: "End date must be after start date." });
-      return;
-    }
     if (!location.includes(",")) {
       setMessage({ type: "error", text: "Location must be in latitude,longitude format." });
       return;
@@ -51,7 +61,15 @@ const RegistrationForm: React.FC = () => {
 
     setLoading(true);
     try {
-      await addActivity({ name, body, start_date: startDate, end_date: endDate, geo_epgs_4326_latlon: location, category });
+      await addActivity({
+        name, body,
+        start_date: startDate,
+        end_date: startDate,
+        start_time: startTime || undefined,
+        venue_name: venueName || undefined,
+        geo_epgs_4326_latlon: location,
+        category
+      });
       setMessage({ type: "success", text: "Activity registered successfully." });
       handleReset();
     } catch (error) {
@@ -67,6 +85,9 @@ const RegistrationForm: React.FC = () => {
       <div className="registration-card-header">
         <span style={{ fontSize: "1.1rem" }}>📝</span>
         <h2 className="registration-card-title">New Activity</h2>
+        <button type="button" className="btn-ven-ya" onClick={handleVenYa} title="Rellenar con fecha, hora y ubicación actuales">
+          ⚡ ¡Ven ya!
+        </button>
       </div>
       <form onSubmit={handleSubmit} className="registration-card-body">
         {message && (
@@ -112,7 +133,7 @@ const RegistrationForm: React.FC = () => {
         </div>
         <div className="reg-date-row">
           <div className="reg-field">
-            <label htmlFor="reg-start">Start Date</label>
+            <label htmlFor="reg-start">Date</label>
             <input
               id="reg-start"
               type="date"
@@ -122,18 +143,27 @@ const RegistrationForm: React.FC = () => {
             />
           </div>
           <div className="reg-field">
-            <label htmlFor="reg-end">End Date</label>
+            <label htmlFor="reg-time">Time</label>
             <input
-              id="reg-end"
-              type="date"
-              value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              required
+              id="reg-time"
+              type="time"
+              value={startTime}
+              onChange={e => setStartTime(e.target.value)}
             />
           </div>
         </div>
         <div className="reg-field">
-          <label htmlFor="reg-location">Location</label>
+          <label htmlFor="reg-venue">Venue Name</label>
+          <input
+            id="reg-venue"
+            type="text"
+            value={venueName}
+            onChange={e => setVenueName(e.target.value)}
+            placeholder="E.g.: Palau de la Música, Parc Güell..."
+          />
+        </div>
+        <div className="reg-field">
+          <label htmlFor="reg-location">Location (coordinates)</label>
           <div className="location-input-group">
             <input
               id="reg-location"
