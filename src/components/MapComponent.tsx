@@ -209,8 +209,8 @@ const MapContent: React.FC<{
                               color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af', padding: 0
                             }}
                           >
-                            <span style={{ fontSize: '1.2rem' }}>🏃</span>
-                            <span style={{ fontSize: '0.7rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
+                            <span style={{ fontSize: '1.1rem' }}>🏃</span>
+                            <span style={{ fontSize: '0.72rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
                           </button>
                         </div>
                       </div>
