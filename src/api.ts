@@ -15,6 +15,7 @@ export interface Activity {
   direccion?: string;
   venue_name?: string;
   likes?: number;
+  attendees?: number;
 }
 
 export const fetchEvents = async (startDate?: string, endDate?: string): Promise<Activity[]> => {
@@ -71,6 +72,47 @@ export const setLikeCountLocal = (id: string, count: number): void => {
     const counts = getLikeCountsLocal();
     if (count > 0) counts[id] = count; else delete counts[id];
     localStorage.setItem('like_counts', JSON.stringify(counts));
+  } catch {};
+};
+
+// ── Attendees ────────────────────────────────────────────────────────────────
+
+export const toggleAttend = async (id: string, action: 'attend' | 'unattend'): Promise<number> => {
+  const response = await axios.post(`${API_BASE_URL}/attend/${encodeURIComponent(id)}`, { action });
+  return response.data.attendees;
+};
+
+export const isAttending = (id: string): boolean => {
+  try {
+    return !!JSON.parse(localStorage.getItem('attending_activities') || '{}')[id];
+  } catch { return false; }
+};
+
+export const setAttendingLocal = (id: string, value: boolean): void => {
+  try {
+    const att = JSON.parse(localStorage.getItem('attending_activities') || '{}');
+    if (value) att[id] = true; else delete att[id];
+    localStorage.setItem('attending_activities', JSON.stringify(att));
+  } catch {};
+};
+
+export const getAllAttendingLocal = (): Record<string, boolean> => {
+  try {
+    return JSON.parse(localStorage.getItem('attending_activities') || '{}');
+  } catch { return {}; }
+};
+
+export const getAttendCountsLocal = (): Record<string, number> => {
+  try {
+    return JSON.parse(localStorage.getItem('attend_counts') || '{}');
+  } catch { return {}; }
+};
+
+export const setAttendCountLocal = (id: string, count: number): void => {
+  try {
+    const counts = getAttendCountsLocal();
+    if (count > 0) counts[id] = count; else delete counts[id];
+    localStorage.setItem('attend_counts', JSON.stringify(counts));
   } catch {};
 };
 

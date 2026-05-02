@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CATEGORIES } from './QueryForm';
-import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal, isLiked } from '../api';
+import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal, isLiked,
+  toggleAttend, setAttendingLocal, getAllAttendingLocal, getAttendCountsLocal, setAttendCountLocal, isAttending } from '../api';
 
 interface Activity {
   id: string;
@@ -15,6 +16,7 @@ interface Activity {
   direccion?: string;
   venue_name?: string;
   likes?: number;
+  attendees?: number;
 }
 
 interface ActivityListProps {
@@ -63,19 +65,23 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
   const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null;
   const [liked, setLiked] = useState(() => isLiked(activity.id));
   const [likeCount, setLikeCount] = useState(() => getLikeCountsLocal()[activity.id] ?? activity.likes ?? 0);
+  const [attending, setAttending] = useState(() => isAttending(activity.id));
+  const [attendCount, setAttendCount] = useState(() => getAttendCountsLocal()[activity.id] ?? activity.attendees ?? 0);
 
   const handleModalLike = async () => {
     const action = liked ? 'unlike' : 'like';
     const newCount = Math.max(0, action === 'like' ? likeCount + 1 : likeCount - 1);
-    setLiked(!liked);
-    setLikeCount(newCount);
-    setLikedLocal(activity.id, !liked);
-    setLikeCountLocal(activity.id, newCount);
-    try {
-      const serverCount = await toggleLike(activity.id, action);
-      setLikeCount(serverCount);
-      setLikeCountLocal(activity.id, serverCount);
-    } catch {}
+    setLiked(!liked); setLikeCount(newCount);
+    setLikedLocal(activity.id, !liked); setLikeCountLocal(activity.id, newCount);
+    try { const s = await toggleLike(activity.id, action); setLikeCount(s); setLikeCountLocal(activity.id, s); } catch {}
+  };
+
+  const handleModalAttend = async () => {
+    const action = attending ? 'unattend' : 'attend';
+    const newCount = Math.max(0, action === 'attend' ? attendCount + 1 : attendCount - 1);
+    setAttending(!attending); setAttendCount(newCount);
+    setAttendingLocal(activity.id, !attending); setAttendCountLocal(activity.id, newCount);
+    try { const s = await toggleAttend(activity.id, action); setAttendCount(s); setAttendCountLocal(activity.id, s); } catch {}
   };
 
   return (
@@ -193,8 +199,8 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
             </div>
           )}
 
-          {/* Pie: botón like — igual que tarjetas */}
-          <div style={{ marginTop: '0.2rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
+          {/* Pie: botones like + asistir — igual que tarjetas */}
+          <div style={{ marginTop: '0.2rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
             <button
               onClick={handleModalLike}
               title={liked ? 'Quitar me gusta' : 'Me gusta'}
@@ -211,6 +217,22 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
               {liked ? '❤️' : '🤍'}
               <span style={{ fontSize: '0.72rem' }}>{likeCount}</span>
             </button>
+            <button
+              onClick={handleModalAttend}
+              title={attending ? 'Cancelar asistencia' : '¡Asistiré!'}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.25rem',
+                fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
+                color: attending ? '#22c55e' : '#9ca3af',
+                transition: 'color 0.15s, transform 0.1s',
+                transform: attending ? 'scale(1.15)' : 'scale(1)',
+                padding: '0.2rem 0.3rem'
+              }}
+            >
+              🎟️
+              <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -222,6 +244,8 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>(() => getLikeCountsLocal());
+  const [attendingIds, setAttendingIds] = useState<Record<string, boolean>>(() => getAllAttendingLocal());
+  const [attendCounts, setAttendCounts] = useState<Record<string, number>>(() => getAttendCountsLocal());
 
   const handleLike = async (activity: Activity, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -245,6 +269,26 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
       // El servidor no está disponible (ej: móvil con backend local)
       // Mantenemos el estado local — el like queda guardado en localStorage
     }
+  };
+
+  const handleAttend = async (activity: Activity, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const id = activity.id;
+    const currentlyAttending = !!attendingIds[id];
+    const action = currentlyAttending ? 'unattend' : 'attend';
+    const currentCount = attendCounts[id] ?? (activity.attendees || 0);
+    const newCount = Math.max(0, action === 'attend' ? currentCount + 1 : currentCount - 1);
+    const newAttendingIds = { ...attendingIds };
+    if (action === 'attend') newAttendingIds[id] = true; else delete newAttendingIds[id];
+    setAttendingIds(newAttendingIds);
+    setAttendingLocal(id, action === 'attend');
+    setAttendCounts(prev => ({ ...prev, [id]: newCount }));
+    setAttendCountLocal(id, newCount);
+    try {
+      const serverCount = await toggleAttend(id, action);
+      setAttendCounts(prev => ({ ...prev, [id]: serverCount }));
+      setAttendCountLocal(id, serverCount);
+    } catch {}
   };
 
   return (
@@ -362,7 +406,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                     </span>
                   )}
 
-                  {/* Footer: botón detalle + like */}
+                  {/* Footer: botón detalle + like + asistir */}
                   <div style={{ marginTop: 'auto', paddingTop: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <button
                       onClick={() => setSelected(activity)}
@@ -375,24 +419,44 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                     >
                       Ver detalle →
                     </button>
-                    <button
-                      onClick={(e) => handleLike(activity, e)}
-                      title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: '0.25rem',
-                        padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
-                        fontSize: '0.78rem', fontWeight: 600,
-                        color: likedIds[activity.id] ? '#ef4444' : '#9ca3af',
-                        transition: 'color 0.15s, transform 0.1s',
-                        transform: likedIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
-                      }}
-                    >
-                      {likedIds[activity.id] ? '❤️' : '🤍'}
-                      <span style={{ fontSize: '0.72rem' }}>
-                        {likeCounts[activity.id] ?? activity.likes ?? 0}
-                      </span>
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <button
+                        onClick={(e) => handleLike(activity, e)}
+                        title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: '0.25rem',
+                          padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
+                          fontSize: '0.78rem', fontWeight: 600,
+                          color: likedIds[activity.id] ? '#ef4444' : '#9ca3af',
+                          transition: 'color 0.15s, transform 0.1s',
+                          transform: likedIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
+                        }}
+                      >
+                        {likedIds[activity.id] ? '❤️' : '🤍'}
+                        <span style={{ fontSize: '0.72rem' }}>
+                          {likeCounts[activity.id] ?? activity.likes ?? 0}
+                        </span>
+                      </button>
+                      <button
+                        onClick={(e) => handleAttend(activity, e)}
+                        title={attendingIds[activity.id] ? 'Cancelar asistencia' : '¡Asistiré!'}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: '0.25rem',
+                          padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
+                          fontSize: '0.78rem', fontWeight: 600,
+                          color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af',
+                          transition: 'color 0.15s, transform 0.1s',
+                          transform: attendingIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
+                        }}
+                      >
+                        🎟️
+                        <span style={{ fontSize: '0.72rem' }}>
+                          {attendCounts[activity.id] ?? activity.attendees ?? 0}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

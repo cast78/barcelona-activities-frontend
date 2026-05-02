@@ -9,7 +9,8 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
 import { CATEGORIES } from './QueryForm';
-import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike } from '../api';
+import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
+  getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
 
 // Fix Leaflet marker icons for React-Leaflet
 // @ts-ignore
@@ -44,6 +45,8 @@ const MapContent: React.FC<{
   const map = useMap();
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>(() => getLikeCountsLocal());
+  const [attendingIds, setAttendingIds] = React.useState<Record<string, boolean>>(() => getAllAttendingLocal());
+  const [attendCounts, setAttendCounts] = React.useState<Record<string, number>>(() => getAttendCountsLocal());
 
   const handleMapLike = async (activity: Activity, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,6 +65,26 @@ const MapContent: React.FC<{
       const serverCount = await toggleLike(id, action);
       setLikeCounts(prev => ({ ...prev, [id]: serverCount }));
       setLikeCountLocal(id, serverCount);
+    } catch {}
+  };
+
+  const handleMapAttend = async (activity: Activity, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const id = activity.id;
+    const currentlyAttending = !!attendingIds[id];
+    const action = currentlyAttending ? 'unattend' : 'attend';
+    const currentCount = attendCounts[id] ?? activity.attendees ?? 0;
+    const newCount = Math.max(0, action === 'attend' ? currentCount + 1 : currentCount - 1);
+    const newAttendingIds = { ...attendingIds };
+    if (action === 'attend') newAttendingIds[id] = true; else delete newAttendingIds[id];
+    setAttendingIds(newAttendingIds);
+    setAttendCounts(prev => ({ ...prev, [id]: newCount }));
+    setAttendingLocal(id, action === 'attend');
+    setAttendCountLocal(id, newCount);
+    try {
+      const serverCount = await toggleAttend(id, action);
+      setAttendCounts(prev => ({ ...prev, [id]: serverCount }));
+      setAttendCountLocal(id, serverCount);
     } catch {}
   };
 
@@ -162,20 +185,34 @@ const MapContent: React.FC<{
                         >
                           Ver detalle →
                         </button>
-                        <button
-                          onClick={(e) => handleMapLike(activity, e)}
-                          title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
-                          style={{
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '0.2rem',
-                            fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
-                            color: likedIds[activity.id] ? '#ef4444' : '#9ca3af',
-                            padding: 0
-                          }}
-                        >
-                          {likedIds[activity.id] ? '❤️' : '🤍'}
-                          <span style={{ fontSize: '0.7rem' }}>{likeCounts[activity.id] ?? activity.likes ?? 0}</span>
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <button
+                            onClick={(e) => handleMapLike(activity, e)}
+                            title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', gap: '0.2rem',
+                              fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
+                              color: likedIds[activity.id] ? '#ef4444' : '#9ca3af', padding: 0
+                            }}
+                          >
+                            {likedIds[activity.id] ? '❤️' : '🤍'}
+                            <span style={{ fontSize: '0.7rem' }}>{likeCounts[activity.id] ?? activity.likes ?? 0}</span>
+                          </button>
+                          <button
+                            onClick={(e) => handleMapAttend(activity, e)}
+                            title={attendingIds[activity.id] ? 'Cancelar asistencia' : '¡Asistiré!'}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', gap: '0.2rem',
+                              fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
+                              color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af', padding: 0
+                            }}
+                          >
+                            🎟️
+                            <span style={{ fontSize: '0.7rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
