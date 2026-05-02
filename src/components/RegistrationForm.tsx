@@ -116,20 +116,32 @@ const RegistrationForm: React.FC = () => {
             required
           />
         </div>
-        <div className="reg-field">
-          <label htmlFor="reg-category">Category</label>
-          <select
-            id="reg-category"
-            value={category}
-            onChange={e => setCategory(e.target.value)}
-          >
-            <option value="">— No Category —</option>
-            {CATEGORIES.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {cat.emoji} {cat.label}
-              </option>
-            ))}
-          </select>
+        <div className="reg-venue-row">
+          <div className="reg-field">
+            <label htmlFor="reg-category">Category</label>
+            <select
+              id="reg-category"
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+            >
+              <option value="">— No Category —</option>
+              {CATEGORIES.map(cat => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.emoji} {cat.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="reg-field">
+            <label htmlFor="reg-venue">Venue</label>
+            <input
+              id="reg-venue"
+              type="text"
+              value={venueName}
+              onChange={e => setVenueName(e.target.value)}
+              placeholder="Palau de la Música..."
+            />
+          </div>
         </div>
         <div className="reg-date-row">
           <div className="reg-field">
@@ -151,16 +163,6 @@ const RegistrationForm: React.FC = () => {
               onChange={e => setStartTime(e.target.value)}
             />
           </div>
-        </div>
-        <div className="reg-field">
-          <label htmlFor="reg-venue">Venue Name</label>
-          <input
-            id="reg-venue"
-            type="text"
-            value={venueName}
-            onChange={e => setVenueName(e.target.value)}
-            placeholder="E.g.: Palau de la Música, Parc Güell..."
-          />
         </div>
         <div className="reg-field">
           <label htmlFor="reg-location">Location (coordinates)</label>
