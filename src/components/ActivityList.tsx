@@ -204,10 +204,8 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
       const serverCount = await toggleLike(id, action);
       setLikeCounts(prev => ({ ...prev, [id]: serverCount }));
     } catch {
-      // Revert on error
-      setLikedIds(likedIds);
-      setLikedLocal(id, currentlyLiked);
-      setLikeCounts(prev => ({ ...prev, [id]: currentCount }));
+      // El servidor no está disponible (ej: móvil con backend local)
+      // Mantenemos el estado local — el like queda guardado en localStorage
     }
   };
 
