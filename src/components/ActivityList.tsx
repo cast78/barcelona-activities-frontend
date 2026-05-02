@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CATEGORIES } from './QueryForm';
-import { toggleLike, setLikedLocal, getAllLikedLocal } from '../api';
+import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal } from '../api';
 
 interface Activity {
   id: string;
@@ -185,7 +185,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
 const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>(() => getAllLikedLocal());
-  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>(() => getLikeCountsLocal());
 
   const handleLike = async (activity: Activity, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -200,9 +200,11 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
     setLikedIds(newLikedIds);
     setLikedLocal(id, action === 'like');
     setLikeCounts(prev => ({ ...prev, [id]: newCount }));
+    setLikeCountLocal(id, newCount);
     try {
       const serverCount = await toggleLike(id, action);
       setLikeCounts(prev => ({ ...prev, [id]: serverCount }));
+      setLikeCountLocal(id, serverCount);
     } catch {
       // El servidor no está disponible (ej: móvil con backend local)
       // Mantenemos el estado local — el like queda guardado en localStorage
@@ -352,9 +354,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                     >
                       {likedIds[activity.id] ? '❤️' : '🤍'}
                       <span style={{ fontSize: '0.72rem' }}>
-                        {(likeCounts[activity.id] ?? activity.likes ?? 0) > 0
-                          ? likeCounts[activity.id] ?? activity.likes
-                          : ''}
+                        {likeCounts[activity.id] ?? activity.likes ?? 0}
                       </span>
                     </button>
                   </div>

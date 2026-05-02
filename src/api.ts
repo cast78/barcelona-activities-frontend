@@ -60,3 +60,17 @@ export const getAllLikedLocal = (): Record<string, boolean> => {
   } catch { return {}; }
 };
 
+export const getLikeCountsLocal = (): Record<string, number> => {
+  try {
+    return JSON.parse(localStorage.getItem('like_counts') || '{}');
+  } catch { return {}; }
+};
+
+export const setLikeCountLocal = (id: string, count: number): void => {
+  try {
+    const counts = getLikeCountsLocal();
+    if (count > 0) counts[id] = count; else delete counts[id];
+    localStorage.setItem('like_counts', JSON.stringify(counts));
+  } catch {};
+};
+
