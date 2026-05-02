@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { CATEGORIES } from './QueryForm';
 import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal, isLiked,
   toggleAttend, setAttendingLocal, getAllAttendingLocal, getAttendCountsLocal, setAttendCountLocal, isAttending } from '../api';
@@ -84,7 +85,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
     try { const s = await toggleAttend(activity.id, action); setAttendCount(s); setAttendCountLocal(activity.id, s); } catch {}
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div
       onClick={onClose}
       style={{
@@ -249,7 +250,8 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
