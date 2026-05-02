@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CATEGORIES } from './QueryForm';
+import { toggleLike, setLikedLocal, getAllLikedLocal } from '../api';
 
 interface Activity {
   id: string;
@@ -13,6 +14,7 @@ interface Activity {
   origen?: string;
   direccion?: string;
   venue_name?: string;
+  likes?: number;
 }
 
 interface ActivityListProps {
@@ -182,6 +184,32 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
 
 const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
+  const [likedIds, setLikedIds] = useState<Record<string, boolean>>(() => getAllLikedLocal());
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+
+  const handleLike = async (activity: Activity, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const id = activity.id;
+    const currentlyLiked = !!likedIds[id];
+    const action = currentlyLiked ? 'unlike' : 'like';
+    const currentCount = likeCounts[id] ?? (activity.likes || 0);
+    const newCount = Math.max(0, action === 'like' ? currentCount + 1 : currentCount - 1);
+    // Optimistic update
+    const newLikedIds = { ...likedIds };
+    if (action === 'like') newLikedIds[id] = true; else delete newLikedIds[id];
+    setLikedIds(newLikedIds);
+    setLikedLocal(id, action === 'like');
+    setLikeCounts(prev => ({ ...prev, [id]: newCount }));
+    try {
+      const serverCount = await toggleLike(id, action);
+      setLikeCounts(prev => ({ ...prev, [id]: serverCount }));
+    } catch {
+      // Revert on error
+      setLikedIds(likedIds);
+      setLikedLocal(id, currentlyLiked);
+      setLikeCounts(prev => ({ ...prev, [id]: currentCount }));
+    }
+  };
 
   return (
     <div style={{ margin: '0.5rem 0' }}>
@@ -298,19 +326,40 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                     </span>
                   )}
 
-                  {/* Botón detalle */}
-                  <button
-                    onClick={() => setSelected(activity)}
-                    style={{
-                      marginTop: 'auto', paddingTop: '0.4rem',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#667eea', fontSize: '0.78rem', fontWeight: 600,
-                      textAlign: 'left', padding: '0.3rem 0 0', display: 'flex',
-                      alignItems: 'center', gap: '0.25rem', fontFamily: 'inherit'
-                    }}
-                  >
-                    Ver detalle →
-                  </button>
+                  {/* Footer: botón detalle + like */}
+                  <div style={{ marginTop: 'auto', paddingTop: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <button
+                      onClick={() => setSelected(activity)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: '#667eea', fontSize: '0.78rem', fontWeight: 600,
+                        padding: '0.3rem 0 0', display: 'flex',
+                        alignItems: 'center', gap: '0.25rem', fontFamily: 'inherit'
+                      }}
+                    >
+                      Ver detalle →
+                    </button>
+                    <button
+                      onClick={(e) => handleLike(activity, e)}
+                      title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '0.25rem',
+                        padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
+                        fontSize: '0.78rem', fontWeight: 600,
+                        color: likedIds[activity.id] ? '#ef4444' : '#9ca3af',
+                        transition: 'color 0.15s, transform 0.1s',
+                        transform: likedIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
+                      }}
+                    >
+                      {likedIds[activity.id] ? '❤️' : '🤍'}
+                      <span style={{ fontSize: '0.72rem' }}>
+                        {(likeCounts[activity.id] ?? activity.likes ?? 0) > 0
+                          ? likeCounts[activity.id] ?? activity.likes
+                          : ''}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
