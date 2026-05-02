@@ -10,6 +10,10 @@ const RegistrationForm: React.FC = () => {
   const [body, setBody] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [endTimeMin, setEndTimeMin] = useState("");
+  const [endTimeMax, setEndTimeMax] = useState("");
+  const [isVenYa, setIsVenYa] = useState(false);
   const [venueName, setVenueName] = useState("");
   const [location, setLocation] = useState("");
   const [message, setMessage] = useState<MessageState>(null);
@@ -22,6 +26,10 @@ const RegistrationForm: React.FC = () => {
     setBody("");
     setStartDate("");
     setStartTime("");
+    setEndTime("");
+    setEndTimeMin("");
+    setEndTimeMax("");
+    setIsVenYa(false);
     setVenueName("");
     setLocation("");
     setCategory("");
@@ -42,7 +50,14 @@ const RegistrationForm: React.FC = () => {
   const handleVenYa = () => {
     const now = new Date();
     setStartDate(now.toISOString().split('T')[0]);
-    setStartTime(now.toTimeString().slice(0, 5));
+    const startHHMM = now.toTimeString().slice(0, 5);
+    setStartTime(startHHMM);
+    setEndTimeMin(startHHMM);
+    const maxDate = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+    const maxHHMM = maxDate.toTimeString().slice(0, 5);
+    setEndTimeMax(maxHHMM);
+    setEndTime(maxHHMM);
+    setIsVenYa(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setLocation(`${pos.coords.latitude},${pos.coords.longitude}`),
@@ -66,8 +81,9 @@ const RegistrationForm: React.FC = () => {
         name, body,
         start_date: startDate,
         end_date: startDate,
-        start_time: startTime || undefined,
-        venue_name: venueName || undefined,
+        start_time: startTime,
+        end_time: endTime || undefined,
+        venue_name: venueName,
         geo_epgs_4326_latlon: location,
         category
       });
@@ -131,8 +147,9 @@ const RegistrationForm: React.FC = () => {
               id="reg-category"
               value={category}
               onChange={e => setCategory(e.target.value)}
+              required
             >
-              <option value="">— No Category —</option>
+              <option value="" disabled>— Select category —</option>
               {CATEGORIES.map(cat => (
                 <option key={cat.id} value={cat.id}>
                   {cat.emoji} {cat.label}
@@ -148,27 +165,41 @@ const RegistrationForm: React.FC = () => {
               value={venueName}
               onChange={e => setVenueName(e.target.value)}
               placeholder="Palau de la Música..."
-            />
-          </div>
-        </div>
-        <div className="reg-date-row">
-          <div className="reg-field">
-            <label htmlFor="reg-start">Date</label>
-            <input
-              id="reg-start"
-              type="date"
-              value={startDate}
-              onChange={e => setStartDate(e.target.value)}
               required
             />
           </div>
+        </div>
+        <div className="reg-field">
+          <label htmlFor="reg-start">Date</label>
+          <input
+            id="reg-start"
+            type="date"
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
+            required
+          />
+        </div>
+        <div className="reg-date-row">
           <div className="reg-field">
-            <label htmlFor="reg-time">Time</label>
+            <label htmlFor="reg-time">Start time</label>
             <input
               id="reg-time"
               type="time"
               value={startTime}
               onChange={e => setStartTime(e.target.value)}
+              required
+            />
+          </div>
+          <div className="reg-field">
+            <label htmlFor="reg-end-time">End time{isVenYa && <span style={{ color: '#f59e0b', marginLeft: '0.25rem', fontSize: '0.65rem' }}>max +4h</span>}</label>
+            <input
+              id="reg-end-time"
+              type="time"
+              value={endTime}
+              onChange={e => setEndTime(e.target.value)}
+              min={isVenYa ? endTimeMin : undefined}
+              max={isVenYa ? endTimeMax : undefined}
+              required
             />
           </div>
         </div>

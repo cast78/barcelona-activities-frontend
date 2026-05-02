@@ -7,6 +7,7 @@ export interface Activity {
   name: string;
   start_date: string;
   start_time?: string;
+  end_time?: string;
   end_date: string;
   geo_epgs_4326_latlon: string;
   body: string;
