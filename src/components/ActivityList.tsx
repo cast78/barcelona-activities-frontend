@@ -231,7 +231,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
               }}
             >
               🏃
-              <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
+              <span style={{ fontSize: '2rem' }}>{attendCount}</span>
             </button>
           </div>
         </div>
