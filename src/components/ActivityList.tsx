@@ -48,7 +48,7 @@ function getMapsUrl(activity: Activity): string | null {
   return null;
 }
 
-function isHappeningNow(activity: Activity): boolean {
+export function isHappeningNow(activity: Activity): boolean {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   if (activity.start_date !== todayStr) return false;
@@ -116,6 +116,19 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
               marginBottom: '0.5rem'
             }}>
               {cat.emoji} {cat.label}
+            </span>
+          )}
+          {isHappeningNow(activity) && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center',
+              marginLeft: cat ? '0.5rem' : '0',
+              background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+              color: '#fff', fontSize: '0.62rem', fontWeight: 800,
+              padding: '0.15rem 0.5rem', borderRadius: '20px',
+              letterSpacing: '0.3px', textTransform: 'uppercase',
+              animation: 'pulse 1.5s infinite', marginBottom: '0.5rem'
+            }}>
+              ⚡ Ahora
             </span>
           )}
           <h2 style={{ margin: '0', fontSize: '1rem', fontWeight: 700, paddingRight: '1rem' }}>
@@ -230,7 +243,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
                 padding: '0.2rem 0.3rem'
               }}
             >
-              <span style={{ fontSize: '1.1rem' }}>🏃</span>
+              <span style={{ fontSize: '1.1rem' }}>🙋‍♂️</span>
               <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
             </button>
           </div>
@@ -451,7 +464,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                           transform: attendingIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
                         }}
                       >
-                        <span style={{ fontSize: '1.1rem' }}>🏃</span>
+                        <span style={{ fontSize: '1.1rem' }}>🙋‍♂️</span>
                         <span style={{ fontSize: '0.72rem' }}>
                           {attendCounts[activity.id] ?? activity.attendees ?? 0}
                         </span>

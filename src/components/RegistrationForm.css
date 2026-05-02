@@ -6,6 +6,7 @@
   overflow: hidden;
   max-width: 380px;
   margin: 0 auto;
+  position: relative;
 }
 
 .registration-card-header {
@@ -188,6 +189,30 @@
   background: #f0f0f5;
   border-color: #b0b7c3;
   color: var(--color-text, #22223b);
+}
+
+/* === TOAST SUCCESS === */
+.reg-toast-success {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #22c55e;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(34,197,94,0.35);
+  z-index: 100;
+  white-space: nowrap;
+  animation: toastIn 0.25s ease;
+  pointer-events: none;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, -60%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
 }
 
 /* === SUCCESS / ERROR MESSAGES === */

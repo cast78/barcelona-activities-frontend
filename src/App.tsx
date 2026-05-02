@@ -55,7 +55,11 @@ function BottomSheetPanel({ activities, isSearching }: { activities: Activity[];
         <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
       </div>
       <div className="bottom-sheet-body">
-        <ActivityList activities={activities} />
+        <ActivityList activities={[...activities].sort((a, b) => {
+          const da = a.start_date + (a.start_time || '00:00');
+          const db = b.start_date + (b.start_time || '00:00');
+          return da.localeCompare(db);
+        })} />
       </div>
     </div>
   );
@@ -87,7 +91,7 @@ function App() {
     const today = new Date();
     const startDateStr = today.toISOString().split('T')[0];
     const endDateObj = new Date(today);
-    endDateObj.setDate(endDateObj.getDate() + 3);
+    endDateObj.setDate(endDateObj.getDate() + 1);
     const endDateStr = endDateObj.toISOString().split('T')[0];
 
     // Función de búsqueda con coordenadas y fechas

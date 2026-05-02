@@ -9,6 +9,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
 import { CATEGORIES } from './QueryForm';
+import { isHappeningNow } from './ActivityList';
 import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
   getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
 
@@ -131,15 +132,19 @@ const MapContent: React.FC<{
     return '#22c55e';                   // verde — muy popular
   };
 
-  const makeActivityIcon = (likes: number = 0) => {
+  const makeActivityIcon = (likes: number = 0, happeningNow: boolean = false) => {
     const color = getLikeColor(likes);
+    const pulseStyle = happeningNow
+      ? 'animation:markerPulse 1.2s ease-in-out infinite;'
+      : '';
     const html = `
-      <div style="position:relative;width:25px;height:41px">
+      <div style="position:relative;width:25px;height:41px;${pulseStyle}">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 41" width="25" height="41">
           <path d="M12.5 0C5.596 0 0 5.596 0 12.5c0 9.375 12.5 28.5 12.5 28.5S25 21.875 25 12.5C25 5.596 19.404 0 12.5 0z"
-            fill="${color}" stroke="#fff" stroke-width="1.5"/>
+            fill="${color}" stroke="${happeningNow ? '#f59e0b' : '#fff'}" stroke-width="${happeningNow ? '2.5' : '1.5'}"/>
           <circle cx="12.5" cy="12.5" r="5" fill="#fff" opacity="0.85"/>
         </svg>
+        ${happeningNow ? '<div style="position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:8px;font-weight:800;padding:1px 4px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3)">⚡</div>' : ''}
       </div>`;
     return (L as any).divIcon({ className: '', html, iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
   };
@@ -167,14 +172,24 @@ const MapContent: React.FC<{
             return null;
           }
           const coords = activity.geo_epgs_4326_latlon.split(',').map(Number);
+          const happeningNow = isHappeningNow(activity);
           if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
             return (
-              <Marker key={activity.id} position={[coords[0], coords[1]] as [number, number]} {...{ icon: makeActivityIcon(activity.likes) } as any}>
+              <Marker key={activity.id} position={[coords[0], coords[1]] as [number, number]} {...{ icon: makeActivityIcon(activity.likes, happeningNow) } as any}>
                 <Popup>
                   <div style={{ minWidth: '180px' }}>
-                    <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', fontWeight: 700 }}>
+                    <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
                       {(() => { const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null; return cat ? <>{cat.emoji} </> : null; })()}
                       {activity.name}
+                      {happeningNow && (
+                        <span style={{
+                          background: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+                          color: '#fff', fontSize: '0.58rem', fontWeight: 800,
+                          padding: '0.1rem 0.35rem', borderRadius: '10px',
+                          letterSpacing: '0.3px', textTransform: 'uppercase',
+                          animation: 'pulse 1.5s infinite'
+                        }}>⚡ Ahora</span>
+                      )}
                     </h4>
                     <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#555' }}>{activity.body}</p>
                     {onActivitySelect && (
@@ -209,7 +224,7 @@ const MapContent: React.FC<{
                               color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af', padding: 0
                             }}
                           >
-                            <span style={{ fontSize: '1.1rem' }}>🏃</span>
+                            <span style={{ fontSize: '1.1rem' }}>🙋‍♂️</span>
                             <span style={{ fontSize: '0.72rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
                           </button>
                         </div>

@@ -15,6 +15,7 @@ const RegistrationForm: React.FC = () => {
   const [message, setMessage] = useState<MessageState>(null);
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   const handleReset = () => {
     setName("");
@@ -71,6 +72,8 @@ const RegistrationForm: React.FC = () => {
         category
       });
       setMessage({ type: "success", text: "Activity registered successfully." });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
       handleReset();
     } catch (error) {
       console.error("Failed to add activity", error);
@@ -82,6 +85,11 @@ const RegistrationForm: React.FC = () => {
 
   return (
     <div className="registration-card">
+      {showToast && (
+        <div className="reg-toast-success">
+          ✅ Tu evento creado con éxito
+        </div>
+      )}
       <div className="registration-card-header">
         <span style={{ fontSize: "1.1rem" }}>📝</span>
         <h2 className="registration-card-title">New Activity</h2>
