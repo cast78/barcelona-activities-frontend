@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CATEGORIES } from './QueryForm';
-import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal } from '../api';
+import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal, isLiked } from '../api';
 
 interface Activity {
   id: string;
@@ -61,6 +61,22 @@ function isHappeningNow(activity: Activity): boolean {
 
 export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
   const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null;
+  const [liked, setLiked] = useState(() => isLiked(activity.id));
+  const [likeCount, setLikeCount] = useState(() => getLikeCountsLocal()[activity.id] ?? activity.likes ?? 0);
+
+  const handleModalLike = async () => {
+    const action = liked ? 'unlike' : 'like';
+    const newCount = Math.max(0, action === 'like' ? likeCount + 1 : likeCount - 1);
+    setLiked(!liked);
+    setLikeCount(newCount);
+    setLikedLocal(activity.id, !liked);
+    setLikeCountLocal(activity.id, newCount);
+    try {
+      const serverCount = await toggleLike(activity.id, action);
+      setLikeCount(serverCount);
+      setLikeCountLocal(activity.id, serverCount);
+    } catch {}
+  };
 
   return (
     <div
@@ -176,6 +192,26 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
               </p>
             </div>
           )}
+
+          {/* Pie: botón like — igual que tarjetas */}
+          <div style={{ marginTop: '0.2rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={handleModalLike}
+              title={liked ? 'Quitar me gusta' : 'Me gusta'}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.25rem',
+                fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
+                color: liked ? '#ef4444' : '#9ca3af',
+                transition: 'color 0.15s, transform 0.1s',
+                transform: liked ? 'scale(1.15)' : 'scale(1)',
+                padding: '0.2rem 0.3rem'
+              }}
+            >
+              {liked ? '❤️' : '🤍'}
+              <span style={{ fontSize: '0.72rem' }}>{likeCount}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

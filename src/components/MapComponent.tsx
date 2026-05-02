@@ -9,6 +9,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
 import { CATEGORIES } from './QueryForm';
+import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike } from '../api';
 
 // Fix Leaflet marker icons for React-Leaflet
 // @ts-ignore
@@ -41,6 +42,28 @@ const MapContent: React.FC<{
   onActivitySelect?: (activity: Activity) => void;
 }> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect }) => {
   const map = useMap();
+  const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
+  const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>(() => getLikeCountsLocal());
+
+  const handleMapLike = async (activity: Activity, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const id = activity.id;
+    const currentlyLiked = !!likedIds[id];
+    const action = currentlyLiked ? 'unlike' : 'like';
+    const currentCount = likeCounts[id] ?? activity.likes ?? 0;
+    const newCount = Math.max(0, action === 'like' ? currentCount + 1 : currentCount - 1);
+    const newLikedIds = { ...likedIds };
+    if (action === 'like') newLikedIds[id] = true; else delete newLikedIds[id];
+    setLikedIds(newLikedIds);
+    setLikeCounts(prev => ({ ...prev, [id]: newCount }));
+    setLikedLocal(id, action === 'like');
+    setLikeCountLocal(id, newCount);
+    try {
+      const serverCount = await toggleLike(id, action);
+      setLikeCounts(prev => ({ ...prev, [id]: serverCount }));
+      setLikeCountLocal(id, serverCount);
+    } catch {}
+  };
 
   // Centrar en Barcelona al montar y mover zoom a la derecha
   React.useEffect(() => {
@@ -132,12 +155,28 @@ const MapContent: React.FC<{
                     </h4>
                     <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#555' }}>{activity.body}</p>
                     {onActivitySelect && (
-                      <button
-                        onClick={() => onActivitySelect(activity)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667eea', fontSize: '0.75rem', fontWeight: 600, padding: 0, fontFamily: 'inherit' }}
-                      >
-                        Ver detalle →
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.3rem' }}>
+                        <button
+                          onClick={() => onActivitySelect(activity)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667eea', fontSize: '0.75rem', fontWeight: 600, padding: 0, fontFamily: 'inherit' }}
+                        >
+                          Ver detalle →
+                        </button>
+                        <button
+                          onClick={(e) => handleMapLike(activity, e)}
+                          title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.2rem',
+                            fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
+                            color: likedIds[activity.id] ? '#ef4444' : '#9ca3af',
+                            padding: 0
+                          }}
+                        >
+                          {likedIds[activity.id] ? '❤️' : '🤍'}
+                          <span style={{ fontSize: '0.7rem' }}>{likeCounts[activity.id] ?? activity.likes ?? 0}</span>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </Popup>
