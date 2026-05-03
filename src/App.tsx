@@ -103,7 +103,7 @@ function App() {
         let filtered = [...searchEvents, ...searchRegistered];
 
         const startObj = new Date(startDateStr);
-        const endObj = new Date(endDateStr);
+        const endObj = new Date(endDateStr + 'T23:59:59');
         filtered = filtered.filter(act => {
           const actStart = act.start_date ? new Date(act.start_date) : null;
           const actEnd = act.end_date ? new Date(act.end_date) : null;
@@ -124,12 +124,12 @@ function App() {
           const coords = coordStr.split(',').map(Number);
           if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
           const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
-          return dist <= 5;
+          return dist <= 2;
         });
 
         setActivities(filtered);
         setLastLocation(locStr);
-        setLastRadius(5);
+        setLastRadius(2);
         setPanelOpen(false);
 
         if (filtered.length > 0) {
@@ -270,7 +270,7 @@ function App() {
         });
       }
       setActivities(filtered);
-      setAllActivities([...events, ...registered]);
+      setAllActivities(filtered);
     } catch (error) {
       console.error('Error fetching activities for search', error);
     } finally {
@@ -282,14 +282,14 @@ function App() {
     const todayStr = new Date().toISOString().split('T')[0];
     const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 1);
     const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
-    setActivities(allActivities);
-    setLastLocation(undefined);
-    setLastRadius(undefined);
-    setLocation("");
+    const resetLocation = lastLocation || "";
+    const resetRadius = lastRadius || 2;
     setStartDate(todayStr);
     setEndDate(tomorrowStr);
-    setRadius(2);
+    setLocation(resetLocation);
+    setRadius(resetRadius);
     setSelectedCategories([]);
+    handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: resetRadius, categories: [] });
   };
 
   return (
