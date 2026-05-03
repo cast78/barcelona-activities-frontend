@@ -8,7 +8,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
-import { CATEGORIES } from './QueryForm';
+import { CATEGORIES, inferCategory } from './QueryForm';
 import { isHappeningNow } from './ActivityList';
 import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
   getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
@@ -179,7 +179,7 @@ const MapContent: React.FC<{
                 <Popup>
                   <div style={{ minWidth: '180px' }}>
                     <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-                      {(() => { const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null; return cat ? <>{cat.emoji} </> : null; })()}
+                      {(() => { const catId = activity.category || inferCategory(activity.name || '', activity.body || ''); const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null; return cat ? <>{cat.emoji} </> : null; })()}
                       {activity.name}
                       {happeningNow && (
                         <span style={{

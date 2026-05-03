@@ -272,7 +272,7 @@
 
 .chip--ahora {
   background: linear-gradient(135deg, #f59e0b, #ef4444);
-  border-color: #f59e0b;
+  border-color: transparent;
   color: #fff;
   font-weight: 700;
   animation: pulse 1.5s infinite;
@@ -280,11 +280,16 @@
 
 .chip--ahora:hover {
   background: linear-gradient(135deg, #d97706, #dc2626);
-  border-color: #d97706;
+  border-color: transparent;
   color: #fff;
 }
 
+.chip--active.chip--ahora {
+  border: 2.5px solid #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.35);
+}
+
 .chip-emoji {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   line-height: 1;
 }

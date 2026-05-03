@@ -53,7 +53,7 @@ const RegistrationForm: React.FC = () => {
     const startHHMM = now.toTimeString().slice(0, 5);
     setStartTime(startHHMM);
     setEndTimeMin(startHHMM);
-    const maxDate = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+    const maxDate = new Date(now.getTime() + 3 * 60 * 60 * 1000);
     const maxHHMM = maxDate.toTimeString().slice(0, 5);
     setEndTimeMax(maxHHMM);
     setEndTime(maxHHMM);
@@ -191,7 +191,7 @@ const RegistrationForm: React.FC = () => {
             />
           </div>
           <div className="reg-field">
-            <label htmlFor="reg-end-time">End time{isVenYa && <span style={{ color: '#f59e0b', marginLeft: '0.25rem', fontSize: '0.65rem' }}>max +4h</span>}</label>
+            <label htmlFor="reg-end-time">End time{isVenYa && <span style={{ color: '#f59e0b', marginLeft: '0.25rem', fontSize: '0.65rem' }}>max +3h</span>}</label>
             <input
               id="reg-end-time"
               type="time"

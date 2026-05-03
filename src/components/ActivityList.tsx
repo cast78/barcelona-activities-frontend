@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import { CATEGORIES } from './QueryForm';
+import { CATEGORIES, inferCategory } from './QueryForm';
 import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal, isLiked,
   toggleAttend, setAttendingLocal, getAllAttendingLocal, getAttendCountsLocal, setAttendCountLocal, isAttending } from '../api';
 
@@ -9,6 +9,7 @@ interface Activity {
   name: string;
   start_date: string;
   start_time?: string;
+  end_time?: string;
   end_date: string;
   geo_epgs_4326_latlon?: string;
   body: string;
@@ -54,16 +55,26 @@ export function isHappeningNow(activity: Activity): boolean {
   const todayStr = today.toISOString().split('T')[0];
   if (activity.start_date !== todayStr) return false;
   if (!activity.start_time) return false;
-  const match = activity.start_time.match(/^(\d{2}):(\d{2})/);
-  if (!match) return false;
-  const eventMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+  const matchStart = activity.start_time.match(/^(\d{2}):(\d{2})/);
+  if (!matchStart) return false;
+  const startMinutes = parseInt(matchStart[1]) * 60 + parseInt(matchStart[2]);
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
-  // Considera "ahora" si empezó hace menos de 2h o está a punto de empezar (próximos 15 min)
-  return eventMinutes >= nowMinutes - 120 && eventMinutes <= nowMinutes + 15;
+  // No ha empezado aún (más de 15 min en el futuro)
+  if (startMinutes > nowMinutes + 15) return false;
+  // Calcular fin: usar end_time si existe, sino start + 3h
+  let endMinutes: number;
+  if (activity.end_time) {
+    const matchEnd = activity.end_time.match(/^(\d{2}):(\d{2})/);
+    endMinutes = matchEnd ? parseInt(matchEnd[1]) * 60 + parseInt(matchEnd[2]) : startMinutes + 180;
+  } else {
+    endMinutes = startMinutes + 180;
+  }
+  return nowMinutes < endMinutes;
 }
 
 export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
-  const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null;
+  const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
+  const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
   const [liked, setLiked] = useState(() => isLiked(activity.id));
   const [likeCount, setLikeCount] = useState(() => getLikeCountsLocal()[activity.id] ?? activity.likes ?? 0);
   const [attending, setAttending] = useState(() => isAttending(activity.id));
@@ -244,7 +255,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
                 padding: '0.2rem 0.3rem'
               }}
             >
-              <span style={{ fontSize: '1.1rem' }}>🙋‍♂️</span>
+              <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
               <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
             </button>
           </div>
@@ -323,7 +334,8 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
           marginBottom: '1.5rem'
         }}>
           {activities.map(activity => {
-            const cat = activity.category ? CATEGORIES.find(c => c.id === activity.category) : null;
+            const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
+            const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
             return (
               <div
                 key={activity.id}
@@ -466,7 +478,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                           transform: attendingIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
                         }}
                       >
-                        <span style={{ fontSize: '1.1rem' }}>🙋‍♂️</span>
+                        <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
                         <span style={{ fontSize: '0.72rem' }}>
                           {attendCounts[activity.id] ?? activity.attendees ?? 0}
                         </span>
