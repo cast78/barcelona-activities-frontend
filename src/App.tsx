@@ -75,8 +75,8 @@ function App() {
   
   // Estado del formulario
   const [location, setLocation] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; });
   const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
@@ -101,17 +101,6 @@ function App() {
         const searchEvents = await fetchEvents(startDateStr, endDateStr);
         const searchRegistered = await fetchActivities();
         let filtered = [...searchEvents, ...searchRegistered];
-        setAllActivities(filtered);
-
-        const userCoords: [number, number] = [lat, lon];
-        const BCNFALLBACK = '41.3851,2.1734';
-        filtered = filtered.filter(act => {
-          const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
-          const coords = coordStr.split(',').map(Number);
-          if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
-          const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
-          return dist <= 5;
-        });
 
         const startObj = new Date(startDateStr);
         const endObj = new Date(endDateStr);
@@ -125,6 +114,17 @@ function App() {
           // Excluir eventos que empezaron antes de hoy y no tienen fecha de fin
           if (actStart && !isNaN(actStart.getTime()) && actStart < startObj && (!actEnd || isNaN(actEnd.getTime()))) return false;
           return true;
+        });
+        setAllActivities(filtered);
+
+        const userCoords: [number, number] = [lat, lon];
+        const BCNFALLBACK = '41.3851,2.1734';
+        filtered = filtered.filter(act => {
+          const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
+          const coords = coordStr.split(',').map(Number);
+          if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
+          const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
+          return dist <= 5;
         });
 
         setActivities(filtered);
@@ -233,8 +233,9 @@ function App() {
           return dist <= radius;
         });
       }
-      if (startDate || endDate) {
-        const start = startDate ? new Date(startDate) : null;
+      const effectiveStart = startDate || new Date().toISOString().split('T')[0];
+      if (effectiveStart || endDate) {
+        const start = new Date(effectiveStart);
         const end = endDate ? new Date(endDate + 'T23:59:59') : null;
         filtered = filtered.filter(act => {
           const actStart = act.start_date ? new Date(act.start_date) : null;
@@ -278,12 +279,15 @@ function App() {
   };
 
   const handleClear = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+    const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
     setActivities(allActivities);
     setLastLocation(undefined);
     setLastRadius(undefined);
     setLocation("");
-    setStartDate("");
-    setEndDate("");
+    setStartDate(todayStr);
+    setEndDate(tomorrowStr);
     setRadius(2);
     setSelectedCategories([]);
   };
