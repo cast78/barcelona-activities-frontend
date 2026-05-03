@@ -58,6 +58,7 @@ const RegistrationForm: React.FC = () => {
     setEndTimeMax(maxHHMM);
     setEndTime(maxHHMM);
     setIsVenYa(true);
+    setCategory("ahora");
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setLocation(`${pos.coords.latitude},${pos.coords.longitude}`),
@@ -148,8 +149,10 @@ const RegistrationForm: React.FC = () => {
               value={category}
               onChange={e => setCategory(e.target.value)}
               required
+              disabled={isVenYa}
             >
               <option value="" disabled>— Select category —</option>
+              {isVenYa && <option value="ahora">⚡ Ahora</option>}
               {CATEGORIES.map(cat => (
                 <option key={cat.id} value={cat.id}>
                   {cat.emoji} {cat.label}

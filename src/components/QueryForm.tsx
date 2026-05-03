@@ -16,6 +16,8 @@ export const CATEGORIES: CategoryChip[] = [
   { id: "family",   label: "Family",    emoji: "👨‍👩‍👧", keywords: ["famili","familiar","nens","kids","infantil","infants","jovent","escola"] },
   { id: "nature",   label: "Nature",      emoji: "🌿", keywords: ["natura","parc","senderis","jardi","medi ambient","ecolog","bosc","platj","mar"] },
   { id: "night",    label: "Night Life", emoji: "🌙", keywords: ["nocturno","noche","nit","bar","discoteca","club","cocktail","pub","after","festa","party","nightclub","boite","copa","karaoke","flaming","brunch nocturn"] },
+  { id: "show",     label: "Show",       emoji: "🎪", keywords: ["show","espectacle","espectaculo","actuaci","performance","magic","circus","circ","cabaret","comedy"] },
+  { id: "other",    label: "Other",      emoji: "📌", keywords: [] },
 ];
 
 interface QueryFormProps {
