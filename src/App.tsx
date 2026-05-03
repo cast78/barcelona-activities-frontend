@@ -67,7 +67,6 @@ function BottomSheetPanel({ activities, isSearching }: { activities: Activity[];
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [allActivities, setAllActivities] = useState<Activity[]>([]);
   const [lastLocation, setLastLocation] = useState<string | undefined>(undefined);
   const [lastRadius, setLastRadius] = useState<number | undefined>(undefined);
   const [centerOn, setCenterOn] = useState<CenterOn | null>(null);
@@ -115,8 +114,6 @@ function App() {
           if (actStart && !isNaN(actStart.getTime()) && actStart < startObj && (!actEnd || isNaN(actEnd.getTime()))) return false;
           return true;
         });
-        setAllActivities(filtered);
-
         const userCoords: [number, number] = [lat, lon];
         const BCNFALLBACK = '41.3851,2.1734';
         filtered = filtered.filter(act => {
@@ -263,7 +260,6 @@ function App() {
         });
       }
       setActivities(filtered);
-      setAllActivities(filtered);
     } catch (error) {
       console.error('Error fetching activities for search', error);
     } finally {
