@@ -208,31 +208,24 @@ function App() {
       const events = await fetchEvents(startDate, endDate);
       const registered = await fetchActivities();
       let filtered = [...events, ...registered];
-      let userCoords: [number, number] | null = null;
+      const BARCELONA_FALLBACK: [number, number] = [41.3851, 2.1734];
+      let userCoords: [number, number] = BARCELONA_FALLBACK;
       if (location) {
         const parts = location.split(',').map(Number);
         if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
           userCoords = [parts[0], parts[1]];
-          setLastLocation(location);
-          setLastRadius(radius);
-        } else {
-          setLastLocation(undefined);
-          setLastRadius(undefined);
         }
-      } else {
-        setLastLocation(undefined);
-        setLastRadius(undefined);
       }
-      if (userCoords) {
-        const BCNFALLBACK = '41.3851,2.1734';
-        filtered = filtered.filter(act => {
-          const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
-          const coords = coordStr.split(',').map(Number);
-          if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1]) || !userCoords) return false;
-          const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
-          return dist <= radius;
-        });
-      }
+      setLastLocation(`${userCoords[0]},${userCoords[1]}`);
+      setLastRadius(radius);
+      const BCNFALLBACK = '41.3851,2.1734';
+      filtered = filtered.filter(act => {
+        const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
+        const coords = coordStr.split(',').map(Number);
+        if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
+        const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
+        return dist <= radius;
+      });
       const effectiveStart = startDate || new Date().toISOString().split('T')[0];
       if (effectiveStart || endDate) {
         const start = new Date(effectiveStart);
