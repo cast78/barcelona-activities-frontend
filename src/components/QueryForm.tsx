@@ -18,6 +18,7 @@ export const CATEGORIES: CategoryChip[] = [
   { id: "night",    label: "Night Life", emoji: "🌙", keywords: ["nocturno","noche","nit","bar","discoteca","club","cocktail","pub","after","festa","party","nightclub","boite","copa","karaoke","flaming","brunch nocturn"] },
   { id: "show",     label: "Show",       emoji: "🎪", keywords: ["show","espectacle","espectaculo","actuaci","performance","magic","circus","circ","cabaret","comedy"] },
   { id: "other",    label: "Other",      emoji: "📌", keywords: [] },
+  { id: "ahora",    label: "Ahora",      emoji: "⚡", keywords: [] },
 ];
 
 interface QueryFormProps {
@@ -162,7 +163,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
               <button
                 key={cat.id}
                 type="button"
-                className={`chip${selectedCategories.includes(cat.id) ? " chip--active" : ""}`}
+                className={`chip${selectedCategories.includes(cat.id) ? " chip--active" : ""}${cat.id === 'ahora' ? ' chip--ahora' : ''}`}
                 onClick={() => toggleCategory(cat.id)}
                 aria-pressed={selectedCategories.includes(cat.id)}
               >

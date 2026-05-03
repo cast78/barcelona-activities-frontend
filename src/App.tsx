@@ -3,7 +3,7 @@ import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
 import QueryForm, { CATEGORIES } from './components/QueryForm';
-import ActivityList, { ActivityModal } from './components/ActivityList';
+import ActivityList, { ActivityModal, isHappeningNow } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
 import { fetchEvents, fetchActivities, Activity } from './api';
@@ -249,15 +249,23 @@ function App() {
         });
       }
       if (categories && categories.length > 0) {
-        const activeCategories = CATEGORIES.filter(c => categories.includes(c.id));
+        const hasAhora = categories.includes('ahora');
+        const otherCats = categories.filter(c => c !== 'ahora');
+        const activeCategories = CATEGORIES.filter(c => otherCats.includes(c.id));
         filtered = filtered.filter(act => {
-          // Si tiene categoria almacenada, usarla directamente
+          // Solo "Ahora" seleccionado: mostrar todas las happening now
+          if (otherCats.length === 0) return isHappeningNow(act);
+          // Verificar match de categoría
+          let matchesCat: boolean;
           if (act.category) {
-            return categories.includes(act.category);
+            matchesCat = otherCats.includes(act.category);
+          } else {
+            const text = ((act.name || '') + ' ' + (act.body || '')).toLowerCase();
+            matchesCat = activeCategories.some(cat => cat.keywords.some(kw => text.includes(kw)));
           }
-          // Fallback: inferir por palabras clave en nombre/descripcion
-          const text = ((act.name || '') + ' ' + (act.body || '')).toLowerCase();
-          return activeCategories.some(cat => cat.keywords.some(kw => text.includes(kw)));
+          // "Ahora" + categorías: AND (debe cumplir ambas)
+          if (hasAhora) return isHappeningNow(act) && matchesCat;
+          return matchesCat;
         });
       }
       setActivities(filtered);
