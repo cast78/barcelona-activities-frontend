@@ -102,20 +102,26 @@ export async function buildItinerary(
   endDate: string   // ISO date string from search params
 ): Promise<Itinerary> {
   const now = new Date();
-  // Time budget: from now until end of endDate (max 8h)
-  const budgetEnd = new Date(endDate + 'T23:59:59');
-  const maxMs = Math.min(budgetEnd.getTime() - now.getTime(), 8 * 60 * 60 * 1000);
-  const budgetEndClamped = new Date(now.getTime() + maxMs);
+  // Time budget: up to 8 hours from now OR end of endDate, whichever is later
+  const budgetEndFromDate = new Date(endDate + 'T23:59:59');
+  const budgetEnd8h = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const budgetEndClamped = budgetEndFromDate > budgetEnd8h ? budgetEndFromDate : budgetEnd8h;
 
-  // Filter candidates: have coords, start in future (or ongoing), start_time known
+  // Filter candidates: have coords, start_date within budget
   const BCNFALLBACK = '41.3851,2.1734';
   const candidates = activities.filter(act => {
     const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
     const parts = coordStr.split(',').map(Number);
     if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-    if (!act.start_date || !act.start_time) return false;
-    const startDt = new Date(`${act.start_date}T${act.start_time}`);
-    return startDt >= now && startDt <= budgetEndClamped;
+    if (!act.start_date) return false;
+    // If no start_time, assume 10:00 AM (full-day events are still valid)
+    const timeStr = act.start_time || '10:00';
+    const startDt = new Date(`${act.start_date}T${timeStr}`);
+    if (isNaN(startDt.getTime())) return false;
+    // Include events that start today (even if start time already passed — they may still be ongoing)
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    return startDt >= startOfDay && startDt <= budgetEndClamped;
   });
 
   const stops: ItineraryStop[] = [];
@@ -134,7 +140,8 @@ export async function buildItinerary(
       const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
       const parts = coordStr.split(',').map(Number);
       const actCoords: [number, number] = [parts[0], parts[1]];
-      const startDt = new Date(`${act.start_date}T${act.start_time}`);
+      const timeStr = act.start_time || '10:00';
+      const startDt = new Date(`${act.start_date}T${timeStr}`);
       const duration = estimateDurationMin(act);
       const endDt = new Date(startDt.getTime() + duration * 60000);
 
