@@ -437,7 +437,7 @@ function App() {
                   <button
                     onClick={() => setShowPlanner(true)}
                     style={{
-                      position: 'absolute', bottom: '72px', right: '12px', zIndex: 900,
+                      position: 'absolute', top: '12px', right: '12px', zIndex: 900,
                       background: 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',
                       color: '#fff', border: 'none', borderRadius: '24px',
                       padding: '0.5rem 1rem', fontFamily: 'inherit', fontSize: '0.8rem',
