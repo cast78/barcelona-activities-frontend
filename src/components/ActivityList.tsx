@@ -19,8 +19,6 @@ interface Activity {
   venue_name?: string;
   likes?: number;
   attendees?: number;
-  distance?: number;
-  usingFallback?: boolean;
 }
 
 interface ActivityListProps {
@@ -119,25 +117,6 @@ export function getTimeBadge(activity: Activity): TimeBadge {
 
 export function isHappeningNow(activity: Activity): boolean {
   return getTimeBadge(activity)?.label === 'Ahora';
-}
-
-export type DistanceBadge = {
-  label: string;
-  emoji: string;
-  color: string;
-  tooltip: string;
-} | null;
-
-export function getDistanceBadge(activity: Activity): DistanceBadge {
-  if (activity.distance === undefined || activity.distance === null) return null;
-  const d = activity.distance;
-  const fallbackNote = activity.usingFallback ? ' (ref: Barcelona centro)' : '';
-  if (d < 0.08)  return { label: 'Aquí',  emoji: '📍', color: '#059669', tooltip: `A menos de 80m${fallbackNote}` };
-  if (d < 0.25)  return { label: '200m',  emoji: '🚶', color: '#10b981', tooltip: `A unos 200m${fallbackNote}` };
-  if (d < 0.6)   return { label: '500m',  emoji: '🚶', color: '#34d399', tooltip: `A unos 500m${fallbackNote}` };
-  if (d < 1.5)   return { label: '1km',   emoji: '🚶', color: '#0ea5e9', tooltip: `A menos de 1.5km${fallbackNote}` };
-  if (d < 3.0)   return { label: '2km',   emoji: '🏃', color: '#3b82f6', tooltip: `A unos 2km${fallbackNote}` };
-  return null;
 }
 
 export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
@@ -409,7 +388,6 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
             const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
             const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
             const timeBadge = getTimeBadge(activity);
-            const distBadge = getDistanceBadge(activity);
             return (
               <div
                 key={activity.id}
@@ -457,20 +435,6 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                       animation: timeBadge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none'
                     }}>
                       {timeBadge.emoji} {timeBadge.label}
-                    </span>
-                  )}
-                  {distBadge && (
-                    <span
-                      title={distBadge.tooltip}
-                      style={{
-                        flexShrink: 0,
-                        background: distBadge.color,
-                        color: '#fff', fontSize: '0.62rem', fontWeight: 800,
-                        padding: '0.15rem 0.5rem', borderRadius: '20px',
-                        letterSpacing: '0.3px', textTransform: 'uppercase',
-                        cursor: 'default'
-                      }}>
-                      {distBadge.emoji} {distBadge.label}
                     </span>
                   )}
                 </div>

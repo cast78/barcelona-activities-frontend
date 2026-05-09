@@ -208,12 +208,10 @@ function App() {
       let filtered = [...events, ...registered];
       const BARCELONA_FALLBACK: [number, number] = [41.3851, 2.1734];
       let userCoords: [number, number] = BARCELONA_FALLBACK;
-      let isFallback = true;
       if (location) {
         const parts = location.split(',').map(Number);
         if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
           userCoords = [parts[0], parts[1]];
-          isFallback = false;
         }
       }
       setLastLocation(`${userCoords[0]},${userCoords[1]}`);
@@ -225,15 +223,6 @@ function App() {
         if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
         const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
         return dist <= radius;
-      });
-      // Añadir campo distance y usingFallback a cada actividad
-      filtered = filtered.map(act => {
-        const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
-        const coords = coordStr.split(',').map(Number);
-        const dist = (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1]))
-          ? haversine(userCoords[0], userCoords[1], coords[0], coords[1])
-          : undefined;
-        return { ...act, distance: dist, usingFallback: isFallback };
       });
       const effectiveStart = startDate || new Date().toISOString().split('T')[0];
       if (effectiveStart || endDate) {

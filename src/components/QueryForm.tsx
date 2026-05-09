@@ -134,11 +134,6 @@ const QueryForm: React.FC<QueryFormProps> = ({
               {isLoadingLocation ? <span className="spinner">⟳</span> : '📍'}
             </button>
           </div>
-          {!location && (
-            <p style={{ margin: '0.3rem 0 0', fontSize: '0.7rem', color: '#9ca3af', lineHeight: 1.4 }}>
-              📍 Sin ubicación, se usa Barcelona centro como referencia
-            </p>
-          )}
         </div>
         <div className="form-row">
           <label htmlFor="startDate">Start Date</label>
