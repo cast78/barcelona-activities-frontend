@@ -23,6 +23,7 @@ interface Activity {
 
 interface ActivityListProps {
   activities: Activity[];
+  userCoords?: [number, number] | null;
 }
 
 function formatDate(d: string) {
@@ -119,7 +120,36 @@ export function isHappeningNow(activity: Activity): boolean {
   return getTimeBadge(activity)?.label === 'Ahora';
 }
 
-export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
+// ── Distance badge ─────────────────────────────────────────────────────────
+export type DistanceBadge = {
+  label: string;
+  emoji: string;
+  gradient: string;
+  borderColor: string;
+} | null;
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export function getDistanceBadge(activity: Activity, userCoords: [number, number] | null): DistanceBadge {
+  if (!userCoords || !activity.geo_epgs_4326_latlon) return null;
+  const parts = activity.geo_epgs_4326_latlon.split(',').map(Number);
+  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+  const m = haversineKm(userCoords[0], userCoords[1], parts[0], parts[1]) * 1000;
+  if (m <= 150)  return { label: 'Aquí', emoji: '📍', gradient: 'linear-gradient(135deg,#059669,#047857)', borderColor: '#059669' };
+  if (m <= 400)  return { label: '200m', emoji: '🚶', gradient: 'linear-gradient(135deg,#10b981,#059669)', borderColor: '#10b981' };
+  if (m <= 750)  return { label: '500m', emoji: '🚶', gradient: 'linear-gradient(135deg,#84cc16,#65a30d)', borderColor: '#84cc16' };
+  if (m <= 1500) return { label: '1km',  emoji: '🚲', gradient: 'linear-gradient(135deg,#eab308,#ca8a04)', borderColor: '#eab308' };
+  if (m <= 2500) return { label: '2km',  emoji: '🚲', gradient: 'linear-gradient(135deg,#f97316,#ea580c)', borderColor: '#f97316' };
+  return null;
+}
+
+export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; userCoords?: [number, number] | null }> = ({ activity, onClose, userCoords }) => {
   const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
   const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
   const [liked, setLiked] = useState(() => isLiked(activity.id));
@@ -178,21 +208,39 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
             </span>
           )}
           {(() => {
-            const badge = getTimeBadge(activity);
-            return badge ? (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center',
-                marginLeft: cat ? '0.5rem' : '0',
-                background: badge.gradient,
-                color: '#fff', fontSize: '0.62rem', fontWeight: 800,
-                padding: '0.15rem 0.5rem', borderRadius: '20px',
-                letterSpacing: '0.3px', textTransform: 'uppercase',
-                animation: badge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none',
-                marginBottom: '0.5rem'
-              }}>
-                {badge.emoji} {badge.label}
-              </span>
-            ) : null;
+            const timeBadge = getTimeBadge(activity);
+            const distBadge = getDistanceBadge(activity, userCoords ?? null);
+            return (
+              <>
+                {timeBadge && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center',
+                    marginLeft: cat ? '0.5rem' : '0',
+                    background: timeBadge.gradient,
+                    color: '#fff', fontSize: '0.62rem', fontWeight: 800,
+                    padding: '0.15rem 0.5rem', borderRadius: '20px',
+                    letterSpacing: '0.3px', textTransform: 'uppercase',
+                    animation: timeBadge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {timeBadge.emoji} {timeBadge.label}
+                  </span>
+                )}
+                {distBadge && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center',
+                    marginLeft: '0.4rem',
+                    background: distBadge.gradient,
+                    color: '#fff', fontSize: '0.62rem', fontWeight: 800,
+                    padding: '0.15rem 0.5rem', borderRadius: '20px',
+                    letterSpacing: '0.3px', textTransform: 'uppercase',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {distBadge.emoji} {distBadge.label}
+                  </span>
+                )}
+              </>
+            );
           })()}
           <h2 style={{ margin: '0', fontSize: '1rem', fontWeight: 700, paddingRight: '1rem' }}>
             {activity.name}
@@ -317,7 +365,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
   );
 };
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
+const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>(() => getLikeCountsLocal());
@@ -388,13 +436,15 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
             const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
             const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
             const timeBadge = getTimeBadge(activity);
+            const distBadge = getDistanceBadge(activity, userCoords ?? null);
+            const activeBadge = timeBadge ?? distBadge;
             return (
               <div
                 key={activity.id}
                 style={{
                   backgroundColor: '#fff', borderRadius: '12px', overflow: 'hidden',
-                  boxShadow: timeBadge
-                    ? `0 2px 12px rgba(0,0,0,0.12), 0 0 0 2px ${timeBadge.borderColor}`
+                  boxShadow: activeBadge
+                    ? `0 2px 12px rgba(0,0,0,0.12), 0 0 0 2px ${activeBadge.borderColor}`
                     : '0 2px 12px rgba(34,34,59,0.08)',
                   transition: 'transform 0.18s, box-shadow 0.18s',
                   display: 'flex', flexDirection: 'column', cursor: 'pointer'
@@ -435,6 +485,17 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                       animation: timeBadge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none'
                     }}>
                       {timeBadge.emoji} {timeBadge.label}
+                    </span>
+                  )}
+                  {distBadge && (
+                    <span style={{
+                      flexShrink: 0,
+                      background: distBadge.gradient,
+                      color: '#fff', fontSize: '0.62rem', fontWeight: 800,
+                      padding: '0.15rem 0.5rem', borderRadius: '20px',
+                      letterSpacing: '0.3px', textTransform: 'uppercase'
+                    }}>
+                      {distBadge.emoji} {distBadge.label}
                     </span>
                   )}
                 </div>
@@ -545,7 +606,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
       )}
 
       {/* Modal de detalle */}
-      {selected && <ActivityModal activity={selected} onClose={() => setSelected(null)} />}
+      {selected && <ActivityModal activity={selected} onClose={() => setSelected(null)} userCoords={userCoords} />}
     </div>
   );
 };

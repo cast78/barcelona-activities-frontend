@@ -16,7 +16,7 @@ const GpsIcon = MdGpsFixed as React.ElementType;
 type Page = 'main' | 'register';
 
 // Bottom sheet component that manages its own open/close state
-function BottomSheetPanel({ activities, isSearching }: { activities: Activity[]; isSearching: boolean }) {
+function BottomSheetPanel({ activities, isSearching, userCoords }: { activities: Activity[]; isSearching: boolean; userCoords: [number, number] | null }) {
   const [open, setOpen] = useState(false);
 
   // Auto-open when results arrive, auto-close when searching starts
@@ -59,7 +59,7 @@ function BottomSheetPanel({ activities, isSearching }: { activities: Activity[];
           const da = a.start_date + (a.start_time || '00:00');
           const db = b.start_date + (b.start_time || '00:00');
           return da.localeCompare(db);
-        })} />
+        })} userCoords={userCoords} />
       </div>
     </div>
   );
@@ -79,6 +79,8 @@ function App() {
   const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [timeFilter, setTimeFilter] = useState<string>('any');
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
   const [page, setPage] = useState<Page>('main');
@@ -162,6 +164,8 @@ function App() {
             setLocation(locStr);
             setRadius(2);
             setIsLoadingLocation(false);
+            setUserCoords([latitude, longitude]);
+            setUsingFallback(false);
             await runSearch(latitude, longitude, locStr);
           },
           async () => {
@@ -170,6 +174,8 @@ function App() {
             const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
             setLocation(locStr);
             setRadius(2);
+            setUserCoords([BARCELONA_LAT, BARCELONA_LON]);
+            setUsingFallback(true);
             await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
           },
           { timeout: 5000 }
@@ -178,6 +184,8 @@ function App() {
         const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
         setLocation(locStr);
         setRadius(2);
+        setUserCoords([BARCELONA_LAT, BARCELONA_LON]);
+        setUsingFallback(true);
         await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
       }
     };
@@ -207,21 +215,23 @@ function App() {
       const registered = await fetchActivities();
       let filtered = [...events, ...registered];
       const BARCELONA_FALLBACK: [number, number] = [41.3851, 2.1734];
-      let userCoords: [number, number] = BARCELONA_FALLBACK;
+      let searchCoords: [number, number] = BARCELONA_FALLBACK;
       if (location) {
         const parts = location.split(',').map(Number);
         if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-          userCoords = [parts[0], parts[1]];
+          searchCoords = [parts[0], parts[1]];
         }
       }
-      setLastLocation(`${userCoords[0]},${userCoords[1]}`);
+      setUserCoords(searchCoords);
+      setUsingFallback(false);
+      setLastLocation(`${searchCoords[0]},${searchCoords[1]}`);
       setLastRadius(radius);
       const BCNFALLBACK = '41.3851,2.1734';
       filtered = filtered.filter(act => {
         const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
         const coords = coordStr.split(',').map(Number);
         if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
-        const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
+        const dist = haversine(searchCoords[0], searchCoords[1], coords[0], coords[1]);
         return dist <= radius;
       });
       const effectiveStart = startDate || new Date().toISOString().split('T')[0];
@@ -321,6 +331,18 @@ function App() {
               <div className="map-fullscreen">
                 <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} />
 
+                {usingFallback && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 800,
+                    background: 'rgba(234,179,8,0.92)', color: '#1c1917',
+                    fontSize: '0.72rem', fontWeight: 600,
+                    padding: '0.35rem 1rem', textAlign: 'center',
+                    backdropFilter: 'blur(4px)', pointerEvents: 'none'
+                  }}>
+                    📍 Usando Barcelona como referencia · Activa la ubicación para ver distancias reales
+                  </div>
+                )}
+
                 {/* Radar overlay mientras se buscan/cargan actividades */}
                 {isSearching && (
                   <div className="radar-overlay">
@@ -375,7 +397,7 @@ function App() {
                 <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona"><GpsIcon size={16} color="#333" /></button>
 
                 {/* Bottom sheet de actividades — se abre de abajo hacia arriba */}
-                <BottomSheetPanel activities={activities} isSearching={isSearching} />
+                <BottomSheetPanel activities={activities} isSearching={isSearching} userCoords={userCoords} />
               </div>
             </>
           )}
@@ -395,6 +417,7 @@ function App() {
         <ActivityModal
           activity={selectedMapActivity}
           onClose={() => setSelectedMapActivity(null)}
+          userCoords={userCoords}
         />
       )}
     </div>

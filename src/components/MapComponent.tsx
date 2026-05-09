@@ -9,7 +9,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
 import { CATEGORIES, inferCategory } from './QueryForm';
-import { getTimeBadge, renderBodyWithLinks } from './ActivityList';
+import { getTimeBadge, getDistanceBadge, renderBodyWithLinks } from './ActivityList';
 import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
   getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
 
@@ -173,10 +173,12 @@ const MapContent: React.FC<{
             return null;
           }
           const coords = activity.geo_epgs_4326_latlon.split(',').map(Number);
-          const timeBadge = getTimeBadge(activity);
           if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+            const timeBadge = getTimeBadge(activity);
+            const distBadge = getDistanceBadge(activity, userCoords);
+            const markerBadge = timeBadge ?? distBadge;
             return (
-              <Marker key={activity.id} position={[coords[0], coords[1]] as [number, number]} {...{ icon: makeActivityIcon(activity.likes, timeBadge?.label, timeBadge?.borderColor) } as any}>
+              <Marker key={activity.id} position={[coords[0], coords[1]] as [number, number]} {...{ icon: makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor) } as any}>
                 <Popup>
                   <div style={{ minWidth: '180px' }}>
                     <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
@@ -190,6 +192,14 @@ const MapContent: React.FC<{
                           letterSpacing: '0.3px', textTransform: 'uppercase',
                           animation: timeBadge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none'
                         }}>{timeBadge.emoji} {timeBadge.label}</span>
+                      )}
+                      {distBadge && (
+                        <span style={{
+                          background: distBadge.gradient,
+                          color: '#fff', fontSize: '0.58rem', fontWeight: 800,
+                          padding: '0.1rem 0.35rem', borderRadius: '10px',
+                          letterSpacing: '0.3px', textTransform: 'uppercase'
+                        }}>{distBadge.emoji} {distBadge.label}</span>
                       )}
                     </h4>
                     <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#555' }}>{renderBodyWithLinks(activity.body || '')}</p>
