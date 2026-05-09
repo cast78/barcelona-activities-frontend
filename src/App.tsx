@@ -6,6 +6,8 @@ import QueryForm, { CATEGORIES } from './components/QueryForm';
 import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge, sortByTimeAndDistance } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
+import ItineraryPlanner from './components/ItineraryPlanner';
+import type { Itinerary } from './components/ItineraryPlanner';
 import { fetchEvents, fetchActivities, Activity } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
 
@@ -86,6 +88,8 @@ function App() {
   const [usingFallback, setUsingFallback] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pinnedActivity, setPinnedActivity] = useState<Activity | null>(null);
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [showPlanner, setShowPlanner] = useState(false);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
 
@@ -345,7 +349,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} />
 
                 {usingFallback && (
                   <div style={{
@@ -428,6 +432,24 @@ function App() {
                   )}
                 </div>
 
+                {/* Botón Planificar ruta */}
+                {activities.length >= 2 && !isSearching && (
+                  <button
+                    onClick={() => setShowPlanner(true)}
+                    style={{
+                      position: 'absolute', bottom: '72px', right: '12px', zIndex: 900,
+                      background: 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',
+                      color: '#fff', border: 'none', borderRadius: '24px',
+                      padding: '0.5rem 1rem', fontFamily: 'inherit', fontSize: '0.8rem',
+                      fontWeight: 700, cursor: 'pointer',
+                      boxShadow: '0 4px 16px rgba(102,126,234,0.5)',
+                      display: 'flex', alignItems: 'center', gap: '0.4rem'
+                    }}
+                  >
+                    🗺️ Planificar ruta
+                  </button>
+                )}
+
                 {/* Botón volver a Barcelona */}
                 <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona"><GpsIcon size={16} color="#333" /></button>
 
@@ -460,6 +482,17 @@ function App() {
           activity={selectedMapActivity}
           onClose={() => setSelectedMapActivity(null)}
           userCoords={userCoords}
+        />
+      )}
+
+      {/* Planificador de ruta */}
+      {showPlanner && (
+        <ItineraryPlanner
+          activities={activities}
+          userCoords={userCoords}
+          endDate={endDate}
+          onClose={() => setShowPlanner(false)}
+          onItineraryReady={(itin) => setItinerary(itin)}
         />
       )}
     </div>

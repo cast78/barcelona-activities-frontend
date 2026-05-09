@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
 import type { CircleProps } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -10,6 +10,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
 import { CATEGORIES, inferCategory } from './QueryForm';
 import { getTimeBadge, getDistanceBadge, renderBodyWithLinks } from './ActivityList';
+import type { Itinerary } from './ItineraryPlanner';
 import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
   getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
 
@@ -34,6 +35,7 @@ interface MapComponentProps {
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
   openPopupForId?: string | null;
+  itinerary?: Itinerary | null;
 }
 
 // Componente auxiliar para manejar el mapa
@@ -44,7 +46,8 @@ const MapContent: React.FC<{
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
   openPopupForId?: string | null;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId }) => {
+  itinerary?: Itinerary | null;
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary }) => {
   const map = useMap();
   const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
@@ -164,6 +167,20 @@ const MapContent: React.FC<{
     return (L as any).divIcon({ className: '', html, iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
   };
 
+  const makeNumberedIcon = (num: number) => {
+    return (L as any).divIcon({
+      className: '',
+      html: `<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2px solid #fff;z-index:9999">${num}</div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 30],
+    });
+  };
+
+  const itineraryPolylines: [number, number][][] = itinerary
+    ? itinerary.stops.map(s => s.routeGeometry || [])
+    : [];
+  const itineraryStopIds = new Set(itinerary?.stops.map(s => s.activity.id) ?? []);
+
   return (
     <>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -190,7 +207,8 @@ const MapContent: React.FC<{
           if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
             const timeBadge = getTimeBadge(activity);
             const distBadge = getDistanceBadge(activity, userCoords);
-            const markerBadge = timeBadge ?? distBadge;
+            const inItinerary = itineraryStopIds.has(activity.id);
+            const markerBadge = inItinerary ? undefined : (timeBadge ?? distBadge);
             return (
               <Marker
                 key={activity.id}
@@ -273,15 +291,37 @@ const MapContent: React.FC<{
         }
         return null;
       })}
+
+      {/* Itinerary polylines */}
+      {itineraryPolylines.map((seg, i) =>
+        seg.length >= 2 ? (
+          <Polyline key={`seg-${i}`} positions={seg as any} pathOptions={{ color: '#667eea', weight: 4, opacity: 0.85, dashArray: '8 4' }} />
+        ) : null
+      )}
+
+      {/* Numbered overlays for itinerary stops */}
+      {itinerary && itinerary.stops.map((stop, i) => {
+        const coordStr = stop.activity.geo_epgs_4326_latlon;
+        if (!coordStr) return null;
+        const parts = coordStr.split(',').map(Number);
+        if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+        return (
+          <Marker
+            key={`num-${stop.activity.id}`}
+            position={[parts[0], parts[1]] as [number, number]}
+            {...{ icon: makeNumberedIcon(i + 1), zIndexOffset: 1000 } as any}
+          />
+        );
+      })}
     </>
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary }) => {
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} itinerary={itinerary} />
       </MapContainer>
     </div>
   );
