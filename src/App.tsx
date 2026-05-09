@@ -3,7 +3,7 @@ import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
 import QueryForm, { CATEGORIES } from './components/QueryForm';
-import ActivityList, { ActivityModal, isHappeningNow } from './components/ActivityList';
+import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
 import { fetchEvents, fetchActivities, Activity } from './api';
@@ -78,6 +78,8 @@ function App() {
   const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; });
   const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [timeFilter, setTimeFilter] = useState<string>('any');
+  const [usingFallback, setUsingFallback] = useState(true);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
   const [page, setPage] = useState<Page>('main');
@@ -207,12 +209,15 @@ function App() {
       let filtered = [...events, ...registered];
       const BARCELONA_FALLBACK: [number, number] = [41.3851, 2.1734];
       let userCoords: [number, number] = BARCELONA_FALLBACK;
+      let isFallback = true;
       if (location) {
         const parts = location.split(',').map(Number);
         if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
           userCoords = [parts[0], parts[1]];
+          isFallback = false;
         }
       }
+      setUsingFallback(isFallback);
       setLastLocation(`${userCoords[0]},${userCoords[1]}`);
       setLastRadius(radius);
       const BCNFALLBACK = '41.3851,2.1734';
@@ -222,6 +227,15 @@ function App() {
         if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
         const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
         return dist <= radius;
+      });
+      // Añadir campo distance y usingFallback a cada actividad
+      filtered = filtered.map(act => {
+        const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
+        const coords = coordStr.split(',').map(Number);
+        const dist = (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1]))
+          ? haversine(userCoords[0], userCoords[1], coords[0], coords[1])
+          : undefined;
+        return { ...act, distance: dist, usingFallback: isFallback };
       });
       const effectiveStart = startDate || new Date().toISOString().split('T')[0];
       if (effectiveStart || endDate) {
@@ -240,23 +254,24 @@ function App() {
         });
       }
       if (categories && categories.length > 0) {
-        const hasAhora = categories.includes('ahora');
-        const otherCats = categories.filter(c => c !== 'ahora');
-        const activeCategories = CATEGORIES.filter(c => otherCats.includes(c.id));
+        const activeCategories = CATEGORIES.filter(c => categories.includes(c.id));
         filtered = filtered.filter(act => {
-          // Solo "Ahora" seleccionado: mostrar todas las happening now
-          if (otherCats.length === 0) return isHappeningNow(act);
-          // Verificar match de categoría
-          let matchesCat: boolean;
-          if (act.category) {
-            matchesCat = otherCats.includes(act.category);
-          } else {
-            const text = ((act.name || '') + ' ' + (act.body || '')).toLowerCase();
-            matchesCat = activeCategories.some(cat => cat.keywords.some(kw => text.includes(kw)));
-          }
-          // "Ahora" + categorías: AND (debe cumplir ambas)
-          if (hasAhora) return isHappeningNow(act) && matchesCat;
-          return matchesCat;
+          if (act.category) return categories.includes(act.category);
+          const text = ((act.name || '') + ' ' + (act.body || '')).toLowerCase();
+          return activeCategories.some(cat => cat.keywords.some(kw => text.includes(kw)));
+        });
+      }
+      // Filtro temporal
+      if (timeFilter !== 'any') {
+        filtered = filtered.filter(act => {
+          if (timeFilter === 'now') return isHappeningNow(act);
+          const badge = getTimeBadge(act);
+          if (!badge) return false;
+          if (timeFilter === '30min') return ['Ahora', '30min'].includes(badge.label);
+          if (timeFilter === '1h')    return ['Ahora', '30min', '1h'].includes(badge.label);
+          if (timeFilter === '2h')    return ['Ahora', '30min', '1h', '2h'].includes(badge.label);
+          if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
+          return false;
         });
       }
       setActivities(filtered);
@@ -278,7 +293,8 @@ function App() {
     setLocation(resetLocation);
     setRadius(resetRadius);
     setSelectedCategories([]);
-    handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: resetRadius, categories: [] });
+    setTimeFilter('any');
+    //handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: resetRadius, categories: [] });
   };
 
   return (
@@ -362,6 +378,8 @@ function App() {
                       setRadius={setRadius}
                       selectedCategories={selectedCategories}
                       setSelectedCategories={setSelectedCategories}
+                      timeFilter={timeFilter}
+                      setTimeFilter={setTimeFilter}
                     />
                   )}
                 </div>

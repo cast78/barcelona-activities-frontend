@@ -17,6 +17,8 @@ export interface Activity {
   venue_name?: string;
   likes?: number;
   attendees?: number;
+  distance?: number;        // km desde la ubicación del usuario
+  usingFallback?: boolean;  // true si la distancia es relativa a Barcelona centro
 }
 
 export const fetchEvents = async (startDate?: string, endDate?: string): Promise<Activity[]> => {

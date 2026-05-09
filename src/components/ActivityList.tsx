@@ -19,6 +19,8 @@ interface Activity {
   venue_name?: string;
   likes?: number;
   attendees?: number;
+  distance?: number;
+  usingFallback?: boolean;
 }
 
 interface ActivityListProps {
@@ -39,7 +41,7 @@ function formatTime(t?: string): string {
   return match ? match[1] : '';
 }
 
-function renderBodyWithLinks(body: string): React.ReactNode {
+export function renderBodyWithLinks(body: string): React.ReactNode {
   const urlRegex = /(https?:\/\/[^\s·]+)/g;
   const parts = body.split(urlRegex);
   return parts.map((part, i) =>
@@ -60,26 +62,82 @@ function getMapsUrl(activity: Activity): string | null {
   return null;
 }
 
-export function isHappeningNow(activity: Activity): boolean {
+export type TimeBadge = {
+  label: string;
+  emoji: string;
+  gradient: string;
+  borderColor: string;
+} | null;
+
+export function getTimeBadge(activity: Activity): TimeBadge {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  if (activity.start_date !== todayStr) return false;
-  if (!activity.start_time) return false;
-  const matchStart = activity.start_time.match(/^(\d{2}):(\d{2})/);
-  if (!matchStart) return false;
-  const startMinutes = parseInt(matchStart[1]) * 60 + parseInt(matchStart[2]);
+  const tomorrowDate = new Date(today);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+
+  const isToday    = activity.start_date === todayStr;
+  const isTomorrow = activity.start_date === tomorrowStr;
+  if (!isToday && !isTomorrow) return null;
+
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
-  // No ha empezado aún (más de 15 min en el futuro)
-  if (startMinutes > nowMinutes + 15) return false;
-  // Calcular fin: usar end_time si existe, sino start + 3h
-  let endMinutes: number;
-  if (activity.end_time) {
-    const matchEnd = activity.end_time.match(/^(\d{2}):(\d{2})/);
-    endMinutes = matchEnd ? parseInt(matchEnd[1]) * 60 + parseInt(matchEnd[2]) : startMinutes + 180;
-  } else {
-    endMinutes = startMinutes + 180;
+
+  if (!activity.start_time) {
+    if (isTomorrow) return { label: '1día', emoji: '📅', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', borderColor: '#8b5cf6' };
+    return null;
   }
-  return nowMinutes < endMinutes;
+  const matchStart = activity.start_time.match(/^(\d{2}):(\d{2})/);
+  if (!matchStart) {
+    if (isTomorrow) return { label: '1día', emoji: '📅', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', borderColor: '#8b5cf6' };
+    return null;
+  }
+  const startMinutes = parseInt(matchStart[1]) * 60 + parseInt(matchStart[2]);
+  const diffMinutes = isToday
+    ? startMinutes - nowMinutes
+    : (1440 - nowMinutes) + startMinutes;
+
+  // Ya empezó (o empieza en ≤15 min) → "Ahora" si no ha terminado
+  if (diffMinutes <= 15) {
+    if (!isToday) return null;
+    let endMinutes: number;
+    if (activity.end_time) {
+      const matchEnd = activity.end_time.match(/^(\d{2}):(\d{2})/);
+      endMinutes = matchEnd ? parseInt(matchEnd[1]) * 60 + parseInt(matchEnd[2]) : startMinutes + 180;
+    } else {
+      endMinutes = startMinutes + 180;
+    }
+    if (nowMinutes < endMinutes) {
+      return { label: 'Ahora', emoji: '⚡', gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)', borderColor: '#f59e0b' };
+    }
+    return null;
+  }
+  if (diffMinutes <= 45)  return { label: '30min', emoji: '⏰', gradient: 'linear-gradient(135deg,#ef4444,#dc2626)', borderColor: '#ef4444' };
+  if (diffMinutes <= 105) return { label: '1h',    emoji: '🕐', gradient: 'linear-gradient(135deg,#f97316,#ea580c)', borderColor: '#f97316' };
+  if (diffMinutes <= 135) return { label: '2h',    emoji: '🕑', gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', borderColor: '#3b82f6' };
+  return { label: '1día', emoji: '📅', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', borderColor: '#8b5cf6' };
+}
+
+export function isHappeningNow(activity: Activity): boolean {
+  return getTimeBadge(activity)?.label === 'Ahora';
+}
+
+export type DistanceBadge = {
+  label: string;
+  emoji: string;
+  color: string;
+  tooltip: string;
+} | null;
+
+export function getDistanceBadge(activity: Activity): DistanceBadge {
+  if (activity.distance === undefined || activity.distance === null) return null;
+  const d = activity.distance;
+  const fallbackNote = activity.usingFallback ? ' (ref: Barcelona centro)' : '';
+  if (d < 0.08)  return { label: 'Aquí',  emoji: '📍', color: '#059669', tooltip: `A menos de 80m${fallbackNote}` };
+  if (d < 0.25)  return { label: '200m',  emoji: '🚶', color: '#10b981', tooltip: `A unos 200m${fallbackNote}` };
+  if (d < 0.6)   return { label: '500m',  emoji: '🚶', color: '#34d399', tooltip: `A unos 500m${fallbackNote}` };
+  if (d < 1.5)   return { label: '1km',   emoji: '🚶', color: '#0ea5e9', tooltip: `A menos de 1.5km${fallbackNote}` };
+  if (d < 3.0)   return { label: '2km',   emoji: '🏃', color: '#3b82f6', tooltip: `A unos 2km${fallbackNote}` };
+  return null;
 }
 
 export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }> = ({ activity, onClose }) => {
@@ -140,19 +198,23 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
               {cat.emoji} {cat.label}
             </span>
           )}
-          {isHappeningNow(activity) && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center',
-              marginLeft: cat ? '0.5rem' : '0',
-              background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-              color: '#fff', fontSize: '0.62rem', fontWeight: 800,
-              padding: '0.15rem 0.5rem', borderRadius: '20px',
-              letterSpacing: '0.3px', textTransform: 'uppercase',
-              animation: 'pulse 1.5s infinite', marginBottom: '0.5rem'
-            }}>
-              ⚡ Ahora
-            </span>
-          )}
+          {(() => {
+            const badge = getTimeBadge(activity);
+            return badge ? (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                marginLeft: cat ? '0.5rem' : '0',
+                background: badge.gradient,
+                color: '#fff', fontSize: '0.62rem', fontWeight: 800,
+                padding: '0.15rem 0.5rem', borderRadius: '20px',
+                letterSpacing: '0.3px', textTransform: 'uppercase',
+                animation: badge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none',
+                marginBottom: '0.5rem'
+              }}>
+                {badge.emoji} {badge.label}
+              </span>
+            ) : null;
+          })()}
           <h2 style={{ margin: '0', fontSize: '1rem', fontWeight: 700, paddingRight: '1rem' }}>
             {activity.name}
           </h2>
@@ -346,13 +408,15 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
           {activities.map(activity => {
             const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
             const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
+            const timeBadge = getTimeBadge(activity);
+            const distBadge = getDistanceBadge(activity);
             return (
               <div
                 key={activity.id}
                 style={{
                   backgroundColor: '#fff', borderRadius: '12px', overflow: 'hidden',
-                  boxShadow: isHappeningNow(activity)
-                    ? '0 2px 12px rgba(245,158,11,0.25), 0 0 0 2px #f59e0b'
+                  boxShadow: timeBadge
+                    ? `0 2px 12px rgba(0,0,0,0.12), 0 0 0 2px ${timeBadge.borderColor}`
                     : '0 2px 12px rgba(34,34,59,0.08)',
                   transition: 'transform 0.18s, box-shadow 0.18s',
                   display: 'flex', flexDirection: 'column', cursor: 'pointer'
@@ -383,16 +447,30 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
                   <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, lineHeight: 1.2, flex: 1 }}>
                     {activity.name}
                   </h3>
-                  {isHappeningNow(activity) && (
+                  {timeBadge && (
                     <span style={{
                       flexShrink: 0,
-                      background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                      background: timeBadge.gradient,
                       color: '#fff', fontSize: '0.62rem', fontWeight: 800,
                       padding: '0.15rem 0.5rem', borderRadius: '20px',
                       letterSpacing: '0.3px', textTransform: 'uppercase',
-                      animation: 'pulse 1.5s infinite'
+                      animation: timeBadge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none'
                     }}>
-                      ⚡ Ahora
+                      {timeBadge.emoji} {timeBadge.label}
+                    </span>
+                  )}
+                  {distBadge && (
+                    <span
+                      title={distBadge.tooltip}
+                      style={{
+                        flexShrink: 0,
+                        background: distBadge.color,
+                        color: '#fff', fontSize: '0.62rem', fontWeight: 800,
+                        padding: '0.15rem 0.5rem', borderRadius: '20px',
+                        letterSpacing: '0.3px', textTransform: 'uppercase',
+                        cursor: 'default'
+                      }}>
+                      {distBadge.emoji} {distBadge.label}
                     </span>
                   )}
                 </div>

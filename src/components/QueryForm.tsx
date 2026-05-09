@@ -18,12 +18,10 @@ export const CATEGORIES: CategoryChip[] = [
   { id: "night",    label: "Night Life", emoji: "🌙", keywords: ["nocturno","noche","nit","bar","discoteca","club","cocktail","pub","after","festa","party","nightclub","boite","copa","karaoke","flaming","brunch nocturn"] },
   { id: "show",     label: "Show",       emoji: "\uD83C\uDFAA", keywords: ["show","espectacle","espectaculo","espect\u00E1cul","actuaci","actuacion","performance","magic","magia","circus","circ","cabaret","comedy","monolog","stand up","standup","ilusionist","humorist","drag","burlesc","varietes","escenari","live","en vivo","en directo"] },
   { id: "other",    label: "Other",      emoji: "📌", keywords: [] },
-  { id: "ahora",    label: "Ahora",      emoji: "⚡", keywords: [] },
 ];
 
 export function inferCategory(name: string, body: string): string {
   const text = (name + ' ' + body).toLowerCase();
-  // Excluir 'other' y 'ahora' del matching por keywords
   const matchable = CATEGORIES.filter(c => c.keywords.length > 0);
   const matched = matchable.find(c => c.keywords.some(kw => text.includes(kw)));
   return matched ? matched.id : 'other';
@@ -46,6 +44,8 @@ interface QueryFormProps {
   setRadius: (value: number) => void;
   selectedCategories: string[];
   setSelectedCategories: (value: string[]) => void;
+  timeFilter: string;
+  setTimeFilter: (value: string) => void;
 }
 
 const QueryForm: React.FC<QueryFormProps> = ({ 
@@ -64,7 +64,9 @@ const QueryForm: React.FC<QueryFormProps> = ({
   radius,
   setRadius,
   selectedCategories,
-  setSelectedCategories
+  setSelectedCategories,
+  timeFilter,
+  setTimeFilter
 }) => {
 
   const toggleCategory = (id: string) => {
@@ -85,6 +87,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
     setEndDate("");
     setRadius(5);
     setSelectedCategories([]);
+    setTimeFilter('any');
     if (onClear) onClear();
   };
 
@@ -131,6 +134,11 @@ const QueryForm: React.FC<QueryFormProps> = ({
               {isLoadingLocation ? <span className="spinner">⟳</span> : '📍'}
             </button>
           </div>
+          {!location && (
+            <p style={{ margin: '0.3rem 0 0', fontSize: '0.7rem', color: '#9ca3af', lineHeight: 1.4 }}>
+              📍 Sin ubicación, se usa Barcelona centro como referencia
+            </p>
+          )}
         </div>
         <div className="form-row">
           <label htmlFor="startDate">Start Date</label>
@@ -165,13 +173,28 @@ const QueryForm: React.FC<QueryFormProps> = ({
           </select>
         </div>
         <div className="form-row">
+          <label htmlFor="timeFilter">¿Cuándo?</label>
+          <select
+            id="timeFilter"
+            value={timeFilter}
+            onChange={e => setTimeFilter(e.target.value)}
+          >
+            <option value="any">Cualquier hora</option>
+            <option value="now">⚡ Ahora mismo</option>
+            <option value="30min">⏰ En 30 minutos</option>
+            <option value="1h">🕐 En 1 hora</option>
+            <option value="2h">🕑 En 2 horas</option>
+            <option value="1dia">📅 En 1 día</option>
+          </select>
+        </div>
+        <div className="form-row">
           <label>Activity Type</label>
           <div className="chip-group">
             {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
                 type="button"
-                className={`chip${selectedCategories.includes(cat.id) ? " chip--active" : ""}${cat.id === 'ahora' ? ' chip--ahora' : ''}`}
+                className={`chip${selectedCategories.includes(cat.id) ? " chip--active" : ""}`}
                 onClick={() => toggleCategory(cat.id)}
                 aria-pressed={selectedCategories.includes(cat.id)}
               >
