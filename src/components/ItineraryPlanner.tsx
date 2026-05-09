@@ -102,26 +102,17 @@ export async function buildItinerary(
   endDate: string   // ISO date string from search params
 ): Promise<Itinerary> {
   const now = new Date();
-  // Time budget: up to 8 hours from now OR end of endDate, whichever is later
+  // Time budget: 8 hours from now OR end of endDate, whichever is later
   const budgetEndFromDate = new Date(endDate + 'T23:59:59');
   const budgetEnd8h = new Date(now.getTime() + 8 * 60 * 60 * 1000);
   const budgetEndClamped = budgetEndFromDate > budgetEnd8h ? budgetEndFromDate : budgetEnd8h;
 
-  // Filter candidates: have coords, start_date within budget
+  // Candidates: activities with valid coords (already date-filtered by the app)
   const BCNFALLBACK = '41.3851,2.1734';
   const candidates = activities.filter(act => {
     const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
     const parts = coordStr.split(',').map(Number);
-    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-    if (!act.start_date) return false;
-    // If no start_time, assume 10:00 AM (full-day events are still valid)
-    const timeStr = act.start_time || '10:00';
-    const startDt = new Date(`${act.start_date}T${timeStr}`);
-    if (isNaN(startDt.getTime())) return false;
-    // Include events that start today (even if start time already passed — they may still be ongoing)
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    return startDt >= startOfDay && startDt <= budgetEndClamped;
+    return parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]);
   });
 
   const stops: ItineraryStop[] = [];
@@ -129,39 +120,47 @@ export async function buildItinerary(
   let currentTime = now;
   const used = new Set<string>();
 
-  // Greedy: pick the activity that starts soonest and we can reach in time
+  // Greedy: pick the activity with the earliest effective visit time
   while (true) {
     let bestAct: Activity | null = null;
     let bestTravel: { minutes: number; distanceKm: number; geometry: [number, number][] } | null = null;
-    let bestStartDt: Date | null = null;
+    let bestEffectiveStart: Date | null = null;
 
     for (const act of candidates) {
       if (used.has(act.id)) continue;
       const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
       const parts = coordStr.split(',').map(Number);
       const actCoords: [number, number] = [parts[0], parts[1]];
-      const timeStr = act.start_time || '10:00';
-      const startDt = new Date(`${act.start_date}T${timeStr}`);
-      const duration = estimateDurationMin(act);
-      const endDt = new Date(startDt.getTime() + duration * 60000);
 
-      // Can we reach it before it starts?
+      // Estimate travel time from current position
       const distKm = haversineKm(currentCoords[0], currentCoords[1], actCoords[0], actCoords[1]);
       const modeSpeedKmh = mode === 'cycling' ? 14 : mode === 'metro' ? 28 : 4.5;
       const roughTravelMin = mode === 'metro' ? metroMinutes(distKm) : Math.ceil((distKm / modeSpeedKmh) * 60);
-      const arrivalIfWeLeaveNow = new Date(currentTime.getTime() + roughTravelMin * 60000);
+      const arrivalTime = new Date(currentTime.getTime() + roughTravelMin * 60000);
 
-      if (arrivalIfWeLeaveNow > startDt) continue;  // can't make it in time
-      if (endDt > budgetEndClamped) continue;        // activity ends after budget
+      // Effective visit start: when we arrive, or the activity's scheduled start, whichever is later
+      const timeStr = act.start_time || '10:00';
+      const scheduledStart = act.start_date
+        ? new Date(`${act.start_date}T${timeStr}`)
+        : arrivalTime;
+      const effectiveStart = scheduledStart > arrivalTime ? scheduledStart : arrivalTime;
 
-      if (!bestStartDt || startDt < bestStartDt) {
+      const duration = estimateDurationMin(act);
+      const effectiveEnd = new Date(effectiveStart.getTime() + duration * 60000);
+
+      // Skip if already ended (scheduled end before now)
+      if (scheduledStart.getTime() + duration * 60000 < now.getTime()) continue;
+      // Skip if visit would exceed our budget
+      if (effectiveEnd > budgetEndClamped) continue;
+
+      if (!bestEffectiveStart || effectiveStart < bestEffectiveStart) {
         bestAct = act;
-        bestStartDt = startDt;
+        bestEffectiveStart = effectiveStart;
         bestTravel = { minutes: roughTravelMin, distanceKm: distKm, geometry: [currentCoords, actCoords] };
       }
     }
 
-    if (!bestAct || !bestTravel || !bestStartDt) break;
+    if (!bestAct || !bestTravel || !bestEffectiveStart) break;
 
     // Fetch real OSRM route for chosen activity
     const coordStr = bestAct.geo_epgs_4326_latlon || BCNFALLBACK;
@@ -169,11 +168,11 @@ export async function buildItinerary(
     const actCoords: [number, number] = [parts[0], parts[1]];
     const realTravel = await getTravelTime(currentCoords, actCoords, mode);
     const duration = estimateDurationMin(bestAct);
-    const departure = new Date(bestStartDt.getTime() + duration * 60000);
+    const departure = new Date(bestEffectiveStart.getTime() + duration * 60000);
 
     stops.push({
       activity: bestAct,
-      arrivalTime: bestStartDt,
+      arrivalTime: bestEffectiveStart,
       departureTime: departure,
       travelMinutes: realTravel.minutes,
       travelMode: mode,
