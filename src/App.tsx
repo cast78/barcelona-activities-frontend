@@ -79,7 +79,6 @@ function App() {
   const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [timeFilter, setTimeFilter] = useState<string>('any');
-  const [usingFallback, setUsingFallback] = useState(true);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
   const [page, setPage] = useState<Page>('main');
@@ -217,7 +216,6 @@ function App() {
           isFallback = false;
         }
       }
-      setUsingFallback(isFallback);
       setLastLocation(`${userCoords[0]},${userCoords[1]}`);
       setLastRadius(radius);
       const BCNFALLBACK = '41.3851,2.1734';

@@ -9,7 +9,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
 import { CATEGORIES, inferCategory } from './QueryForm';
-import { isHappeningNow, getTimeBadge, renderBodyWithLinks } from './ActivityList';
+import { getTimeBadge, renderBodyWithLinks } from './ActivityList';
 import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
   getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
 
