@@ -39,6 +39,16 @@ function formatTime(t?: string): string {
   return match ? match[1] : '';
 }
 
+function renderBodyWithLinks(body: string): React.ReactNode {
+  const urlRegex = /(https?:\/\/[^\s·]+)/g;
+  const parts = body.split(urlRegex);
+  return parts.map((part, i) =>
+    urlRegex.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', wordBreak: 'break-all' }}>{part}</a>
+      : part
+  );
+}
+
 function getMapsUrl(activity: Activity): string | null {
   if (activity.geo_epgs_4326_latlon) {
     return `https://www.google.com/maps?q=${encodeURIComponent(activity.geo_epgs_4326_latlon)}`;
@@ -169,7 +179,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void }
               Description
             </p>
             <p style={{ margin: 0, color: '#22223b', lineHeight: '1.55', fontSize: '0.85rem', whiteSpace: 'pre-line' }}>
-              {activity.body || '—'}
+              {activity.body ? renderBodyWithLinks(activity.body) : '—'}
             </p>
           </div>
 
