@@ -3,7 +3,7 @@ import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
 import QueryForm, { CATEGORIES } from './components/QueryForm';
-import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge } from './components/ActivityList';
+import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge, sortByTimeAndDistance } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
 import { fetchEvents, fetchActivities, Activity } from './api';
@@ -55,11 +55,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords }: { activities:
         <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
       </div>
       <div className="bottom-sheet-body">
-        <ActivityList activities={[...activities].sort((a, b) => {
-          const da = a.start_date + (a.start_time || '00:00');
-          const db = b.start_date + (b.start_time || '00:00');
-          return da.localeCompare(db);
-        })} userCoords={userCoords} />
+        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} />
       </div>
     </div>
   );

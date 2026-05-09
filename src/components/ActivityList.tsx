@@ -149,6 +149,29 @@ export function getDistanceBadge(activity: Activity, userCoords: [number, number
   return null;
 }
 
+const TIME_ORDER: Record<string, number> = { 'Ahora': 0, '30min': 1, '1h': 2, '2h': 3, '1día': 4 };
+const DIST_ORDER: Record<string, number> = { 'Aquí': 0, '200m': 1, '500m': 2, '1km': 3, '2km': 4 };
+
+export function sortByTimeAndDistance(activities: Activity[], userCoords: [number, number] | null): Activity[] {
+  return [...activities].sort((a, b) => {
+    const ta = getTimeBadge(a);
+    const tb = getTimeBadge(b);
+    const tPrioA = ta ? (TIME_ORDER[ta.label] ?? 5) : 5;
+    const tPrioB = tb ? (TIME_ORDER[tb.label] ?? 5) : 5;
+    if (tPrioA !== tPrioB) return tPrioA - tPrioB;
+
+    const da = getDistanceBadge(a, userCoords);
+    const db = getDistanceBadge(b, userCoords);
+    const dPrioA = da ? (DIST_ORDER[da.label] ?? 5) : 5;
+    const dPrioB = db ? (DIST_ORDER[db.label] ?? 5) : 5;
+    if (dPrioA !== dPrioB) return dPrioA - dPrioB;
+
+    const dateA = a.start_date + (a.start_time || '00:00');
+    const dateB = b.start_date + (b.start_time || '00:00');
+    return dateA.localeCompare(dateB);
+  });
+}
+
 export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; userCoords?: [number, number] | null }> = ({ activity, onClose, userCoords }) => {
   const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
   const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
