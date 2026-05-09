@@ -24,6 +24,7 @@ interface Activity {
 interface ActivityListProps {
   activities: Activity[];
   userCoords?: [number, number] | null;
+  onSelectOnMap?: (activity: Activity) => void;
 }
 
 function formatDate(d: string) {
@@ -388,7 +389,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
   );
 };
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords }) => {
+const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onSelectOnMap }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>(() => getLikeCountsLocal());
@@ -464,6 +465,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords }) =
             return (
               <div
                 key={activity.id}
+                onClick={() => onSelectOnMap?.(activity)}
                 style={{
                   backgroundColor: '#fff', borderRadius: '12px', overflow: 'hidden',
                   boxShadow: activeBadge
@@ -572,7 +574,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords }) =
                   {/* Footer: botón detalle + like + asistir */}
                   <div style={{ marginTop: 'auto', paddingTop: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <button
-                      onClick={() => setSelected(activity)}
+                      onClick={(e) => { e.stopPropagation(); setSelected(activity); }}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer',
                         color: '#667eea', fontSize: '0.78rem', fontWeight: 600,

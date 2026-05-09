@@ -33,6 +33,7 @@ interface MapComponentProps {
   radiusKm?: number;
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
+  openPopupForId?: string | null;
 }
 
 // Componente auxiliar para manejar el mapa
@@ -42,8 +43,10 @@ const MapContent: React.FC<{
   radiusKm?: number;
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect }) => {
+  openPopupForId?: string | null;
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId }) => {
   const map = useMap();
+  const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>(() => getLikeCountsLocal());
   const [attendingIds, setAttendingIds] = React.useState<Record<string, boolean>>(() => getAllAttendingLocal());
@@ -109,6 +112,17 @@ const MapContent: React.FC<{
     if (!centerOn) return;
     map.setView([centerOn.lat, centerOn.lng], centerOn.zoom, { animate: true });
   }, [centerOn, map]);
+
+  // Abrir popup del marker tras el pan/zoom (moveend)
+  React.useEffect(() => {
+    if (!openPopupForId) return;
+    const openIt = () => {
+      const marker = markerRefs.current.get(openPopupForId);
+      if (marker) marker.openPopup();
+    };
+    map.once('moveend', openIt);
+    return () => { map.off('moveend', openIt); };
+  }, [openPopupForId, map]);
 
   let userCoords: [number, number] | null = null;
   if (userLocation) {
@@ -178,7 +192,15 @@ const MapContent: React.FC<{
             const distBadge = getDistanceBadge(activity, userCoords);
             const markerBadge = timeBadge ?? distBadge;
             return (
-              <Marker key={activity.id} position={[coords[0], coords[1]] as [number, number]} {...{ icon: makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor) } as any}>
+              <Marker
+                key={activity.id}
+                position={[coords[0], coords[1]] as [number, number]}
+                ref={(m: any) => {
+                  if (m) markerRefs.current.set(activity.id, m);
+                  else markerRefs.current.delete(activity.id);
+                }}
+                {...{ icon: makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor) } as any}
+              >
                 <Popup>
                   <div style={{ minWidth: '180px' }}>
                     <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
@@ -255,11 +277,11 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId }) => {
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} />
       </MapContainer>
     </div>
   );

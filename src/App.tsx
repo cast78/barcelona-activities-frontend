@@ -16,8 +16,14 @@ const GpsIcon = MdGpsFixed as React.ElementType;
 type Page = 'main' | 'register';
 
 // Bottom sheet component that manages its own open/close state
-function BottomSheetPanel({ activities, isSearching, userCoords }: { activities: Activity[]; isSearching: boolean; userCoords: [number, number] | null }) {
-  const [open, setOpen] = useState(false);
+function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, onSelectOnMap }: {
+  activities: Activity[];
+  isSearching: boolean;
+  userCoords: [number, number] | null;
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  onSelectOnMap: (activity: Activity) => void;
+}) {
 
   // Auto-open when results arrive, auto-close when searching starts
   useEffect(() => {
@@ -26,6 +32,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords }: { activities:
     } else if (activities.length > 0) {
       setOpen(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSearching, activities.length]);
 
   return (
@@ -35,7 +42,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords }: { activities:
         role="button"
         aria-expanded={open}
         aria-label="Toggle activity list"
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen(!open)}
       >
         <div className="bottom-sheet-pill-wrap">
           <div className="bottom-sheet-pill" />
@@ -55,7 +62,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords }: { activities:
         <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
       </div>
       <div className="bottom-sheet-body">
-        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} />
+        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} onSelectOnMap={onSelectOnMap} />
       </div>
     </div>
   );
@@ -77,8 +84,20 @@ function App() {
   const [timeFilter, setTimeFilter] = useState<string>('any');
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [pinnedActivity, setPinnedActivity] = useState<Activity | null>(null);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
+
+  const handleSelectOnMap = (activity: Activity) => {
+    if (!activity.geo_epgs_4326_latlon) return;
+    const parts = activity.geo_epgs_4326_latlon.split(',').map(Number);
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      setCenterOn({ lat: parts[0], lng: parts[1], zoom: 16 });
+      setSheetOpen(false);
+      setPinnedActivity(activity);
+    }
+  };
   const [page, setPage] = useState<Page>('main');
   const [panelOpen, setPanelOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -206,6 +225,7 @@ function App() {
   const handleSearch = async ({ location, startDate, endDate, radius, categories }: { location: string, startDate: string, endDate: string, radius: number, categories: string[] }) => {
     setIsSearching(true);
     setPanelOpen(false);
+    setPinnedActivity(null);
     try {
       const events = await fetchEvents(startDate, endDate);
       const registered = await fetchActivities();
@@ -325,7 +345,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} />
 
                 {usingFallback && (
                   <div style={{
@@ -336,6 +356,25 @@ function App() {
                     backdropFilter: 'blur(4px)', pointerEvents: 'none'
                   }}>
                     📍 Usando Barcelona como referencia · Activa la ubicación para ver distancias reales
+                  </div>
+                )}
+
+                {/* Chip flotante de actividad seleccionada en mapa */}
+                {pinnedActivity && !sheetOpen && (
+                  <div style={{
+                    position: 'absolute', bottom: '72px', left: '50%', transform: 'translateX(-50%)',
+                    zIndex: 900, display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    background: 'rgba(34,34,59,0.92)', color: '#fff',
+                    borderRadius: '24px', padding: '0.45rem 1rem 0.45rem 0.7rem',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)', backdropFilter: 'blur(6px)',
+                    fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                    maxWidth: 'calc(100% - 2rem)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                  }}
+                    onClick={() => { setPinnedActivity(null); setSheetOpen(true); }}
+                  >
+                    <span style={{ flexShrink: 0 }}>📍</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{pinnedActivity.name}</span>
+                    <span style={{ flexShrink: 0, marginLeft: '0.3rem', opacity: 0.7, fontSize: '0.7rem' }}>☰ ver lista</span>
                   </div>
                 )}
 
@@ -393,7 +432,14 @@ function App() {
                 <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona"><GpsIcon size={16} color="#333" /></button>
 
                 {/* Bottom sheet de actividades — se abre de abajo hacia arriba */}
-                <BottomSheetPanel activities={activities} isSearching={isSearching} userCoords={userCoords} />
+                <BottomSheetPanel
+                  activities={activities}
+                  isSearching={isSearching}
+                  userCoords={userCoords}
+                  open={sheetOpen}
+                  setOpen={setSheetOpen}
+                  onSelectOnMap={handleSelectOnMap}
+                />
               </div>
             </>
           )}
