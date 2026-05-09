@@ -317,12 +317,72 @@ const MapContent: React.FC<{
         if (!coordStr) return null;
         const parts = coordStr.split(',').map(Number);
         if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+        const total = itinerary.stops.length;
+        const catId = stop.activity.category || inferCategory(stop.activity.name || '', stop.activity.body || '');
+        const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other')!;
+        const modeEmoji = stop.travelMode === 'metro' ? '🚇' : stop.travelMode === 'cycling' ? '🚲' : '🚶';
+        const modeLabel = stop.travelMode === 'metro' ? 'metro' : stop.travelMode === 'cycling' ? 'bici' : 'a pie';
+        const modeColor = stop.travelMode === 'metro' ? '#ef4444' : stop.travelMode === 'cycling' ? '#f59e0b' : '#10b981';
+        const fmtT = (d: Date) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const fmtMin = (m: number) => m < 60 ? `${m}min` : `${Math.floor(m/60)}h ${m%60 > 0 ? m%60+'min' : ''}`.trim();
+        const loc = [stop.activity.venue_name, stop.activity.direccion].filter(Boolean).join(', ');
+        const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc || 'Barcelona')}`;
         return (
           <Marker
             key={`num-${stop.activity.id}`}
             position={[parts[0], parts[1]] as [number, number]}
             {...{ icon: makeNumberedIcon(i + 1), zIndexOffset: 1000 } as any}
-          />
+          >
+            <Popup {...{ maxWidth: 240 } as any}>
+              <div style={{ fontFamily: 'inherit', minWidth: 200 }}>
+                {/* Header: parada N de M */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
+                  <div style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800, flexShrink: 0 }}>{i + 1}</div>
+                  <span style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 600 }}>PARADA {i + 1} DE {total}</span>
+                </div>
+
+                {/* Nombre */}
+                <p style={{ margin: '0 0 0.25rem', fontWeight: 700, fontSize: '0.85rem', color: '#111827', lineHeight: 1.3 }}>
+                  {cat.emoji} {stop.activity.name}
+                </p>
+
+                {/* Horario */}
+                <p style={{ margin: '0 0 0.3rem', fontSize: '0.75rem', color: '#667eea', fontWeight: 600 }}>
+                  🕐 {fmtT(stop.arrivalTime)} → {fmtT(stop.departureTime)}
+                </p>
+
+                {/* Ubicación */}
+                {loc && (
+                  <p style={{ margin: '0 0 0.35rem', fontSize: '0.72rem', color: '#6b7280' }}>
+                    📍 {loc}
+                  </p>
+                )}
+
+                {/* Cómo llegar */}
+                <div style={{ background: `${modeColor}18`, border: `1px solid ${modeColor}55`, borderRadius: '6px', padding: '0.3rem 0.5rem', marginBottom: '0.4rem' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 600, color: modeColor }}>
+                    {modeEmoji} {fmtMin(stop.travelMinutes)} {modeLabel}
+                    {stop.distanceKm < 1
+                      ? ` · ${Math.round(stop.distanceKm * 1000)}m`
+                      : ` · ${stop.distanceKm.toFixed(1)}km`}
+                    {i === 0 ? ' desde tu ubicación' : ` desde parada ${i}`}
+                  </span>
+                </div>
+
+                {/* Acciones */}
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <a
+                    href={gmapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ flex: 1, textAlign: 'center', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px', padding: '0.3rem 0.4rem', fontSize: '0.7rem', fontWeight: 600, color: '#166534', textDecoration: 'none' }}
+                  >
+                    🗺️ Google Maps
+                  </a>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
         );
       })}
     </>
