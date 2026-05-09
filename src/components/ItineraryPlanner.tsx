@@ -342,7 +342,22 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
             <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.8 }}>CityRadar</div>
             <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>🗺️ Planificador de ruta</div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            {itinerary && (
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.4)',
+                  color: '#fff', borderRadius: '20px', padding: '0.3rem 0.75rem',
+                  cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+                  display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'inherit'
+                }}
+              >
+                🗺️ Ver en el mapa
+              </button>
+            )}
+            <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
         </div>
 
         {/* Scrollable body */}
