@@ -176,8 +176,14 @@ const MapContent: React.FC<{
     });
   };
 
-  const itineraryPolylines: [number, number][][] = itinerary
-    ? itinerary.stops.map(s => s.routeGeometry || [])
+  const MODE_COLORS: Record<string, { color: string; dashArray?: string }> = {
+    walking: { color: '#10b981', dashArray: '6 4' },   // verde
+    cycling: { color: '#f59e0b', dashArray: '10 4' },  // naranja
+    metro:   { color: '#ef4444', dashArray: undefined }, // rojo sólido
+  };
+
+  const itinerarySegments = itinerary
+    ? itinerary.stops.map(s => ({ geometry: s.routeGeometry || [], mode: s.travelMode }))
     : [];
   const itineraryStopIds = new Set(itinerary?.stops.map(s => s.activity.id) ?? []);
 
@@ -292,12 +298,18 @@ const MapContent: React.FC<{
         return null;
       })}
 
-      {/* Itinerary polylines */}
-      {itineraryPolylines.map((seg, i) =>
-        seg.length >= 2 ? (
-          <Polyline key={`seg-${i}`} positions={seg as any} pathOptions={{ color: '#667eea', weight: 4, opacity: 0.85, dashArray: '8 4' }} />
-        ) : null
-      )}
+      {/* Itinerary polylines — color by mode */}
+      {itinerarySegments.map((seg, i) => {
+        if (seg.geometry.length < 2) return null;
+        const style = MODE_COLORS[seg.mode] ?? MODE_COLORS.walking;
+        return (
+          <Polyline
+            key={`seg-${i}`}
+            positions={seg.geometry as any}
+            pathOptions={{ color: style.color, weight: 5, opacity: 0.9, dashArray: style.dashArray }}
+          />
+        );
+      })}
 
       {/* Numbered overlays for itinerary stops */}
       {itinerary && itinerary.stops.map((stop, i) => {

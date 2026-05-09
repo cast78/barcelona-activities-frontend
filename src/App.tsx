@@ -453,6 +453,31 @@ function App() {
                 {/* Botón volver a Barcelona */}
                 <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona"><GpsIcon size={16} color="#333" /></button>
 
+                {/* Leyenda de colores de ruta */}
+                {itinerary && (
+                  <div style={{
+                    position: 'absolute', bottom: '80px', left: '12px', zIndex: 900,
+                    background: 'rgba(255,255,255,0.93)', borderRadius: '10px',
+                    padding: '0.45rem 0.65rem', boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
+                    backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', gap: '0.3rem'
+                  }}>
+                    {[
+                      { mode: 'walking', color: '#10b981', dash: '6px 4px', label: 'A pie' },
+                      { mode: 'cycling', color: '#f59e0b', dash: '10px 4px', label: 'Bici' },
+                      { mode: 'metro',   color: '#ef4444', dash: 'none',     label: 'Metro' },
+                    ].filter(l => itinerary.stops.some(s => s.travelMode === l.mode)).map(l => (
+                      <div key={l.mode} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 600, color: '#374151' }}>
+                        <svg width="28" height="6">
+                          <line x1="0" y1="3" x2="28" y2="3"
+                            stroke={l.color} strokeWidth="3"
+                            strokeDasharray={l.dash === 'none' ? undefined : l.dash} />
+                        </svg>
+                        {l.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Bottom sheet de actividades — se abre de abajo hacia arriba */}
                 <BottomSheetPanel
                   activities={activities}
