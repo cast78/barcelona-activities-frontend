@@ -206,6 +206,45 @@ body {
   background: #f4f4f4;
 }
 
+/* Botón Planificar ruta — responsive */
+.map-planner-btn {
+  position: absolute;
+  top: 10px;
+  right: 60px;
+  z-index: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .map-planner-btn {
+    top: 124px;
+    right: 10px;
+    border-radius: 4px;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    justify-content: center;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+  }
+  .map-planner-btn .planner-btn-text {
+    display: none;
+  }
+}
+
 /* Panel flotante sobre el mapa */
 .floating-panel {
   position: absolute;

@@ -435,18 +435,10 @@ function App() {
                 {/* Botón Planificar ruta */}
                 {activities.length >= 2 && !isSearching && (
                   <button
+                    className="map-planner-btn"
                     onClick={() => setShowPlanner(true)}
-                    style={{
-                      position: 'absolute', top: '80px', right: '10px', zIndex: 900,
-                      background: 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',
-                      color: '#fff', border: 'none', borderRadius: '24px',
-                      padding: '0.5rem 1rem', fontFamily: 'inherit', fontSize: '0.8rem',
-                      fontWeight: 700, cursor: 'pointer',
-                      boxShadow: '0 4px 16px rgba(102,126,234,0.5)',
-                      display: 'flex', alignItems: 'center', gap: '0.4rem'
-                    }}
                   >
-                    🗺️ Planificar ruta
+                    🗺️<span className="planner-btn-text"> Planificar ruta</span>
                   </button>
                 )}
 
