@@ -285,13 +285,14 @@ interface ItineraryPlannerProps {
   endDate: string;
   onClose: () => void;
   onItineraryReady: (itinerary: Itinerary | null) => void;
+  initialItinerary?: Itinerary | null;
 }
 
 const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
-  activities, userCoords, endDate, onClose, onItineraryReady
+  activities, userCoords, endDate, onClose, onItineraryReady, initialItinerary
 }) => {
   const [mode, setMode] = useState<TravelMode>('walking');
-  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [itinerary, setItinerary] = useState<Itinerary | null>(initialItinerary ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

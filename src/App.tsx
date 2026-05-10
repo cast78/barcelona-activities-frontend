@@ -510,6 +510,7 @@ function App() {
           endDate={endDate}
           onClose={() => setShowPlanner(false)}
           onItineraryReady={(itin) => setItinerary(itin)}
+          initialItinerary={itinerary}
         />
       )}
     </div>
