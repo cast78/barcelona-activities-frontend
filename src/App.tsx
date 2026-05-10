@@ -90,6 +90,7 @@ function App() {
   const [pinnedActivity, setPinnedActivity] = useState<Activity | null>(null);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [showPlanner, setShowPlanner] = useState(false);
+  const [showRoute, setShowRoute] = useState(false);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
 
@@ -349,7 +350,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
                   <div style={{
@@ -432,21 +433,35 @@ function App() {
                   )}
                 </div>
 
-                {/* Botón Planificar ruta */}
+                {/* Segmented control: Planificar + toggle capa ruta/explorar */}
                 {activities.length >= 2 && !isSearching && (
-                  <button
-                    className="map-planner-btn"
-                    onClick={() => setShowPlanner(true)}
-                  >
-                    🗺️<span className="planner-btn-text"> Planificar ruta</span>
-                  </button>
+                  <div className="map-route-control">
+                    <button
+                      className="map-route-control__btn map-route-control__btn--plan"
+                      onClick={() => setShowPlanner(true)}
+                      title="Planificar ruta"
+                    >
+                      🗺️<span className="map-route-control__btn-text"> Planificar</span>
+                    </button>
+                    {itinerary && (
+                      <button
+                        className={`map-route-control__btn map-route-control__btn--layer${showRoute ? ' active' : ''}`}
+                        onClick={() => setShowRoute(r => !r)}
+                        title={showRoute ? 'Modo explorar' : 'Ver ruta'}
+                      >
+                        {showRoute
+                          ? <><span>🔍</span><span className="map-route-control__btn-text"> Explorar</span></>
+                          : <><span>🧭</span><span className="map-route-control__btn-text"> Ver ruta</span></>}
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {/* Botón volver a Barcelona */}
                 <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona"><GpsIcon size={16} color="#333" /></button>
 
                 {/* Leyenda de colores de ruta */}
-                {itinerary && (
+                {itinerary && showRoute && (
                   <div style={{
                     position: 'absolute', bottom: '80px', left: '12px', zIndex: 900,
                     background: 'rgba(255,255,255,0.93)', borderRadius: '10px',
@@ -509,7 +524,7 @@ function App() {
           userCoords={userCoords}
           endDate={endDate}
           onClose={() => setShowPlanner(false)}
-          onItineraryReady={(itin) => setItinerary(itin)}
+          onItineraryReady={(itin) => { setItinerary(itin); setShowRoute(itin !== null); }}
           initialItinerary={itinerary}
         />
       )}

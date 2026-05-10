@@ -36,6 +36,7 @@ interface MapComponentProps {
   onActivitySelect?: (activity: Activity) => void;
   openPopupForId?: string | null;
   itinerary?: Itinerary | null;
+  showRoute?: boolean;
 }
 
 // Componente auxiliar para manejar el mapa
@@ -47,7 +48,8 @@ const MapContent: React.FC<{
   onActivitySelect?: (activity: Activity) => void;
   openPopupForId?: string | null;
   itinerary?: Itinerary | null;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary }) => {
+  showRoute?: boolean;
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
   const map = useMap();
   const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
@@ -213,7 +215,7 @@ const MapContent: React.FC<{
           if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
             const timeBadge = getTimeBadge(activity);
             const distBadge = getDistanceBadge(activity, userCoords);
-            const inItinerary = itineraryStopIds.has(activity.id);
+            const inItinerary = showRoute && itineraryStopIds.has(activity.id);
             const markerBadge = inItinerary ? undefined : (timeBadge ?? distBadge);
             return (
               <Marker
@@ -299,7 +301,7 @@ const MapContent: React.FC<{
       })}
 
       {/* Itinerary polylines — color by mode */}
-      {itinerarySegments.map((seg, i) => {
+      {showRoute && itinerarySegments.map((seg, i) => {
         if (seg.geometry.length < 2) return null;
         const style = MODE_COLORS[seg.mode] ?? MODE_COLORS.walking;
         return (
@@ -312,7 +314,7 @@ const MapContent: React.FC<{
       })}
 
       {/* Numbered overlays for itinerary stops */}
-      {itinerary && itinerary.stops.map((stop, i) => {
+      {showRoute && itinerary && itinerary.stops.map((stop, i) => {
         const coordStr = stop.activity.geo_epgs_4326_latlon;
         if (!coordStr) return null;
         const parts = coordStr.split(',').map(Number);
@@ -389,11 +391,11 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} itinerary={itinerary} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} itinerary={itinerary} showRoute={showRoute} />
       </MapContainer>
     </div>
   );
