@@ -80,7 +80,7 @@ function App() {
   // Estado del formulario
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; });
+  const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 2); return d.toISOString().split('T')[0]; });
   const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [timeFilter, setTimeFilter] = useState<string>('any');
@@ -113,7 +113,7 @@ function App() {
     const today = new Date();
     const startDateStr = today.toISOString().split('T')[0];
     const endDateObj = new Date(today);
-    endDateObj.setDate(endDateObj.getDate() + 1);
+    endDateObj.setDate(endDateObj.getDate() + 2);
     const endDateStr = endDateObj.toISOString().split('T')[0];
 
     // Función de búsqueda con coordenadas y fechas
@@ -302,7 +302,7 @@ function App() {
 
   const handleClear = () => {
     const todayStr = new Date().toISOString().split('T')[0];
-    const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+    const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 2);
     const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
     const resetLocation = lastLocation || "";
     const resetRadius = lastRadius || 2;
@@ -462,24 +462,19 @@ function App() {
 
                 {/* Leyenda de colores de ruta */}
                 {itinerary && showRoute && (
-                  <div style={{
-                    position: 'absolute', bottom: '80px', left: '12px', zIndex: 900,
-                    background: 'rgba(255,255,255,0.93)', borderRadius: '10px',
-                    padding: '0.45rem 0.65rem', boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
-                    backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', gap: '0.3rem'
-                  }}>
+                  <div className="map-route-legend">
                     {[
-                      { mode: 'walking', color: '#10b981', dash: '6px 4px', label: 'A pie' },
-                      { mode: 'cycling', color: '#f59e0b', dash: '10px 4px', label: 'Bici' },
-                      { mode: 'metro',   color: '#ef4444', dash: 'none',     label: 'Metro' },
+                      { mode: 'walking', color: '#10b981', dash: '6 4', label: 'A pie' },
+                      { mode: 'cycling', color: '#f59e0b', dash: '10 4', label: 'Bici' },
+                      { mode: 'metro',   color: '#ef4444', dash: undefined, label: 'Metro' },
                     ].filter(l => itinerary.stops.some(s => s.travelMode === l.mode)).map(l => (
-                      <div key={l.mode} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 600, color: '#374151' }}>
-                        <svg width="28" height="6">
+                      <div key={l.mode} className="map-route-legend__item">
+                        <svg width="28" height="6" className="map-route-legend__line">
                           <line x1="0" y1="3" x2="28" y2="3"
                             stroke={l.color} strokeWidth="3"
-                            strokeDasharray={l.dash === 'none' ? undefined : l.dash} />
+                            strokeDasharray={l.dash} />
                         </svg>
-                        {l.label}
+                        <span className="map-route-legend__label">{l.label}</span>
                       </div>
                     ))}
                   </div>

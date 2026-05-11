@@ -115,16 +115,63 @@ export async function buildItinerary(
     return parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]);
   });
 
+  // ── Time-window helpers ───────────────────────────────────────────────────
+  // Earliest time we can arrive and the event has started.
+  // All-day (no start_time) → assumes 10:00.
+  function resolveScheduledStart(act: Activity): Date | null {
+    if (!act.start_date) return null;
+    const datePart = act.start_date.split('T')[0]; // strip timestamp suffix e.g. '2026-05-12T00:00:00' → '2026-05-12'
+    const timeStr = act.start_time || '10:00';
+    return new Date(`${datePart}T${timeStr}`);
+  }
+
+  // Latest time by which we must arrive (the availability window closes).
+  // • All-day event (no start_time): window open until 22:00 that day
+  // • Timed event with real end_time: use end_time
+  // • Timed event without end_time: start_time + categoryDuration
+  function resolveWindowEnd(act: Activity, scheduledStart: Date): Date {
+    const datePart = act.start_date ? act.start_date.split('T')[0] : '';
+    if (act.end_time && datePart) {
+      const candidate = new Date(`${datePart}T${act.end_time}`);
+      if (candidate > scheduledStart) return candidate;
+    }
+    if (!act.start_time && datePart) {
+      // All-day: available all day until 22:00
+      return new Date(`${datePart}T22:00`);
+    }
+    return new Date(scheduledStart.getTime() + estimateDurationMin(act) * 60000);
+  }
+
+  // How long the user actually spends at the activity.
+  // Uses real end_time duration when available; falls back to category estimate.
+  function resolveVisitDuration(act: Activity, scheduledStart: Date): number {
+    if (act.end_time && act.start_time && act.start_date) {
+      const datePart = act.start_date.split('T')[0];
+      const start = new Date(`${datePart}T${act.start_time}`);
+      const end = new Date(`${datePart}T${act.end_time}`);
+      const real = Math.round((end.getTime() - start.getTime()) / 60000);
+      if (real > 0) return real;
+    }
+    return estimateDurationMin(act);
+  }
+
   const stops: ItineraryStop[] = [];
   let currentCoords: [number, number] = userCoords;
   let currentTime = now;
   const used = new Set<string>();
 
-  // Greedy: pick the activity with the earliest effective visit time
+  // Score-based greedy: each step picks the activity with the lowest cost.
+  // score = travelMin + waitMin + lateMin * 1.5
+  //   travelMin : minutes to reach the activity
+  //   waitMin   : minutes waiting for it to open (arrived early)
+  //   lateMin   : minutes past the activity end at arrival (×1.5 penalty — discourages impossible visits)
+  // Activities already over or beyond time budget are skipped.
   while (true) {
     let bestAct: Activity | null = null;
     let bestTravel: { minutes: number; distanceKm: number; geometry: [number, number][] } | null = null;
     let bestEffectiveStart: Date | null = null;
+    let bestScheduledEnd: Date | null = null;
+    let bestScore = Infinity;
 
     for (const act of candidates) {
       if (used.has(act.id)) continue;
@@ -132,47 +179,60 @@ export async function buildItinerary(
       const parts = coordStr.split(',').map(Number);
       const actCoords: [number, number] = [parts[0], parts[1]];
 
-      // Estimate travel time from current position
+      // Rough travel estimate (haversine, no OSRM — scoring pass only)
       const distKm = haversineKm(currentCoords[0], currentCoords[1], actCoords[0], actCoords[1]);
       const modeSpeedKmh = mode === 'cycling' ? 14 : mode === 'metro' ? 28 : 4.5;
       const roughTravelMin = mode === 'metro' ? metroMinutes(distKm) : Math.ceil((distKm / modeSpeedKmh) * 60);
       const arrivalTime = new Date(currentTime.getTime() + roughTravelMin * 60000);
 
-      // Effective visit start: when we arrive, or the activity's scheduled start, whichever is later
-      const timeStr = act.start_time || '10:00';
-      const scheduledStart = act.start_date
-        ? new Date(`${act.start_date}T${timeStr}`)
-        : arrivalTime;
+      // Resolve time window
+      const scheduledStart = resolveScheduledStart(act) ?? arrivalTime;
+      const windowEnd = resolveWindowEnd(act, scheduledStart);
+
+      // Skip: availability window already closed
+      if (windowEnd <= now) continue;
+      // Skip: we would arrive after the window closes
+      if (arrivalTime >= windowEnd) continue;
+
+      // Effective visit start: max(arrival, scheduledStart)
       const effectiveStart = scheduledStart > arrivalTime ? scheduledStart : arrivalTime;
+      const visitMin = resolveVisitDuration(act, scheduledStart);
+      const effectiveEnd = new Date(effectiveStart.getTime() + visitMin * 60000);
 
-      const duration = estimateDurationMin(act);
-      const effectiveEnd = new Date(effectiveStart.getTime() + duration * 60000);
-
-      // Skip if already ended (scheduled end before now)
-      if (scheduledStart.getTime() + duration * 60000 < now.getTime()) continue;
-      // Skip if visit would exceed our budget
+      // Skip: visit would exceed time budget
       if (effectiveEnd > budgetEndClamped) continue;
 
-      if (!bestEffectiveStart || effectiveStart < bestEffectiveStart) {
+      const waitMin = Math.max(0, (scheduledStart.getTime() - arrivalTime.getTime()) / 60000);
+      const lateMin = Math.max(0, (arrivalTime.getTime() - windowEnd.getTime()) / 60000);
+      const score = roughTravelMin + waitMin + lateMin * 1.5;
+
+      if (score < bestScore) {
+        bestScore = score;
         bestAct = act;
         bestEffectiveStart = effectiveStart;
+        bestScheduledEnd = windowEnd;
         bestTravel = { minutes: roughTravelMin, distanceKm: distKm, geometry: [currentCoords, actCoords] };
       }
     }
 
-    if (!bestAct || !bestTravel || !bestEffectiveStart) break;
+    if (!bestAct || !bestTravel || !bestEffectiveStart || !bestScheduledEnd) break;
 
-    // Fetch real OSRM route for chosen activity
+    // Fetch real OSRM route for the chosen activity
     const coordStr = bestAct.geo_epgs_4326_latlon || BCNFALLBACK;
     const parts = coordStr.split(',').map(Number);
     const actCoords: [number, number] = [parts[0], parts[1]];
     const realTravel = await getTravelTime(currentCoords, actCoords, mode);
-    const duration = estimateDurationMin(bestAct);
-    const departure = new Date(bestEffectiveStart.getTime() + duration * 60000);
+
+    // Recalculate effective start with real OSRM travel time
+    const realArrival = new Date(currentTime.getTime() + realTravel.minutes * 60000);
+    const realScheduledStart = resolveScheduledStart(bestAct) ?? realArrival;
+    const realEffectiveStart = realScheduledStart > realArrival ? realScheduledStart : realArrival;
+    const visitDuration = resolveVisitDuration(bestAct, realEffectiveStart);
+    const departure = new Date(realEffectiveStart.getTime() + visitDuration * 60000);
 
     stops.push({
       activity: bestAct,
-      arrivalTime: bestEffectiveStart,
+      arrivalTime: realEffectiveStart,
       departureTime: departure,
       travelMinutes: realTravel.minutes,
       travelMode: mode,

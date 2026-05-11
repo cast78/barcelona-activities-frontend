@@ -9,7 +9,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Activity } from '../api';
 import { CATEGORIES, inferCategory } from './QueryForm';
-import { getTimeBadge, getDistanceBadge, renderBodyWithLinks } from './ActivityList';
+import { getTimeBadge, getDistanceBadge } from './ActivityList';
 import type { Itinerary } from './ItineraryPlanner';
 import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
   getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
@@ -227,68 +227,114 @@ const MapContent: React.FC<{
                 }}
                 {...{ icon: makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor) } as any}
               >
-                <Popup>
-                  <div style={{ minWidth: '180px' }}>
-                    <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-                      {(() => { const catId = activity.category || inferCategory(activity.name || '', activity.body || ''); const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null; return cat ? <>{cat.emoji} </> : null; })()}
-                      {activity.name}
-                      {timeBadge && (
-                        <span style={{
-                          background: timeBadge.gradient,
-                          color: '#fff', fontSize: '0.58rem', fontWeight: 800,
-                          padding: '0.1rem 0.35rem', borderRadius: '10px',
-                          letterSpacing: '0.3px', textTransform: 'uppercase',
-                          animation: timeBadge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none'
-                        }}>{timeBadge.emoji} {timeBadge.label}</span>
-                      )}
-                      {distBadge && (
-                        <span style={{
-                          background: distBadge.gradient,
-                          color: '#fff', fontSize: '0.58rem', fontWeight: 800,
-                          padding: '0.1rem 0.35rem', borderRadius: '10px',
-                          letterSpacing: '0.3px', textTransform: 'uppercase'
-                        }}>{distBadge.emoji} {distBadge.label}</span>
-                      )}
-                    </h4>
-                    <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: '#555' }}>{renderBodyWithLinks(activity.body || '')}</p>
-                    {onActivitySelect && (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.3rem' }}>
+                <Popup {...{ maxWidth: 240 } as any}>
+                  <div style={{ fontFamily: 'inherit', minWidth: 210 }}>
+                    {/* Nombre + emoji categoría */}
+                    {(() => {
+                      const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
+                      const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other')!;
+                      return (
+                        <p style={{ margin: '0 0 0.35rem', fontWeight: 700, fontSize: '0.87rem', color: '#111827', lineHeight: 1.3 }}>
+                          {cat.emoji} {activity.name}
+                        </p>
+                      );
+                    })()}
+
+                    {/* Badges: tiempo + distancia */}
+                    {(timeBadge || distBadge) && (
+                      <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+                        {timeBadge && (
+                          <span style={{
+                            background: timeBadge.gradient, color: '#fff',
+                            fontSize: '0.6rem', fontWeight: 800,
+                            padding: '0.1rem 0.4rem', borderRadius: '10px',
+                            letterSpacing: '0.3px', textTransform: 'uppercase',
+                            animation: timeBadge.label === 'Ahora' ? 'pulse 1.5s infinite' : 'none'
+                          }}>{timeBadge.emoji} {timeBadge.label}</span>
+                        )}
+                        {distBadge && (
+                          <span style={{
+                            background: distBadge.gradient, color: '#fff',
+                            fontSize: '0.6rem', fontWeight: 800,
+                            padding: '0.1rem 0.4rem', borderRadius: '10px',
+                            letterSpacing: '0.3px', textTransform: 'uppercase'
+                          }}>{distBadge.emoji} {distBadge.label}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Fecha y horario */}
+                    {(() => {
+                      const hasDate = !!activity.start_date;
+                      const hasTime = !!activity.start_time;
+                      if (!hasDate) return null;
+                      const dateObj = new Date(activity.start_date);
+                      const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+                      if (!hasTime) {
+                        return (
+                          <p style={{ margin: '0 0 0.3rem', fontSize: '0.74rem', color: '#667eea', fontWeight: 600 }}>
+                            📅 {dateStr} · Todo el día
+                          </p>
+                        );
+                      }
+                      const startT = activity.start_time!;
+                      const endT = activity.end_time && activity.end_time !== startT ? activity.end_time : null;
+                      return (
+                        <p style={{ margin: '0 0 0.3rem', fontSize: '0.74rem', color: '#667eea', fontWeight: 600 }}>
+                          🕐 {dateStr} · {startT}{endT ? ` – ${endT}` : ''}
+                        </p>
+                      );
+                    })()}
+
+                    {/* Venue / dirección */}
+                    {(activity.venue_name || activity.direccion) && (
+                      <p style={{ margin: '0 0 0.4rem', fontSize: '0.71rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        📍 {[activity.venue_name, activity.direccion].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+
+                    {/* Separador */}
+                    <div style={{ borderTop: '1px solid #f3f4f6', margin: '0.4rem 0' }} />
+
+                    {/* Acciones */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      {onActivitySelect && (
                         <button
                           onClick={() => onActivitySelect(activity)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667eea', fontSize: '0.75rem', fontWeight: 600, padding: 0, fontFamily: 'inherit' }}
                         >
                           Ver detalle →
                         </button>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <button
-                            onClick={(e) => handleMapLike(activity, e)}
-                            title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
-                            style={{
-                              background: 'none', border: 'none', cursor: 'pointer',
-                              display: 'flex', alignItems: 'center', gap: '0.2rem',
-                              fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
-                              color: likedIds[activity.id] ? '#ef4444' : '#9ca3af', padding: 0
-                            }}
-                          >
-                            {likedIds[activity.id] ? '❤️' : '🤍'}
-                            <span style={{ fontSize: '0.7rem' }}>{likeCounts[activity.id] ?? activity.likes ?? 0}</span>
-                          </button>
-                          <button
-                            onClick={(e) => handleMapAttend(activity, e)}
-                            title={attendingIds[activity.id] ? 'Cancelar asistencia' : '¡Asistiré!'}
-                            style={{
-                              background: 'none', border: 'none', cursor: 'pointer',
-                              display: 'flex', alignItems: 'center', gap: '0.2rem',
-                              fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
-                              color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af', padding: 0
-                            }}
-                          >
-                            <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
-                            <span style={{ fontSize: '0.72rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
-                          </button>
-                        </div>
+                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          onClick={(e) => handleMapLike(activity, e)}
+                          title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.2rem',
+                            fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
+                            color: likedIds[activity.id] ? '#ef4444' : '#9ca3af', padding: 0
+                          }}
+                        >
+                          {likedIds[activity.id] ? '❤️' : '🤍'}
+                          <span style={{ fontSize: '0.7rem' }}>{likeCounts[activity.id] ?? activity.likes ?? 0}</span>
+                        </button>
+                        <button
+                          onClick={(e) => handleMapAttend(activity, e)}
+                          title={attendingIds[activity.id] ? 'Cancelar asistencia' : '¡Asistiré!'}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.2rem',
+                            fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
+                            color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af', padding: 0
+                          }}
+                        >
+                          <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
+                          <span style={{ fontSize: '0.72rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </Popup>
               </Marker>
@@ -347,6 +393,19 @@ const MapContent: React.FC<{
                 <p style={{ margin: '0 0 0.25rem', fontWeight: 700, fontSize: '0.85rem', color: '#111827', lineHeight: 1.3 }}>
                   {cat.emoji} {stop.activity.name}
                 </p>
+
+                {/* Fecha del evento */}
+                {(() => {
+                  if (!stop.activity.start_date) return null;
+                  const dateObj = new Date(stop.activity.start_date);
+                  const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+                  if (!stop.activity.start_time) {
+                    return <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', color: '#667eea', fontWeight: 600 }}>📅 {dateStr} · Todo el día</p>;
+                  }
+                  const sT = stop.activity.start_time;
+                  const eT = stop.activity.end_time && stop.activity.end_time !== sT ? stop.activity.end_time : null;
+                  return <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', color: '#667eea', fontWeight: 600 }}>🕐 {dateStr} · {sT}{eT ? ` – ${eT}` : ''}</p>;
+                })()}
 
                 {/* Horario */}
                 <p style={{ margin: '0 0 0.3rem', fontSize: '0.75rem', color: '#667eea', fontWeight: 600 }}>
