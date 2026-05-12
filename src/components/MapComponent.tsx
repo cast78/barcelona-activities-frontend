@@ -268,8 +268,9 @@ const MapContent: React.FC<{
                       const hasDate = !!activity.start_date;
                       const hasTime = !!activity.start_time;
                       if (!hasDate) return null;
-                      const dateObj = new Date(activity.start_date);
-                      const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+                      const datePart = activity.start_date.split('T')[0];
+                      const dateObj = new Date(datePart);
+                      const dateStr = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
                       if (!hasTime) {
                         return (
                           <p style={{ margin: '0 0 0.3rem', fontSize: '0.74rem', color: '#667eea', fontWeight: 600 }}>
@@ -281,7 +282,7 @@ const MapContent: React.FC<{
                       const endT = activity.end_time && activity.end_time !== startT ? activity.end_time : null;
                       return (
                         <p style={{ margin: '0 0 0.3rem', fontSize: '0.74rem', color: '#667eea', fontWeight: 600 }}>
-                          🕐 {dateStr} · {startT}{endT ? ` – ${endT}` : ''}
+                          📅 {dateStr} · 🕐 {startT}{endT ? ` - ${endT}` : ''}
                         </p>
                       );
                     })()}
@@ -404,7 +405,7 @@ const MapContent: React.FC<{
                   }
                   const sT = stop.activity.start_time;
                   const eT = stop.activity.end_time && stop.activity.end_time !== sT ? stop.activity.end_time : null;
-                  return <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', color: '#667eea', fontWeight: 600 }}>🕐 {dateStr} · {sT}{eT ? ` – ${eT}` : ''}</p>;
+                  return <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', color: '#667eea', fontWeight: 600 }}>� {dateStr} · 🕐 {sT}{eT ? ` - ${eT}` : ''}</p>;
                 })()}
 
                 {/* Horario */}

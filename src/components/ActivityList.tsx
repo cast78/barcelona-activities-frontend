@@ -142,11 +142,11 @@ export function getDistanceBadge(activity: Activity, userCoords: [number, number
   const parts = activity.geo_epgs_4326_latlon.split(',').map(Number);
   if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
   const m = haversineKm(userCoords[0], userCoords[1], parts[0], parts[1]) * 1000;
-  if (m <= 150)  return { label: 'Aquí', emoji: '📍', gradient: 'linear-gradient(135deg,#059669,#047857)', borderColor: '#059669' };
-  if (m <= 400)  return { label: '200m', emoji: '🚶', gradient: 'linear-gradient(135deg,#10b981,#059669)', borderColor: '#10b981' };
-  if (m <= 750)  return { label: '500m', emoji: '🚶', gradient: 'linear-gradient(135deg,#84cc16,#65a30d)', borderColor: '#84cc16' };
-  if (m <= 1500) return { label: '1km',  emoji: '🚲', gradient: 'linear-gradient(135deg,#eab308,#ca8a04)', borderColor: '#eab308' };
-  if (m <= 2500) return { label: '2km',  emoji: '🚲', gradient: 'linear-gradient(135deg,#f97316,#ea580c)', borderColor: '#f97316' };
+  if (m <= 150)  return { label: 'Aquí', emoji: '', gradient: 'linear-gradient(135deg,#ef4444,#dc2626)', borderColor: '#ef4444' };
+  if (m <= 400)  return { label: '200m', emoji: '', gradient: 'linear-gradient(135deg,#f97316,#ea580c)', borderColor: '#f97316' };
+  if (m <= 750)  return { label: '500m', emoji: '', gradient: 'linear-gradient(135deg,#eab308,#ca8a04)', borderColor: '#eab308' };
+  if (m <= 1500) return { label: '1km',  emoji: '', gradient: 'linear-gradient(135deg,#84cc16,#65a30d)', borderColor: '#84cc16' };
+  if (m <= 2500) return { label: '2km',  emoji: '', gradient: 'linear-gradient(135deg,#22c55e,#16a34a)', borderColor: '#22c55e' };
   return null;
 }
 
@@ -536,6 +536,23 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                     {activity.body}
                   </p>
 
+                  {/* Fechas compactas */}
+                  <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#6b7280', flexWrap: 'wrap' }}>
+                    {(() => {
+                      const startT = formatTime(activity.start_time);
+                      const endT = activity.end_time && activity.end_time !== activity.start_time ? formatTime(activity.end_time) : null;
+                      return (
+                        <span>
+                          📅 {formatDate(activity.start_date)}
+                          {startT ? ` · 🕐 ${startT}${endT ? ` - ${endT}` : ''}` : ''}
+                        </span>
+                      );
+                    })()}
+                    {activity.end_date && activity.end_date.split('T')[0] !== activity.start_date.split('T')[0] && (
+                      <span>→ {formatDate(activity.end_date)}</span>
+                    )}
+                  </div>
+
                   {/* Lugar del evento */}
                   {(activity.venue_name || activity.direccion) && (
                     <div style={{ fontSize: '0.75rem', color: '#6b7280', display: 'flex', alignItems: 'flex-start', gap: '0.25rem' }}>
@@ -549,14 +566,6 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                       </span>
                     </div>
                   )}
-
-                  {/* Fechas compactas */}
-                  <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', color: '#6b7280', flexWrap: 'wrap' }}>
-                    <span>📅 {formatDate(activity.start_date)}{formatTime(activity.start_time) ? ` · 🕐 ${formatTime(activity.start_time)}` : ''}</span>
-                    {activity.end_date && activity.end_date !== activity.start_date && (
-                      <span>→ {formatDate(activity.end_date)}</span>
-                    )}
-                  </div>
 
                   {/* Badge de fuente */}
                   {activity.origen && (
