@@ -18,13 +18,14 @@ const GpsIcon = MdGpsFixed as React.ElementType;
 type Page = 'main' | 'register';
 
 // Bottom sheet component that manages its own open/close state
-function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, onSelectOnMap }: {
+function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, onSelectOnMap, pinnedActivityId }: {
   activities: Activity[];
   isSearching: boolean;
   userCoords: [number, number] | null;
   open: boolean;
   setOpen: (v: boolean) => void;
   onSelectOnMap: (activity: Activity) => void;
+  pinnedActivityId?: string | null;
 }) {
 
   // Auto-open when results arrive, auto-close when searching starts
@@ -64,7 +65,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
         <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
       </div>
       <div className="bottom-sheet-body">
-        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} onSelectOnMap={onSelectOnMap} />
+        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} onSelectOnMap={onSelectOnMap} pinnedActivityId={pinnedActivityId} />
       </div>
     </div>
   );
@@ -350,7 +351,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} onMarkerClick={setPinnedActivity} onClearPinned={() => setPinnedActivity(null)} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
                   <div style={{
@@ -364,24 +365,7 @@ function App() {
                   </div>
                 )}
 
-                {/* Chip flotante de actividad seleccionada en mapa */}
-                {pinnedActivity && !sheetOpen && (
-                  <div style={{
-                    position: 'absolute', bottom: '72px', left: '50%', transform: 'translateX(-50%)',
-                    zIndex: 900, display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    background: 'rgba(34,34,59,0.92)', color: '#fff',
-                    borderRadius: '24px', padding: '0.45rem 1rem 0.45rem 0.7rem',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)', backdropFilter: 'blur(6px)',
-                    fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-                    maxWidth: 'calc(100% - 2rem)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                  }}
-                    onClick={() => { setPinnedActivity(null); setSheetOpen(true); }}
-                  >
-                    <span style={{ flexShrink: 0 }}>📍</span>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{pinnedActivity.name}</span>
-                    <span style={{ flexShrink: 0, marginLeft: '0.3rem', opacity: 0.7, fontSize: '0.7rem' }}>☰ ver lista</span>
-                  </div>
-                )}
+                {/* Chip flotante de actividad seleccionada en mapa — eliminado, ahora la tarjeta en la lista se destaca */}
 
                 {/* Radar overlay mientras se buscan/cargan actividades */}
                 {isSearching && (
@@ -488,6 +472,7 @@ function App() {
                   open={sheetOpen}
                   setOpen={setSheetOpen}
                   onSelectOnMap={handleSelectOnMap}
+                  pinnedActivityId={pinnedActivity?.id}
                 />
               </div>
             </>

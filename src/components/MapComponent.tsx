@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle, Polyline } from 'react-leaflet';
 import type { CircleProps } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -34,6 +34,8 @@ interface MapComponentProps {
   radiusKm?: number;
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
+  onMarkerClick?: (activity: Activity) => void;
+  onClearPinned?: () => void;
   openPopupForId?: string | null;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
@@ -46,11 +48,14 @@ const MapContent: React.FC<{
   radiusKm?: number;
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
+  onMarkerClick?: (activity: Activity) => void;
+  onClearPinned?: () => void;
   openPopupForId?: string | null;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, onMarkerClick, onClearPinned, openPopupForId, itinerary, showRoute }) => {
   const map = useMap();
+  useMapEvents({ click: () => onClearPinned?.() });
   const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>(() => getLikeCountsLocal());
@@ -226,6 +231,10 @@ const MapContent: React.FC<{
                   else markerRefs.current.delete(activity.id);
                 }}
                 {...{ icon: makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor) } as any}
+                eventHandlers={{
+                  click: () => onMarkerClick?.(activity),
+                  popupclose: () => onClearPinned?.()
+                }}
               >
                 <Popup {...{ maxWidth: 240 } as any}>
                   <div style={{ fontFamily: 'inherit', minWidth: 210 }}>
@@ -297,8 +306,43 @@ const MapContent: React.FC<{
                     {/* Separador */}
                     <div style={{ borderTop: '1px solid #f3f4f6', margin: '0.4rem 0' }} />
 
+                    {/* Google Calendar */}
+                    {activity.start_date && (() => {
+                      const datePart = activity.start_date.split('T')[0].replace(/-/g, '');
+                      const startT = activity.start_time ? activity.start_time.replace(':', '') + '00' : null;
+                      const endT = activity.end_time ? activity.end_time.replace(':', '') + '00'
+                        : activity.start_time ? (() => {
+                            const [h, m] = activity.start_time.split(':').map(Number);
+                            const durMin = 90;
+                            const endH = Math.floor((h * 60 + m + durMin) / 60) % 24;
+                            const endM = (h * 60 + m + durMin) % 60;
+                            return String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
+                          })() : null;
+                      const dates = startT
+                        ? `${datePart}T${startT}/${datePart}T${endT}`
+                        : `${datePart}/${datePart}`;
+                      const loc = [activity.venue_name, activity.direccion].filter(Boolean).join(', ');
+                      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(activity.name || '')}&dates=${dates}&details=${encodeURIComponent(activity.body || '')}&location=${encodeURIComponent(loc)}`;
+                      return (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'block', marginTop: '0.4rem',
+                            textAlign: 'center', textDecoration: 'none',
+                            background: '#f0f4ff', border: '1px solid #c7d2fe',
+                            borderRadius: '6px', padding: '0.3rem 0.5rem',
+                            fontSize: '0.72rem', fontWeight: 600, color: '#4338ca'
+                          }}
+                        >
+                          📆 Añadir a Google Calendar
+                        </a>
+                      );
+                    })()}
+
                     {/* Acciones */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.35rem' }}>
                       {onActivitySelect && (
                         <button
                           onClick={() => onActivitySelect(activity)}
@@ -451,11 +495,11 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, onMarkerClick, onClearPinned, openPopupForId, itinerary, showRoute }) => {
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} itinerary={itinerary} showRoute={showRoute} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} onMarkerClick={onMarkerClick} onClearPinned={onClearPinned} openPopupForId={openPopupForId} itinerary={itinerary} showRoute={showRoute} />
       </MapContainer>
     </div>
   );

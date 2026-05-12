@@ -25,6 +25,7 @@ interface ActivityListProps {
   activities: Activity[];
   userCoords?: [number, number] | null;
   onSelectOnMap?: (activity: Activity) => void;
+  pinnedActivityId?: string | null;
 }
 
 function formatDate(d: string) {
@@ -389,8 +390,15 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
   );
 };
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onSelectOnMap }) => {
+const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onSelectOnMap, pinnedActivityId }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
+  const pinnedRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (pinnedActivityId && pinnedRef.current) {
+      pinnedRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [pinnedActivityId]);
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>(() => getLikeCountsLocal());
   const [attendingIds, setAttendingIds] = useState<Record<string, boolean>>(() => getAllAttendingLocal());
@@ -462,17 +470,24 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
             const timeBadge = getTimeBadge(activity);
             const distBadge = getDistanceBadge(activity, userCoords ?? null);
             const activeBadge = timeBadge ?? distBadge;
+            const isPinned = pinnedActivityId === activity.id;
             return (
               <div
                 key={activity.id}
+                ref={isPinned ? pinnedRef : null}
                 onClick={() => onSelectOnMap?.(activity)}
                 style={{
-                  backgroundColor: '#fff', borderRadius: '12px', overflow: 'hidden',
-                  boxShadow: activeBadge
-                    ? `0 2px 12px rgba(0,0,0,0.12), 0 0 0 2px ${activeBadge.borderColor}`
-                    : '0 2px 12px rgba(34,34,59,0.08)',
+                  backgroundColor: isPinned ? '#f0f4ff' : '#fff',
+                  borderRadius: '12px', overflow: 'hidden',
+                  boxShadow: isPinned
+                    ? '0 4px 20px rgba(102,126,234,0.35), 0 0 0 2.5px #667eea'
+                    : activeBadge
+                      ? `0 2px 12px rgba(0,0,0,0.12), 0 0 0 2px ${activeBadge.borderColor}`
+                      : '0 2px 12px rgba(34,34,59,0.08)',
+                  outline: isPinned ? '2.5px solid #667eea' : undefined,
                   transition: 'transform 0.18s, box-shadow 0.18s',
-                  display: 'flex', flexDirection: 'column', cursor: 'pointer'
+                  display: 'flex', flexDirection: 'column', cursor: 'pointer',
+                  position: 'relative'
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)';
@@ -483,6 +498,18 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                   (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(34,34,59,0.08)';
                 }}
               >
+                {/* Chip "En mapa" para tarjeta seleccionada */}
+                {isPinned && (
+                  <div style={{
+                    position: 'absolute', top: '8px', right: '8px', zIndex: 10,
+                    background: '#667eea', color: '#fff',
+                    fontSize: '0.62rem', fontWeight: 700,
+                    padding: '0.15rem 0.5rem', borderRadius: '10px',
+                    letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(102,126,234,0.4)'
+                  }}>
+                    📍 En mapa
+                  </div>
+                )}
                 {/* Header */}
                 <div style={{
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
