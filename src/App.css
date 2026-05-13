@@ -206,12 +206,124 @@ body {
   background: #f4f4f4;
 }
 
+/* Segmented control: Planificar + toggle capa */
+.map-route-control {
+  position: absolute;
+  top: 10px;
+  right: 60px;
+  z-index: 900;
+  display: flex;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(102,126,234,0.35);
+  border: 1.5px solid rgba(102,126,234,0.35);
+}
+
+.map-route-control__btn {
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.map-route-control__btn--plan {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.map-route-control__btn--layer {
+  background: #fff;
+  color: #6b7280;
+  border-left: 1.5px solid rgba(102,126,234,0.3);
+}
+
+.map-route-control__btn--layer:hover {
+  background: #f3f4f6;
+}
+
+.map-route-control__btn--layer.active {
+  background: #ede9fe;
+  color: #4f46e5;
+}
+
+/* Leyenda de modos de ruta — debajo del segmented control */
+.map-route-legend {
+  position: absolute;
+  top: 50px;
+  right: 60px;
+  z-index: 900;
+  background: rgba(255,255,255,0.93);
+  border-radius: 12px;
+  padding: 0.35rem 0.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(102,126,234,0.15);
+  display: flex;
+  flex-direction: row;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.map-route-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.map-route-legend__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .map-route-legend {
+    top: 162px;
+    right: 10px;
+    padding: 0.25rem 0.5rem;
+    gap: 0.5rem;
+    border-radius: 6px;
+  }
+  .map-route-legend__line {
+    width: 20px;
+  }
+  .map-route-legend__label {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .map-route-control {
+    top: 124px;
+    right: 10px;
+    border-radius: 6px;
+  }
+  .map-route-control__btn {
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    justify-content: center;
+  }
+  .map-route-control__btn-text {
+    display: none;
+  }
+}
+
 /* Panel flotante sobre el mapa */
 .floating-panel {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  z-index: 1006;
+  z-index: 1001;
   width: 260px;
   max-width: calc(100vw - 2rem);
   height: auto;
@@ -439,8 +551,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(34, 34, 59, 0.12);
-  backdrop-filter: blur(1.5px);
+  background: rgba(34, 34, 59, 0.0);
+  backdrop-filter: blur(0);
   pointer-events: none;
 }
 
@@ -454,21 +566,22 @@ body {
 .radar-ring {
   position: absolute;
   border-radius: 50%;
-  border: 1.5px solid rgba(102, 126, 234, 0.45);
+  border: 2px solid rgba(26, 115, 232, 0.5);
 }
 
 .radar-ring--outer {
   inset: 0;
+  border-color: rgba(26, 115, 232, 0.5);
 }
 
 .radar-ring--mid {
   inset: 22%;
-  border-color: rgba(102, 126, 234, 0.55);
+  border-color: rgba(0, 172, 150, 0.6);
 }
 
 .radar-ring--inner {
   inset: 42%;
-  border-color: rgba(102, 126, 234, 0.65);
+  border-color: rgba(67, 160, 71, 0.75);
 }
 
 .radar-sweep {
@@ -478,13 +591,28 @@ body {
   background: conic-gradient(
     from 0deg,
     transparent 0deg,
-    transparent 260deg,
-    rgba(102, 126, 234, 0.08) 280deg,
-    rgba(102, 126, 234, 0.35) 350deg,
-    rgba(102, 126, 234, 0.6) 358deg,
-    transparent 360deg
+    transparent 255deg,
+    rgba(26, 115, 232, 0.05) 272deg,
+    rgba(26, 115, 232, 0.28) 325deg,
+    rgba(26, 115, 232, 0.5) 346deg,
+    rgba(67, 160, 71, 0.78) 356deg,
+    rgba(144, 238, 144, 1) 360deg
   );
   animation: radarSweep 1.8s linear infinite;
+  filter: drop-shadow(0 0 5px rgba(26, 115, 232, 0.5)) drop-shadow(0 0 10px rgba(67, 160, 71, 0.7));
+}
+
+.radar-sweep--reverse {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 310deg,
+    rgba(67, 160, 71, 0.04) 325deg,
+    rgba(67, 160, 71, 0.22) 355deg,
+    rgba(67, 160, 71, 0.5) 360deg
+  );
+  animation: radarSweepReverse 3.2s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(67, 160, 71, 0.5));
 }
 
 .radar-crosshair {
@@ -520,10 +648,10 @@ body {
   left: 50%;
   width: 8px;
   height: 8px;
-  background: var(--color-primary);
+  background: #1a73e8;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 10px 3px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 10px 3px rgba(26, 115, 232, 0.6);
 }
 
 .radar-label {
@@ -531,12 +659,15 @@ body {
   bottom: -2.8rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--color-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: linear-gradient(90deg, #1a73e8 0%, #43a047 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: 2px;
   white-space: nowrap;
-  text-shadow: 0 1px 6px rgba(255,255,255,0.95);
+  text-shadow: none;
 }
 
 @keyframes radarSweep {
@@ -544,10 +675,25 @@ body {
   to   { transform: rotate(360deg); }
 }
 
+@keyframes radarSweepReverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
 @keyframes radarPulse {
   0%   { opacity: 0.75; }
   50%  { opacity: 1; }
   100% { opacity: 0.75; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes markerPulse {
+  0%, 100% { filter: drop-shadow(0 0 0px rgba(245,158,11,0)); transform: scale(1); }
+  50%       { filter: drop-shadow(0 0 6px rgba(245,158,11,0.9)); transform: scale(1.12); }
 }
 
 
@@ -631,8 +777,8 @@ body {
   }
 
   .radar-widget {
-    width: 510px;
-    height: 510px;
+    width: 410px;
+    height: 410px;
   }
 
   .App-footer {
@@ -674,8 +820,8 @@ body {
   }
 
   .radar-widget {
-    width: 470px;
-    height: 470px;
+    width: 370px;
+    height: 370px;
   }
 
   .App-footer {
