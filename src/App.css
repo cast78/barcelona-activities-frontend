@@ -551,8 +551,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(34, 34, 59, 0.12);
-  backdrop-filter: blur(1.5px);
+  background: rgba(34, 34, 59, 0.0);
+  backdrop-filter: blur(0);
   pointer-events: none;
 }
 
