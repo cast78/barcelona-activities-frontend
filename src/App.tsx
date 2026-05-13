@@ -351,7 +351,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} onMarkerClick={setPinnedActivity} onClearPinned={() => setPinnedActivity(null)} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
                   <div style={{

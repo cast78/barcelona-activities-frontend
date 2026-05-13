@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
 import type { CircleProps } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -34,8 +34,6 @@ interface MapComponentProps {
   radiusKm?: number;
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
-  onMarkerClick?: (activity: Activity) => void;
-  onClearPinned?: () => void;
   openPopupForId?: string | null;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
@@ -48,14 +46,11 @@ const MapContent: React.FC<{
   radiusKm?: number;
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
-  onMarkerClick?: (activity: Activity) => void;
-  onClearPinned?: () => void;
   openPopupForId?: string | null;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, onMarkerClick, onClearPinned, openPopupForId, itinerary, showRoute }) => {
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
   const map = useMap();
-  useMapEvents({ click: () => onClearPinned?.() });
   const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>(() => getLikeCountsLocal());
@@ -231,10 +226,6 @@ const MapContent: React.FC<{
                   else markerRefs.current.delete(activity.id);
                 }}
                 {...{ icon: makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor) } as any}
-                eventHandlers={{
-                  click: () => onMarkerClick?.(activity),
-                  popupclose: () => onClearPinned?.()
-                }}
               >
                 <Popup {...{ maxWidth: 240 } as any}>
                   <div style={{ fontFamily: 'inherit', minWidth: 210 }}>
@@ -337,6 +328,41 @@ const MapContent: React.FC<{
                           }}
                         >
                           📆 Añadir a Google Calendar
+                        </a>
+                      );
+                    })()}
+
+                    {/* WhatsApp */}
+                    {(() => {
+                      const datePart = activity.start_date ? activity.start_date.split('T')[0] : null;
+                      const dateObj = datePart ? new Date(datePart) : null;
+                      const dateStr = dateObj ? dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
+                      const startT = activity.start_time || null;
+                      const endT = activity.end_time && activity.end_time !== startT ? activity.end_time : null;
+                      const timeStr = startT ? `🕐 ${startT}${endT ? ` - ${endT}` : ''}` : null;
+                      const loc = [activity.venue_name, activity.direccion].filter(Boolean).join(', ');
+                      const lines = [
+                        `🎭 ${activity.name || ''}`,
+                        dateStr ? `📅 ${dateStr}${timeStr ? ` · ${timeStr}` : ''}` : '',
+                        loc ? `📍 ${loc}` : '',
+                        '',
+                        '🏙️ Compartido desde CityRadar Barcelona',
+                      ].filter(Boolean);
+                      const url = `https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`;
+                      return (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'block', marginTop: '0.3rem',
+                            textAlign: 'center', textDecoration: 'none',
+                            background: '#f0fdf4', border: '1px solid #86efac',
+                            borderRadius: '6px', padding: '0.3rem 0.5rem',
+                            fontSize: '0.72rem', fontWeight: 600, color: '#166534'
+                          }}
+                        >
+                          💬 Compartir por WhatsApp
                         </a>
                       );
                     })()}
@@ -495,11 +521,11 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, onMarkerClick, onClearPinned, openPopupForId, itinerary, showRoute }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} onMarkerClick={onMarkerClick} onClearPinned={onClearPinned} openPopupForId={openPopupForId} itinerary={itinerary} showRoute={showRoute} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} itinerary={itinerary} showRoute={showRoute} />
       </MapContainer>
     </div>
   );
