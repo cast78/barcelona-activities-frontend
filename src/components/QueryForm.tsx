@@ -12,10 +12,10 @@ export const CATEGORIES: CategoryChip[] = [
   { id: "sport",    label: "Sport",     emoji: "🏃", keywords: ["sport","deporte","running","futbol","basket","tennis","nataci","esport","atletis","padel","ciclis"] },
   { id: "culture",  label: "Culture",     emoji: "🎭", keywords: ["cultur","museu","museo","teatr","exposici","exposici","art","cine","cinema","patrimoni","literatu"] },
   { id: "music",    label: "Music",      emoji: "🎵", keywords: ["music","concert","festival","jazz","rock","orquestr","dansa","ball","flamenco","dj set","dj","electronic","techno","house","rave"] },
-  { id: "food",     label: "Gastronomy",      emoji: "🍽️", keywords: ["gastronom","restaurant","mercat","food","cuina","tast","vi","vermut","fira aliment"] },
   { id: "family",   label: "Family",    emoji: "👨‍👩‍👧", keywords: ["famili","familiar","nens","kids","infantil","infants","jovent","escola"] },
   { id: "nature",   label: "Nature",      emoji: "🌿", keywords: ["natura","parc","senderis","jardi","medi ambient","ecolog","bosc","platj","mar"] },
-  { id: "night",    label: "Night Life", emoji: "🌙", keywords: ["nocturno","noche","nit","bar","discoteca","club","cocktail","pub","after","festa","party","nightclub","boite","copa","karaoke","flaming","brunch nocturn"] },
+  { id: "night",    label: "Night", emoji: "🌙", keywords: ["nocturno","noche","nit","bar","discoteca","club","cocktail","pub","after","festa","party","nightclub","boite","copa","karaoke","flaming","brunch nocturn"] },
+  { id: "food",     label: "Food",      emoji: "🍽️", keywords: ["gastronom","restaurant","mercat","food","cuina","tast","vi","vermut","fira aliment"] },
   { id: "show",     label: "Show",       emoji: "\uD83C\uDFAA", keywords: ["show","espectacle","espectaculo","espect\u00E1cul","actuaci","actuacion","performance","magic","magia","circus","circ","cabaret","comedy","monolog","stand up","standup","ilusionist","humorist","drag","burlesc","varietes","escenari","live","en vivo","en directo"] },
   { id: "other",    label: "Other",      emoji: "📌", keywords: [] },
 ];

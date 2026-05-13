@@ -378,7 +378,7 @@ function App() {
                       <div className="radar-sweep radar-sweep--reverse" />
                       <div className="radar-crosshair" />
                       <div className="radar-dot" />
-                      <span className="radar-label">Buscando actividades cerca de ti...</span>
+                      <span className="radar-label">Buscando eventos cerca de ti...</span>
                     </div>
                   </div>
                 )}

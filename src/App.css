@@ -323,7 +323,7 @@ body {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  z-index: 1001;
+  z-index: 1006;
   width: 260px;
   max-width: calc(100vw - 2rem);
   height: auto;

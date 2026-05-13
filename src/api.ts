@@ -37,83 +37,67 @@ export const addActivity = async (activity: Omit<Activity, 'id'>): Promise<Activ
   return response.data;
 };
 
-export const toggleLike = async (id: string, action: 'like' | 'unlike'): Promise<number> => {
-  const response = await axios.post(`${API_BASE_URL}/likes/${encodeURIComponent(id)}`, { action });
-  return response.data.likes;
-};
+// ── Local storage helpers for likes ──────────────────────────────────────────
+const LIKES_KEY = 'cityradar_liked';
+const LIKE_COUNTS_KEY = 'cityradar_like_counts';
 
-export const isLiked = (id: string): boolean => {
+export function getAllLikedLocal(): Record<string, boolean> {
+  try { return JSON.parse(localStorage.getItem(LIKES_KEY) || '{}'); } catch { return {}; }
+}
+export function getLikeCountsLocal(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(LIKE_COUNTS_KEY) || '{}'); } catch { return {}; }
+}
+export function setLikedLocal(id: string, liked: boolean) {
+  const data = getAllLikedLocal();
+  data[id] = liked;
+  localStorage.setItem(LIKES_KEY, JSON.stringify(data));
+}
+export function setLikeCountLocal(id: string, count: number) {
+  const data = getLikeCountsLocal();
+  data[id] = count;
+  localStorage.setItem(LIKE_COUNTS_KEY, JSON.stringify(data));
+}
+export function isLiked(id: string): boolean {
+  return !!getAllLikedLocal()[id];
+}
+export async function toggleLike(activityId: string, action: string): Promise<number> {
   try {
-    return !!JSON.parse(localStorage.getItem('liked_activities') || '{}')[id];
-  } catch { return false; }
-};
+    const res = await axios.post(`${API_BASE_URL}/likes/${activityId}`, { action });
+    return res.data?.likes ?? 0;
+  } catch {
+    return 0;
+  }
+}
 
-export const setLikedLocal = (id: string, value: boolean): void => {
+// ── Local storage helpers for attendees ──────────────────────────────────────
+const ATTEND_KEY = 'cityradar_attending';
+const ATTEND_COUNTS_KEY = 'cityradar_attend_counts';
+
+export function getAllAttendingLocal(): Record<string, boolean> {
+  try { return JSON.parse(localStorage.getItem(ATTEND_KEY) || '{}'); } catch { return {}; }
+}
+export function getAttendCountsLocal(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(ATTEND_COUNTS_KEY) || '{}'); } catch { return {}; }
+}
+export function setAttendingLocal(id: string, attending: boolean) {
+  const data = getAllAttendingLocal();
+  data[id] = attending;
+  localStorage.setItem(ATTEND_KEY, JSON.stringify(data));
+}
+export function setAttendCountLocal(id: string, count: number) {
+  const data = getAttendCountsLocal();
+  data[id] = count;
+  localStorage.setItem(ATTEND_COUNTS_KEY, JSON.stringify(data));
+}
+export function isAttending(id: string): boolean {
+  return !!getAllAttendingLocal()[id];
+}
+export async function toggleAttend(activityId: string, action: string): Promise<number> {
   try {
-    const liked = JSON.parse(localStorage.getItem('liked_activities') || '{}');
-    if (value) liked[id] = true; else delete liked[id];
-    localStorage.setItem('liked_activities', JSON.stringify(liked));
-  } catch {}
-};
-
-export const getAllLikedLocal = (): Record<string, boolean> => {
-  try {
-    return JSON.parse(localStorage.getItem('liked_activities') || '{}');
-  } catch { return {}; }
-};
-
-export const getLikeCountsLocal = (): Record<string, number> => {
-  try {
-    return JSON.parse(localStorage.getItem('like_counts') || '{}');
-  } catch { return {}; }
-};
-
-export const setLikeCountLocal = (id: string, count: number): void => {
-  try {
-    const counts = getLikeCountsLocal();
-    if (count > 0) counts[id] = count; else delete counts[id];
-    localStorage.setItem('like_counts', JSON.stringify(counts));
-  } catch {};
-};
-
-// ── Attendees ────────────────────────────────────────────────────────────────
-
-export const toggleAttend = async (id: string, action: 'attend' | 'unattend'): Promise<number> => {
-  const response = await axios.post(`${API_BASE_URL}/attend/${encodeURIComponent(id)}`, { action });
-  return response.data.attendees;
-};
-
-export const isAttending = (id: string): boolean => {
-  try {
-    return !!JSON.parse(localStorage.getItem('attending_activities') || '{}')[id];
-  } catch { return false; }
-};
-
-export const setAttendingLocal = (id: string, value: boolean): void => {
-  try {
-    const att = JSON.parse(localStorage.getItem('attending_activities') || '{}');
-    if (value) att[id] = true; else delete att[id];
-    localStorage.setItem('attending_activities', JSON.stringify(att));
-  } catch {};
-};
-
-export const getAllAttendingLocal = (): Record<string, boolean> => {
-  try {
-    return JSON.parse(localStorage.getItem('attending_activities') || '{}');
-  } catch { return {}; }
-};
-
-export const getAttendCountsLocal = (): Record<string, number> => {
-  try {
-    return JSON.parse(localStorage.getItem('attend_counts') || '{}');
-  } catch { return {}; }
-};
-
-export const setAttendCountLocal = (id: string, count: number): void => {
-  try {
-    const counts = getAttendCountsLocal();
-    if (count > 0) counts[id] = count; else delete counts[id];
-    localStorage.setItem('attend_counts', JSON.stringify(counts));
-  } catch {};
-};
+    const res = await axios.post(`${API_BASE_URL}/attend/${activityId}`, { action });
+    return res.data?.attendees ?? 0;
+  } catch {
+    return 0;
+  }
+}
 

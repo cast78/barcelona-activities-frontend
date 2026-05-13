@@ -327,7 +327,7 @@ const MapContent: React.FC<{
                             fontSize: '0.72rem', fontWeight: 600, color: '#4338ca'
                           }}
                         >
-                          📆 Añadir a Google Calendar
+                          ⏰ Añadir a Google Calendar
                         </a>
                       );
                     })()}
