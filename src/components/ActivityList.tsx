@@ -97,16 +97,23 @@ export function getTimeBadge(activity: Activity): TimeBadge {
     ? startMinutes - nowMinutes
     : (1440 - nowMinutes) + startMinutes;
 
+  // Calcular end_time (para todos los badges)
+  let endMinutes: number;
+  if (activity.end_time) {
+    const matchEnd = activity.end_time.match(/^(\d{2}):(\d{2})/);
+    endMinutes = matchEnd ? parseInt(matchEnd[1]) * 60 + parseInt(matchEnd[2]) : startMinutes + 180;
+  } else {
+    endMinutes = startMinutes + 180;
+  }
+  
+  // Manejar eventos que cruzan medianoche
+  if (endMinutes < startMinutes) {
+    endMinutes += 1440; // suma 24 horas
+  }
+
   // Ya empezó (o empieza en ≤15 min) → "Ahora" si no ha terminado
-  if (diffMinutes <= 15) {
+  if (diffMinutes <= 25) {
     if (!isToday) return null;
-    let endMinutes: number;
-    if (activity.end_time) {
-      const matchEnd = activity.end_time.match(/^(\d{2}):(\d{2})/);
-      endMinutes = matchEnd ? parseInt(matchEnd[1]) * 60 + parseInt(matchEnd[2]) : startMinutes + 180;
-    } else {
-      endMinutes = startMinutes + 180;
-    }
     if (nowMinutes < endMinutes) {
       return { label: 'Ahora', emoji: '⚡', gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)', borderColor: '#f59e0b' };
     }
