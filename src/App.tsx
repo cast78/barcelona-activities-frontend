@@ -111,13 +111,15 @@ function App() {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   useEffect(() => {
-    // Calcular fechas siempre: hoy y +1 día, + hora actual
+    // Calcular fechas siempre: hoy y +1 día, + hora actual (zona horaria Barcelona)
     const today = new Date();
-    const startDateStr = today.toISOString().split('T')[0];
-    const currentTimeStr = today.toISOString().split('T')[1]; // HH:MM:SS.sss
+    const BCN_TZ = 'Europe/Madrid';
+    const startDateStr = today.toLocaleDateString('en-CA', { timeZone: BCN_TZ }); // YYYY-MM-DD en hora BCN
+    const bcnTimeStr = today.toLocaleTimeString('en-GB', { timeZone: BCN_TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const currentTimeStr = bcnTimeStr; // HH:MM:SS en hora BCN
     const endDateObj = new Date(today);
     endDateObj.setDate(endDateObj.getDate() + 1);
-    const endDateStr = endDateObj.toISOString().split('T')[0];
+    const endDateStr = endDateObj.toLocaleDateString('en-CA', { timeZone: BCN_TZ }); // YYYY-MM-DD en hora BCN
 
     // Función de búsqueda con coordenadas, fechas y hora actual
     const runSearch = async (lat: number, lon: number, locStr: string, searchRadius: number = 10) => {
@@ -127,7 +129,7 @@ function App() {
         const searchRegistered = await fetchActivities();
         let filtered = [...searchEvents, ...searchRegistered];
 
-        const startObj = new Date(startDateStr);
+        const startObj = new Date(startDateStr + 'T00:00:00'); // parse como local, no UTC
         const endObj = new Date(endDateStr + 'T23:59:59');
         filtered = filtered.filter(act => {
           const actStart = act.start_date ? new Date(act.start_date) : null;
