@@ -81,7 +81,7 @@ function App() {
   // Estado del formulario
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 2); return d.toISOString().split('T')[0]; });
+  const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; });
   const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [timeFilter, setTimeFilter] = useState<string>('any');
@@ -92,6 +92,7 @@ function App() {
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showRoute, setShowRoute] = useState(false);
+  const [showDebugTable, setShowDebugTable] = useState(false);
 
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
 
@@ -110,18 +111,19 @@ function App() {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   useEffect(() => {
-    // Calcular fechas siempre: hoy y +10 días
+    // Calcular fechas siempre: hoy y +1 día, + hora actual
     const today = new Date();
     const startDateStr = today.toISOString().split('T')[0];
+    const currentTimeStr = today.toISOString().split('T')[1]; // HH:MM:SS.sss
     const endDateObj = new Date(today);
-    endDateObj.setDate(endDateObj.getDate() + 2);
+    endDateObj.setDate(endDateObj.getDate() + 1);
     const endDateStr = endDateObj.toISOString().split('T')[0];
 
-    // Función de búsqueda con coordenadas y fechas
-    const runSearch = async (lat: number, lon: number, locStr: string) => {
+    // Función de búsqueda con coordenadas, fechas y hora actual
+    const runSearch = async (lat: number, lon: number, locStr: string, searchRadius: number = 10) => {
       setIsSearching(true);
       try {
-        const searchEvents = await fetchEvents(startDateStr, endDateStr);
+        const searchEvents = await fetchEvents(startDateStr, endDateStr, currentTimeStr);
         const searchRegistered = await fetchActivities();
         let filtered = [...searchEvents, ...searchRegistered];
 
@@ -145,12 +147,12 @@ function App() {
           const coords = coordStr.split(',').map(Number);
           if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
           const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
-          return dist <= 2;
+          return dist <= searchRadius;
         });
 
         setActivities(filtered);
         setLastLocation(locStr);
-        setLastRadius(2);
+        setLastRadius(searchRadius);
         setPanelOpen(false);
 
         if (filtered.length > 0) {
@@ -187,7 +189,7 @@ function App() {
             setIsLoadingLocation(false);
             setUserCoords([latitude, longitude]);
             setUsingFallback(false);
-            await runSearch(latitude, longitude, locStr);
+            await runSearch(latitude, longitude, locStr, 2);
           },
           async () => {
             // Sin permiso o error: usar Barcelona como centro
@@ -197,7 +199,7 @@ function App() {
             setRadius(2);
             setUserCoords([BARCELONA_LAT, BARCELONA_LON]);
             setUsingFallback(true);
-            await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
+            await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr, 2);
           },
           { timeout: 5000 }
         );
@@ -207,7 +209,7 @@ function App() {
         setRadius(2);
         setUserCoords([BARCELONA_LAT, BARCELONA_LON]);
         setUsingFallback(true);
-        await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
+        await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr, 2);
       }
     };
 
@@ -233,7 +235,8 @@ function App() {
     setPanelOpen(false);
     setPinnedActivity(null);
     try {
-      const events = await fetchEvents(startDate, endDate);
+      const currentTime = new Date().toISOString().split('T')[1]; // HH:MM:SS.sss
+      const events = await fetchEvents(startDate, endDate, currentTime);
       const registered = await fetchActivities();
       let filtered = [...events, ...registered];
       const BARCELONA_FALLBACK: [number, number] = [41.3851, 2.1734];
@@ -277,7 +280,10 @@ function App() {
         filtered = filtered.filter(act => {
           if (act.category) return categories.includes(act.category);
           const text = ((act.name || '') + ' ' + (act.body || '')).toLowerCase();
-          return activeCategories.some(cat => cat.keywords.some(kw => text.includes(kw)));
+          return activeCategories.some(cat => cat.keywords.some(kw => {
+            const regex = new RegExp(`\\b${kw}\\b`, 'i');
+            return regex.test(text);
+          }));
         });
       }
       // Filtro temporal
@@ -338,6 +344,19 @@ function App() {
           >
             <EditIcon style={{ marginRight: 10 }} /> Register Activities
           </button>
+          <div style={{ borderTop: '1px solid #ddd', marginTop: '10px', paddingTop: '10px' }}>
+            <button
+              className="sidebar-btn"
+              onClick={() => setShowDebugTable(!showDebugTable)}
+              title="Toggle categorization debug table"
+              style={{
+                background: showDebugTable ? '#3b82f6' : 'transparent',
+                color: showDebugTable ? 'white' : '#666'
+              }}
+            >
+              🔍 Debug{activities.length > 0 ? ` (${activities.length})` : ''}
+            </button>
+          </div>
         </nav>
       </aside>
       <div className="App-content">
@@ -483,6 +502,69 @@ function App() {
             </div>
           )}
         </main>
+        
+        {/* Debug Table - Categorization Monitoring */}
+        {showDebugTable && activities.length > 0 && (
+          <div style={{
+            background: '#1f2937', color: '#e5e7eb', padding: '20px', borderTop: '1px solid #374151',
+            overflowX: 'auto', fontSize: '12px', fontFamily: 'monospace'
+          }}>
+            <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0 }}>🔍 Categorization Debug Table ({activities.length} events)</h3>
+              <button
+                onClick={() => setShowDebugTable(false)}
+                style={{
+                  background: '#ef4444', color: 'white', border: 'none', padding: '5px 10px',
+                  borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+                }}
+              >
+                Close
+              </button>
+            </div>
+            <table style={{
+              width: '100%', borderCollapse: 'collapse', marginBottom: '10px'
+            }}>
+              <thead>
+                <tr style={{ background: '#111827', borderBottom: '2px solid #374151' }}>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#60a5fa' }}>Name</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#60a5fa' }}>Origin</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#60a5fa' }}>Category</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#60a5fa' }}>Start Date</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#60a5fa' }}>Start Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities.map((act, idx) => (
+                  <tr key={act.id} style={{
+                    background: idx % 2 === 0 ? '#111827' : '#1f2937',
+                    borderBottom: '1px solid #374151'
+                  }}>
+                    <td style={{ padding: '8px 12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {act.name.substring(0, 40)}
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#fbbf24' }}>
+                      {act.origen || 'unknown'}
+                    </td>
+                    <td style={{ 
+                      padding: '8px 12px', 
+                      color: act.category === 'other' ? '#ef4444' : '#10b981',
+                      fontWeight: 'bold'
+                    }}>
+                      {act.category || 'other'}
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#9ca3af' }}>
+                      {act.start_date ? act.start_date.substring(0, 10) : '-'}
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#9ca3af' }}>
+                      {act.start_time || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         <footer className="App-footer">
           <p>CityRadar &copy; 2026 | Discover activities and events near you</p>
         </footer>

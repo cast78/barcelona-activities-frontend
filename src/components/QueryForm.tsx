@@ -23,7 +23,10 @@ export const CATEGORIES: CategoryChip[] = [
 export function inferCategory(name: string, body: string): string {
   const text = (name + ' ' + body).toLowerCase();
   const matchable = CATEGORIES.filter(c => c.keywords.length > 0);
-  const matched = matchable.find(c => c.keywords.some(kw => text.includes(kw)));
+  const matched = matchable.find(c => c.keywords.some(kw => {
+    const regex = new RegExp(`\\b${kw}\\b`, 'i');
+    return regex.test(text);
+  }));
   return matched ? matched.id : 'other';
 }
 

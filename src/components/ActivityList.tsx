@@ -601,7 +601,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                     </div>
                   )}
 
-                  {/* Badge de fuente */}
+                  {/* Badge de fuente y categoría */}
                   {activity.origen && (
                     <span style={{
                       alignSelf: 'flex-start',
@@ -610,7 +610,9 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                       background: activity.origen === 'mock' ? '#fef3c7' : '#d1fae5',
                       color: activity.origen === 'mock' ? '#92400e' : '#065f46'
                     }}>
-                      {activity.origen === 'mock' ? '⚠️ ejemplo' : `🌐 ${activity.origen}`}
+                      {activity.origen === 'mock' 
+                        ? '⚠️ ejemplo' 
+                        : `🌐 ${activity.origen} · ${catId || 'sin categoría'}`}
                     </span>
                   )}
 

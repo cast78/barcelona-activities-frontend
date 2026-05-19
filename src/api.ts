@@ -19,11 +19,14 @@ export interface Activity {
   attendees?: number;
 }
 
-export const fetchEvents = async (startDate?: string, endDate?: string): Promise<Activity[]> => {
+export const fetchEvents = async (startDate?: string, endDate?: string, currentTime?: string): Promise<Activity[]> => {
   const params: Record<string, string> = {};
   if (startDate) params.startDate = startDate;
   if (endDate) params.endDate = endDate;
+  if (currentTime) params.currentTime = currentTime;
+  console.log('[API] fetchEvents params:', { startDate, endDate, currentTime });
   const response = await axios.get(`${API_BASE_URL}/events`, { params });
+  console.log('[API] fetchEvents returned:', response.data.length, 'events');
   return response.data;
 };
 
