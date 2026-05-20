@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
@@ -94,6 +94,92 @@ function App() {
   const [showRoute, setShowRoute] = useState(false);
   const [showDebugTable, setShowDebugTable] = useState(false);
 
+  // ── Proximity notifications (Modo 1) ──────────────────────────────────────
+  const notifiedIdsRef = useRef<Set<string>>(new Set());
+  const lastCheckedPosRef = useRef<[number, number] | null>(null);
+  const lastNotifTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return;
+    if (activities.length === 0) return;
+
+    const PROXIMITY_KM = 1;
+    const MIN_MOVE_M = 100;
+    const COOLDOWN_MS = 10 * 60 * 1000; // 10 minutos entre notificaciones
+    const HORIZON_MS = 2 * 60 * 60 * 1000; // solo eventos que empiezan en < 2h
+
+    function haversineM(lat1: number, lon1: number, lat2: number, lon2: number): number {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserCoords([latitude, longitude]);
+
+        // ¿El usuario se movió > MIN_MOVE_M desde la última comprobación?
+        const prev = lastCheckedPosRef.current;
+        if (prev) {
+          const moved = haversineM(prev[0], prev[1], latitude, longitude);
+          if (moved < MIN_MOVE_M) return;
+        }
+        lastCheckedPosRef.current = [latitude, longitude];
+
+        const now = Date.now();
+        if (now - lastNotifTimeRef.current < COOLDOWN_MS) return;
+
+        for (const act of activities) {
+          if (notifiedIdsRef.current.has(act.id)) continue;
+
+          // Verificar coordenadas
+          const coordStr = act.geo_epgs_4326_latlon;
+          if (!coordStr) continue;
+          const parts = coordStr.split(',').map(Number);
+          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) continue;
+
+          const distM = haversineM(latitude, longitude, parts[0], parts[1]);
+          if (distM > PROXIMITY_KM * 1000) continue;
+
+          // Verificar que el evento ocurre pronto o está en curso
+          const happening = isHappeningNow(act);
+          let startsSoon = false;
+          if (act.start_date && act.start_time) {
+            const eventStart = new Date(`${act.start_date}T${act.start_time}`).getTime();
+            startsSoon = eventStart > now && eventStart - now < HORIZON_MS;
+          } else if (act.start_date) {
+            const eventStart = new Date(act.start_date).getTime();
+            startsSoon = eventStart > now && eventStart - now < HORIZON_MS;
+          }
+          if (!happening && !startsSoon) continue;
+
+          const distLabel = distM < 1000
+            ? `${Math.round(distM)} m away`
+            : `${(distM / 1000).toFixed(1)} km away`;
+          const timeLabel = happening ? 'Happening now' : `Starts in ~${Math.round((new Date(`${act.start_date}T${act.start_time || '00:00'}`).getTime() - now) / 60000)} min`;
+
+          showNotification(
+            `📍 Nearby: ${act.name}`,
+            `${distLabel} · ${timeLabel}`
+          );
+
+          notifiedIdsRef.current.add(act.id);
+          lastNotifTimeRef.current = now;
+          break; // una notificación por ciclo
+        }
+      },
+      () => { /* silenciar errores de watchPosition */ },
+      { enableHighAccuracy: false, maximumAge: 30000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [activities]);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
 
   const handleSelectOnMap = (activity: Activity) => {
@@ -156,10 +242,6 @@ function App() {
         setLastLocation(locStr);
         setLastRadius(searchRadius);
         setPanelOpen(false);
-
-        if (filtered.length > 0) {
-          showNotification('CityRadar Barcelona', `Found ${filtered.length} activities nearby!`);
-        }
       } catch (error) {
         console.error('Failed to perform auto-search', error);
       } finally {
