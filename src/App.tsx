@@ -384,6 +384,39 @@ function App() {
         });
       }
       setActivities(filtered);
+
+      // Comprobación de proximidad one-shot con las coordenadas de búsqueda
+      const PROXIMITY_KM = 1;
+      const HORIZON_MS = 2 * 60 * 60 * 1000;
+      const now = Date.now();
+      if (now - lastNotifTimeRef.current >= 10 * 60 * 1000) {
+        for (const act of filtered) {
+          if (notifiedIdsRef.current.has(act.id)) continue;
+          const coordStr = act.geo_epgs_4326_latlon;
+          if (!coordStr) continue;
+          const parts = coordStr.split(',').map(Number);
+          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) continue;
+          const distKm = haversine(searchCoords[0], searchCoords[1], parts[0], parts[1]);
+          if (distKm > PROXIMITY_KM) continue;
+          const happening = isHappeningNow(act);
+          let startsSoon = false;
+          if (act.start_date) {
+            const eventStart = new Date(`${act.start_date}T${act.start_time || '00:00'}`).getTime();
+            startsSoon = eventStart > now && eventStart - now < HORIZON_MS;
+          }
+          if (!happening && !startsSoon) continue;
+          const distLabel = distKm < 1
+            ? `${Math.round(distKm * 1000)} m away`
+            : `${distKm.toFixed(1)} km away`;
+          const timeLabel = happening
+            ? 'Happening now'
+            : `Starts in ~${Math.round((new Date(`${act.start_date}T${act.start_time || '00:00'}`).getTime() - now) / 60000)} min`;
+          showNotification(`📍 Nearby: ${act.name}`, `${distLabel} · ${timeLabel}`);
+          notifiedIdsRef.current.add(act.id);
+          lastNotifTimeRef.current = now;
+          break;
+        }
+      }
     } catch (error) {
       console.error('Error fetching activities for search', error);
     } finally {
