@@ -314,6 +314,9 @@ function shareWhatsApp(itinerary: Itinerary) {
     if (stop.activity.venue_name || stop.activity.direccion) {
       lines.push(`   📍 ${[stop.activity.venue_name, stop.activity.direccion].filter(Boolean).join(', ')}`);
     }
+    if (stop.activity.geo_epgs_4326_latlon) {
+      lines.push(`   🗺️ https://maps.google.com/?q=${stop.activity.geo_epgs_4326_latlon}`);
+    }
     if (i < itinerary.stops.length - 1) {
       lines.push(`   ${modeIcon(stop.travelMode)} ${itinerary.stops[i + 1].travelMinutes}min ${modeLabel(stop.travelMode)}`);
     }
@@ -327,12 +330,14 @@ function openGoogleCalendar(stop: ItineraryStop) {
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
   const loc = [stop.activity.venue_name, stop.activity.direccion, 'Barcelona'].filter(Boolean).join(', ');
   const cat = CATEGORIES.find(c => c.id === (stop.activity.category || inferCategory(stop.activity.name || '', stop.activity.body || ''))) || CATEGORIES.find(c => c.id === 'other')!;
+  const mapsUrl = stop.activity.geo_epgs_4326_latlon ? `https://maps.google.com/?q=${stop.activity.geo_epgs_4326_latlon}` : null;
+  const details = ['Planificado con CityRadar Barcelona', mapsUrl ? `📍 Ver en Google Maps: ${mapsUrl}` : ''].filter(Boolean).join('\n\n');
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: `${cat.emoji} ${stop.activity.name}`,
     dates: `${fmt(stop.arrivalTime)}/${fmt(stop.departureTime)}`,
     location: loc,
-    details: 'Planificado con CityRadar Barcelona',
+    details,
   });
   window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
 }

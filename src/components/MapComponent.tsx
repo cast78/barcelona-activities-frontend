@@ -313,7 +313,9 @@ const MapContent: React.FC<{
                         ? `${datePart}T${startT}/${datePart}T${endT}`
                         : `${datePart}/${datePart}`;
                       const loc = [activity.venue_name, activity.direccion].filter(Boolean).join(', ');
-                      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(activity.name || '')}&dates=${dates}&details=${encodeURIComponent(activity.body || '')}&location=${encodeURIComponent(loc)}`;
+                      const mapsUrl = activity.geo_epgs_4326_latlon ? `https://maps.google.com/?q=${activity.geo_epgs_4326_latlon}` : null;
+                      const calDetails = [activity.body || '', mapsUrl ? `📍 Ver en Google Maps: ${mapsUrl}` : ''].filter(Boolean).join('\n\n');
+                      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(activity.name || '')}&dates=${dates}&details=${encodeURIComponent(calDetails)}&location=${encodeURIComponent(loc)}`;
                       return (
                         <a
                           href={url}
@@ -341,10 +343,12 @@ const MapContent: React.FC<{
                       const endT = activity.end_time && activity.end_time !== startT ? activity.end_time : null;
                       const timeStr = startT ? `🕐 ${startT}${endT ? ` - ${endT}` : ''}` : null;
                       const loc = [activity.venue_name, activity.direccion].filter(Boolean).join(', ');
+                      const mapsLink = activity.geo_epgs_4326_latlon ? `https://maps.google.com/?q=${activity.geo_epgs_4326_latlon}` : null;
                       const lines = [
                         `🎭 ${activity.name || ''}`,
                         dateStr ? `📅 ${dateStr}${timeStr ? ` · ${timeStr}` : ''}` : '',
                         loc ? `📍 ${loc}` : '',
+                        mapsLink ? `🗺️ ${mapsLink}` : '',
                         '',
                         '🏙️ Compartido desde CityRadar Barcelona',
                       ].filter(Boolean);
