@@ -8,7 +8,7 @@ import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
 import ItineraryPlanner from './components/ItineraryPlanner';
 import type { Itinerary } from './components/ItineraryPlanner';
-import { fetchEvents, fetchActivities, Activity } from './api';
+import { fetchActivities, Activity, fetchEventsBySource } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
 
 const HomeIcon = FaHome as React.ElementType;
@@ -73,6 +73,8 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [rawActivities, setRawActivities] = useState<Activity[]>([]); // Último lote completo
+  const [lastQuery, setLastQuery] = useState<{ location: string; startDate: string; endDate: string; radius: number } | null>(null);
   const [lastLocation, setLastLocation] = useState<string | undefined>(undefined);
   const [lastRadius, setLastRadius] = useState<number | undefined>(undefined);
   const [centerOn, setCenterOn] = useState<CenterOn | null>(null);
@@ -211,37 +213,25 @@ function App() {
     const runSearch = async (lat: number, lon: number, locStr: string, searchRadius: number = 10) => {
       setIsSearching(true);
       try {
-        const searchEvents = await fetchEvents(startDateStr, endDateStr, currentTimeStr);
-        const searchRegistered = await fetchActivities();
-        let filtered = [...searchEvents, ...searchRegistered];
-
-        const startObj = new Date(startDateStr + 'T00:00:00'); // parse como local, no UTC
-        const endObj = new Date(endDateStr + 'T23:59:59');
-        filtered = filtered.filter(act => {
-          const actStart = act.start_date ? new Date(act.start_date) : null;
-          const actEnd = act.end_date ? new Date(act.end_date) : null;
-          // Excluir eventos que ya terminaron antes del inicio del rango
-          if (actEnd && !isNaN(actEnd.getTime()) && actEnd < startObj) return false;
-          // Excluir eventos que empiezan después del fin del rango
-          if (actStart && !isNaN(actStart.getTime()) && actStart > endObj) return false;
-          // Excluir eventos que empezaron antes de hoy y no tienen fecha de fin
-          if (actStart && !isNaN(actStart.getTime()) && actStart < startObj && (!actEnd || isNaN(actEnd.getTime()))) return false;
-          return true;
+        // Carga progresiva inicial igual que en handleSearch
+        const bySource = await fetchEventsBySource({
+          startDate: startDateStr,
+          endDate: endDateStr,
+          currentTime: currentTimeStr,
+          lat: lat,
+          lon: lon,
+          radius: searchRadius
         });
-        const userCoords: [number, number] = [lat, lon];
-        const BCNFALLBACK = '41.3851,2.1734';
-        filtered = filtered.filter(act => {
-          const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
-          const coords = coordStr.split(',').map(Number);
-          if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
-          const dist = haversine(userCoords[0], userCoords[1], coords[0], coords[1]);
-          return dist <= searchRadius;
-        });
-
-        setActivities(filtered);
+        let partial = [...bySource.ticketmaster, ...bySource.allevents];
+        setActivities(partial);
         setLastLocation(locStr);
         setLastRadius(searchRadius);
         setPanelOpen(false);
+        // Cuando OpenData esté lista, unir y mostrar todo
+        setTimeout(() => {
+          let all = [...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata];
+          setActivities(all);
+        }, 1000);
       } catch (error) {
         console.error('Failed to perform auto-search', error);
       } finally {
@@ -250,9 +240,7 @@ function App() {
     };
 
     const loadData = async () => {
-      // Mostrar radar inmediatamente al cargar
       setIsSearching(true);
-      // Establecer fechas en el formulario siempre
       setStartDate(startDateStr);
       setEndDate(endDateStr);
 
@@ -261,39 +249,61 @@ function App() {
       // Barcelona como fallback
       const BARCELONA_LAT = 41.3851;
       const BARCELONA_LON = 2.1734;
+      let didRun = false;
+
+      const doInitialSearch = async (lat: number, lon: number, locStr: string) => {
+        if (didRun) return;
+        didRun = true;
+        setLocation(locStr);
+        setRadius(2);
+        setUserCoords([lat, lon]);
+        setUsingFallback(lat === BARCELONA_LAT && lon === BARCELONA_LON);
+        setIsLoadingLocation(false);
+        setPanelOpen(false);
+        setPinnedActivity(null);
+        const startDate = startDateStr;
+        const endDate = endDateStr;
+        const currentTime = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        let queryKey = { location: locStr, startDate, endDate, radius: 2 };
+        try {
+          const bySource = await fetchEventsBySource({
+            startDate,
+            endDate,
+            currentTime,
+            lat,
+            lon,
+            radius: 2
+          });
+          let all = [...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata];
+          setRawActivities(all);
+          setLastQuery(queryKey);
+          setActivities(all);
+        } catch (e) {
+          setRawActivities([]);
+          setLastQuery(null);
+          setActivities([]);
+        } finally {
+          setIsSearching(false);
+        }
+      };
 
       if (navigator.geolocation) {
         setIsLoadingLocation(true);
         navigator.geolocation.getCurrentPosition(
-          async (position) => {
+          (position) => {
             const { latitude, longitude } = position.coords;
             const locStr = `${latitude},${longitude}`;
-            setLocation(locStr);
-            setRadius(2);
-            setIsLoadingLocation(false);
-            setUserCoords([latitude, longitude]);
-            setUsingFallback(false);
-            await runSearch(latitude, longitude, locStr, 2);
+            doInitialSearch(latitude, longitude, locStr);
           },
-          async () => {
-            // Sin permiso o error: usar Barcelona como centro
-            setIsLoadingLocation(false);
+          () => {
             const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
-            setLocation(locStr);
-            setRadius(2);
-            setUserCoords([BARCELONA_LAT, BARCELONA_LON]);
-            setUsingFallback(true);
-            await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr, 2);
+            doInitialSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
           },
           { timeout: 5000 }
         );
       } else {
         const locStr = `${BARCELONA_LAT},${BARCELONA_LON}`;
-        setLocation(locStr);
-        setRadius(2);
-        setUserCoords([BARCELONA_LAT, BARCELONA_LON]);
-        setUsingFallback(true);
-        await runSearch(BARCELONA_LAT, BARCELONA_LON, locStr, 2);
+        doInitialSearch(BARCELONA_LAT, BARCELONA_LON, locStr);
       }
     };
 
@@ -314,63 +324,41 @@ function App() {
     return R * c;
   }
 
-  const handleSearch = async ({ location, startDate, endDate, radius, categories }: { location: string, startDate: string, endDate: string, radius: number, categories: string[] }) => {
+  // Nuevo: permite filtrar por fuente (origen) además de radio, categoría y tiempo
+  const handleSearch = async ({ location, startDate, endDate, radius, categories, sources }: { location: string, startDate: string, endDate: string, radius: number, categories: string[], sources?: string[] }) => {
     setIsSearching(true);
     setPanelOpen(false);
     setPinnedActivity(null);
-    try {
-      const currentTime = new Date().toISOString().split('T')[1]; // HH:MM:SS.sss
-      const events = await fetchEvents(startDate, endDate, currentTime);
-      const registered = await fetchActivities();
-      let filtered = [...events, ...registered];
-      const BARCELONA_FALLBACK: [number, number] = [41.3851, 2.1734];
-      let searchCoords: [number, number] = BARCELONA_FALLBACK;
-      if (location) {
-        const parts = location.split(',').map(Number);
-        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-          searchCoords = [parts[0], parts[1]];
-        }
-      }
-      setUserCoords(searchCoords);
-      setUsingFallback(false);
-      setLastLocation(`${searchCoords[0]},${searchCoords[1]}`);
-      setLastRadius(radius);
-      const BCNFALLBACK = '41.3851,2.1734';
-      filtered = filtered.filter(act => {
-        const coordStr = act.geo_epgs_4326_latlon || BCNFALLBACK;
-        const coords = coordStr.split(',').map(Number);
-        if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) return false;
-        const dist = haversine(searchCoords[0], searchCoords[1], coords[0], coords[1]);
-        return dist <= radius;
-      });
-      const effectiveStart = startDate || new Date().toISOString().split('T')[0];
-      if (effectiveStart || endDate) {
-        const start = new Date(effectiveStart);
-        const end = endDate ? new Date(endDate + 'T23:59:59') : null;
+    const queryKey = { location, startDate, endDate, radius };
+    // Si la consulta es igual a la última o el radio es menor, filtrar en frontend
+    const canFilterLocally = lastQuery &&
+      lastQuery.location === location &&
+      lastQuery.startDate === startDate &&
+      lastQuery.endDate === endDate &&
+      rawActivities.length > 0 &&
+      radius <= lastQuery.radius;
+    if (canFilterLocally) {
+      let filtered = rawActivities;
+      // Filtrar por radio (haversine)
+      if (location && location.includes(',') && radius > 0) {
+        const [lat, lon] = location.split(',').map(Number);
         filtered = filtered.filter(act => {
-          const actStart = act.start_date ? new Date(act.start_date) : null;
-          const actEnd = act.end_date ? new Date(act.end_date) : null;
-          // Excluir eventos que ya terminaron antes del inicio del rango
-          if (start && actEnd && !isNaN(actEnd.getTime()) && actEnd < start) return false;
-          // Excluir eventos que empiezan después del fin del rango
-          if (end && actStart && !isNaN(actStart.getTime()) && actStart > end) return false;
-          // Excluir eventos que empezaron antes del inicio del rango y no tienen fecha de fin
-          if (start && actStart && !isNaN(actStart.getTime()) && actStart < start && (!actEnd || isNaN(actEnd.getTime()))) return false;
-          return true;
+          if (!act.geo_epgs_4326_latlon) return false;
+          const parts = act.geo_epgs_4326_latlon.split(',').map(Number);
+          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
+          const dist = haversine(lat, lon, parts[0], parts[1]);
+          return dist <= radius;
         });
       }
+      // Filtrar por fuente/origen si se especifica
+      if (sources && sources.length > 0) {
+        filtered = filtered.filter(act => act.origen && sources.includes(act.origen));
+      }
+      // Filtrar por categoría
       if (categories && categories.length > 0) {
-        const activeCategories = CATEGORIES.filter(c => categories.includes(c.id));
-        filtered = filtered.filter(act => {
-          if (act.category) return categories.includes(act.category);
-          const text = ((act.name || '') + ' ' + (act.body || '')).toLowerCase();
-          return activeCategories.some(cat => cat.keywords.some(kw => {
-            const regex = new RegExp(`\\b${kw}\\b`, 'i');
-            return regex.test(text);
-          }));
-        });
+        filtered = filtered.filter(act => act.category && categories.includes(act.category));
       }
-      // Filtro temporal
+      // Filtrar por timeFilter
       if (timeFilter !== 'any') {
         filtered = filtered.filter(act => {
           if (timeFilter === 'now') return isHappeningNow(act);
@@ -384,37 +372,74 @@ function App() {
         });
       }
       setActivities(filtered);
-
-      // Comprobación de proximidad one-shot con las coordenadas de búsqueda
-      const PROXIMITY_KM = 1;
-      const now = Date.now();
-      // Solo respetar cooldown si YA se notificó algo antes
-      const cooldownOk = lastNotifTimeRef.current === 0 ||
-        (now - lastNotifTimeRef.current >= 10 * 60 * 1000);
-      if (cooldownOk) {
-        for (const act of filtered) {
-          if (notifiedIdsRef.current.has(act.id)) continue;
-          const coordStr = act.geo_epgs_4326_latlon;
-          if (!coordStr) continue;
-          const parts = coordStr.split(',').map(Number);
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) continue;
-          const distKm = haversine(searchCoords[0], searchCoords[1], parts[0], parts[1]);
-          if (distKm > PROXIMITY_KM) continue;
-          // Reutilizar getTimeBadge que ya maneja timezone correctamente
-          const badge = getTimeBadge(act);
-          const happening = badge?.label === 'Ahora';
-          const startsSoon = badge !== null && badge.label !== '1día';
-          if (!happening && !startsSoon) continue;
-          const distLabel = distKm < 1
-            ? `${Math.round(distKm * 1000)} m away`
-            : `${distKm.toFixed(1)} km away`;
-          const timeLabel = happening ? 'Happening now' : `Starts in ~${badge!.label}`;
-          showNotification(`📍 Nearby: ${act.name}`, `${distLabel} · ${timeLabel}`);
-          notifiedIdsRef.current.add(act.id);
-          lastNotifTimeRef.current = now;
-          break;
+      setLastRadius(radius); // <-- Actualiza el radio mostrado en el mapa
+      setIsSearching(false);
+      return;
+    }
+    try {
+      const currentTime = new Date().toISOString().split('T')[1]; // HH:MM:SS.sss
+      let lat: number | undefined, lon: number | undefined;
+      if (location) {
+        const parts = location.split(',').map(Number);
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          lat = parts[0];
+          lon = parts[1];
         }
       }
+      let category: string | undefined = undefined;
+      if (categories && categories.length === 1) {
+        category = categories[0];
+      }
+      // Carga progresiva: primero Ticketmaster y AllEvents, luego OpenData
+      const bySource = await fetchEventsBySource({
+        startDate,
+        endDate,
+        currentTime,
+        lat,
+        lon,
+        radius,
+        category
+      });
+      let partial = [...bySource.ticketmaster, ...bySource.allevents];
+      setRawActivities([...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata]);
+      setLastQuery(queryKey);
+      setActivities(partial);
+      setUserCoords(lat !== undefined && lon !== undefined ? [lat, lon] : [41.3851, 2.1734]);
+      setUsingFallback(false);
+      setLastLocation(lat !== undefined && lon !== undefined ? `${lat},${lon}` : '41.3851,2.1734');
+      setLastRadius(radius); // Asegura que el radio inicial se muestre
+      // Filtro temporal
+      if (timeFilter !== 'any') {
+        partial = partial.filter(act => {
+          if (timeFilter === 'now') return isHappeningNow(act);
+          const badge = getTimeBadge(act);
+          if (!badge) return false;
+          if (timeFilter === '30min') return ['Ahora', '30min'].includes(badge.label);
+          if (timeFilter === '1h')    return ['Ahora', '30min', '1h'].includes(badge.label);
+          if (timeFilter === '2h')    return ['Ahora', '30min', '1h', '2h'].includes(badge.label);
+          if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
+          return false;
+        });
+        setActivities(partial);
+      }
+      // Cuando OpenData esté lista, unir y mostrar todo
+      setTimeout(() => {
+        let all = [...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata];
+        if (timeFilter !== 'any') {
+          all = all.filter(act => {
+            if (timeFilter === 'now') return isHappeningNow(act);
+            const badge = getTimeBadge(act);
+            if (!badge) return false;
+            if (timeFilter === '30min') return ['Ahora', '30min'].includes(badge.label);
+            if (timeFilter === '1h')    return ['Ahora', '30min', '1h'].includes(badge.label);
+            if (timeFilter === '2h')    return ['Ahora', '30min', '1h', '2h'].includes(badge.label);
+            if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
+            return false;
+          });
+        }
+        setRawActivities(all);
+        setActivities(all);
+      }, 1000); // Simula llegada tardía de OpenData
     } catch (error) {
       console.error('Error fetching activities for search', error);
     } finally {
@@ -485,7 +510,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={radius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
                   <div style={{
