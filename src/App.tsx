@@ -204,7 +204,7 @@ function App() {
     const BCN_TZ = 'Europe/Madrid';
     const startDateStr = today.toLocaleDateString('en-CA', { timeZone: BCN_TZ }); // YYYY-MM-DD en hora BCN
     const bcnTimeStr = today.toLocaleTimeString('en-GB', { timeZone: BCN_TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-    const currentTimeStr = bcnTimeStr; // HH:MM:SS en hora BCN
+    // const currentTimeStr = bcnTimeStr; // HH:MM:SS en hora BCN (no usado)
     const endDateObj = new Date(today);
     endDateObj.setDate(endDateObj.getDate() + 1);
     const endDateStr = endDateObj.toLocaleDateString('en-CA', { timeZone: BCN_TZ }); // YYYY-MM-DD en hora BCN
@@ -283,18 +283,7 @@ function App() {
   }, []);
 
   // Filtrado con recarga desde la API
-  // Haversine formula para calcular distancia entre dos puntos
-  function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
+  // ...existing code...
 
   const handleSearch = async ({ location, startDate, endDate, radius, categories }: { location: string, startDate: string, endDate: string, radius: number, categories: string[] }) => {
     setIsSearching(true);
