@@ -340,7 +340,7 @@ function App() {
       setLastLocation(location);
       // Delay mínimo para mostrar el radar
       const elapsed = Date.now() - searchStart;
-      const minDelay = 400;
+      const minDelay = 1400;
       if (elapsed < minDelay) {
         setTimeout(() => setIsSearching(false), minDelay - elapsed);
       } else {
@@ -414,7 +414,7 @@ function App() {
       }, 1000); // Simula llegada tardía de OpenData
       // Delay mínimo para mostrar el radar
       const elapsed = Date.now() - searchStart;
-      const minDelay = 400;
+      const minDelay = 1400;
       if (elapsed < minDelay) {
         setTimeout(() => setIsSearching(false), minDelay - elapsed);
       } else {
