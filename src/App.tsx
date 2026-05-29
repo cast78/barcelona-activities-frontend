@@ -290,17 +290,34 @@ function App() {
     setPanelOpen(false);
     setPinnedActivity(null);
     const queryKey = { location, startDate, endDate, radius };
-    // Si la consulta es igual a la última, solo filtrar en frontend
+    // Si la consulta es igual a la última, o el radio es menor (y hay cache), solo filtrar en frontend
     if (
       lastQuery &&
       lastQuery.location === location &&
       lastQuery.startDate === startDate &&
       lastQuery.endDate === endDate &&
-      lastQuery.radius === radius &&
-      rawActivities.length > 0
+      rawActivities.length > 0 &&
+      radius <= lastQuery.radius // Nuevo: si el radio es menor o igual al cacheado
     ) {
-      // Filtrar por categoría y/o timeFilter en frontend
+      // Filtrar por distancia
       let filtered = rawActivities;
+      const [lat, lon] = location.split(',').map(Number);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        filtered = filtered.filter(act => {
+          if (!act.geo_epgs_4326_latlon) return false;
+          const [aLat, aLon] = act.geo_epgs_4326_latlon.split(',').map(Number);
+          if (isNaN(aLat) || isNaN(aLon)) return false;
+          // Haversine en km
+          const R = 6371;
+          const dLat = (aLat - lat) * Math.PI / 180;
+          const dLon = (aLon - lon) * Math.PI / 180;
+          const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat * Math.PI / 180) * Math.cos(aLat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const dist = R * c;
+          return dist <= radius;
+        });
+      }
+      // Filtrar por categoría y/o timeFilter en frontend
       if (categories && categories.length > 0) {
         filtered = filtered.filter(act => act.category && categories.includes(act.category));
       }
