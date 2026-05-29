@@ -3,7 +3,7 @@
   position: absolute;
   top: 70px;
   left: 2px;
-  z-index: 501;
+  z-index: 100;
   background: transparent;
   border-radius: 0;
   box-shadow: none;
