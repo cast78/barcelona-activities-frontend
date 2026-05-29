@@ -32,11 +32,10 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
   useEffect(() => {
     if (isSearching) {
       setOpen(false);
-    } else if (activities.length > 0) {
-      setOpen(true);
     }
+    // Ya no se abre automáticamente al llegar resultados
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSearching, activities.length]);
+  }, [isSearching]);
 
   return (
     <div className={`bottom-sheet${open ? ' bottom-sheet--expanded' : ' bottom-sheet--collapsed'}`}>
