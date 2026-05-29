@@ -498,7 +498,7 @@ function App() {
               <div className="map-fullscreen" style={{ position: 'relative' }}>
                 {/* Panel flotante de categorías */}
                 <CategoryFilter
-                  categories={CATEGORIES.map(c => `${c.emoji} ${c.label}`)}
+                  categories={CATEGORIES.map(c => c.id)}
                   selected={selectedCategories}
                   onChange={setSelectedCategories}
                 />

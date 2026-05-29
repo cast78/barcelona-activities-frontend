@@ -1,8 +1,9 @@
 import React from 'react';
 import './CategoryFilter.css';
+import { CATEGORIES } from './QueryForm';
 
 export interface CategoryFilterProps {
-  categories: string[];
+  categories: string[]; // IDs
   selected: string[];
   onChange: (selected: string[]) => void;
 }
@@ -17,16 +18,20 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, o
   };
   return (
     <div className="category-filter-floating">
-      {categories.map(cat => (
-        <button
-          key={cat}
-          className={selected.includes(cat) ? 'cat-btn selected' : 'cat-btn'}
-          onClick={() => toggle(cat)}
-          type="button"
-        >
-          {cat}
-        </button>
-      ))}
+      {categories.map(catId => {
+        const cat = CATEGORIES.find(c => c.id === catId);
+        if (!cat) return null;
+        return (
+          <button
+            key={cat.id}
+            className={selected.includes(cat.id) ? 'cat-btn selected' : 'cat-btn'}
+            onClick={() => toggle(cat.id)}
+            type="button"
+          >
+            <span className="cat-emoji">{cat.emoji}</span> {cat.label}
+          </button>
+        );
+      })}
     </div>
   );
 };
