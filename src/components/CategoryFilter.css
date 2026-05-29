@@ -2,8 +2,8 @@
 .category-filter-floating {
   position: absolute;
   top: 70px;
-  left: 12px;
-  z-index: 900;
+  left: 2px; /* más pegado al borde */
+  z-index: 400; /* menor que los popups de leaflet/mapa (usualmente 500+) */
   background: transparent;
   border-radius: 0;
   box-shadow: none;
