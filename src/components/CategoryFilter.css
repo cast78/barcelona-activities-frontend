@@ -1,7 +1,7 @@
 /* Panel vertical, pegado al borde izquierdo del mapa */
 .category-filter-floating {
   position: absolute;
-  top: 24px;
+  top: 70px; /* justo debajo del botón de búsqueda flotante */
   left: 12px;
   z-index: 900;
   background: rgba(255,255,255,0.97);
