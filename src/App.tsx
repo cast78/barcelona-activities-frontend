@@ -203,7 +203,7 @@ function App() {
     const today = new Date();
     const BCN_TZ = 'Europe/Madrid';
     const startDateStr = today.toLocaleDateString('en-CA', { timeZone: BCN_TZ }); // YYYY-MM-DD en hora BCN
-    const bcnTimeStr = today.toLocaleTimeString('en-GB', { timeZone: BCN_TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    // const bcnTimeStr = today.toLocaleTimeString('en-GB', { timeZone: BCN_TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
     // const currentTimeStr = bcnTimeStr; // HH:MM:SS en hora BCN (no usado)
     const endDateObj = new Date(today);
     endDateObj.setDate(endDateObj.getDate() + 1);
