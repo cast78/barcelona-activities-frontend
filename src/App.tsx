@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
-import QueryForm from './components/QueryForm';
+import QueryForm, { CATEGORIES } from './components/QueryForm';
+import CategoryFilter from './components/CategoryFilter';
 import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge, sortByTimeAndDistance } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
@@ -441,6 +442,11 @@ function App() {
     //handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: resetRadius, categories: [] });
   };
 
+  // Filtrado en frontend por categorías (solo para el mapa y lista)
+  const filteredActivities = selectedCategories.length > 0
+    ? activities.filter(act => act.category && selectedCategories.includes(act.category))
+    : activities;
+
   return (
     <div className="App">
       <aside className="App-sidebar">
@@ -488,8 +494,15 @@ function App() {
           {page === 'main' && (
             <>
               {/* Mapa ocupa todo el espacio disponible */}
-              <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
+
+              <div className="map-fullscreen" style={{ position: 'relative' }}>
+                {/* Panel flotante de categorías */}
+                <CategoryFilter
+                  categories={CATEGORIES.map(c => `${c.emoji} ${c.label}`)}
+                  selected={selectedCategories}
+                  onChange={setSelectedCategories}
+                />
+                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
                   <div style={{
@@ -604,7 +617,7 @@ function App() {
 
                 {/* Bottom sheet de actividades — se abre de abajo hacia arriba */}
                 <BottomSheetPanel
-                  activities={activities}
+                  activities={filteredActivities}
                   isSearching={isSearching}
                   userCoords={userCoords}
                   open={sheetOpen}
