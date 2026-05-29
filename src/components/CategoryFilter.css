@@ -1,25 +1,32 @@
+/* Panel vertical, pegado al borde izquierdo del mapa */
 .category-filter-floating {
   position: absolute;
-  top: 18px;
-  left: 70px; /* deja espacio para la barra lateral */
+  top: 24px;
+  left: 12px;
   z-index: 900;
   background: rgba(255,255,255,0.97);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  padding: 8px 12px;
+  padding: 8px 4px;
   display: flex;
-  gap: 8px;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
 }
 .cat-btn {
   border: none;
   background: #f3f4f6;
   color: #222;
   border-radius: 8px;
-  padding: 4px 12px;
-  font-size: 0.95rem;
+  padding: 2px 7px;
+  font-size: 0.82rem;
+  min-width: 44px;
+  min-height: 28px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .cat-btn.selected {
   background: #2563eb;
@@ -27,4 +34,8 @@
 }
 .cat-btn:focus {
   outline: 2px solid #2563eb;
+}
+.cat-emoji {
+  font-size: 1.1em;
+  margin-right: 2px;
 }
