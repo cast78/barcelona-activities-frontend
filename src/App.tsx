@@ -290,6 +290,7 @@ function App() {
     setIsSearching(true);
     setPanelOpen(false);
     setPinnedActivity(null);
+    const searchStart = Date.now();
     const queryKey = { location, startDate, endDate, radius };
     // Si la consulta es igual a la última, o el radio es menor (y hay cache), solo filtrar en frontend
     if (
@@ -337,7 +338,14 @@ function App() {
       setActivities(filtered);
       setLastRadius(radius);
       setLastLocation(location);
-      setIsSearching(false);
+      // Delay mínimo para mostrar el radar
+      const elapsed = Date.now() - searchStart;
+      const minDelay = 400;
+      if (elapsed < minDelay) {
+        setTimeout(() => setIsSearching(false), minDelay - elapsed);
+      } else {
+        setIsSearching(false);
+      }
       return;
     }
     try {
@@ -404,9 +412,16 @@ function App() {
         setRawActivities(all);
         setActivities(all);
       }, 1000); // Simula llegada tardía de OpenData
+      // Delay mínimo para mostrar el radar
+      const elapsed = Date.now() - searchStart;
+      const minDelay = 400;
+      if (elapsed < minDelay) {
+        setTimeout(() => setIsSearching(false), minDelay - elapsed);
+      } else {
+        setIsSearching(false);
+      }
     } catch (error) {
       console.error('Error fetching activities for search', error);
-    } finally {
       setIsSearching(false);
     }
   };
