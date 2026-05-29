@@ -228,6 +228,8 @@ function App() {
         setLocation(locStr);
         setRadius(2);
         setUserCoords([lat, lon]);
+        setLastLocation(locStr); // Asegura que el círculo se pinte desde el inicio
+        setLastRadius(2);        // Asegura que el círculo se pinte desde el inicio
         setUsingFallback(lat === BARCELONA_LAT && lon === BARCELONA_LON);
         setIsLoadingLocation(false);
         setPanelOpen(false);
@@ -333,6 +335,8 @@ function App() {
         });
       }
       setActivities(filtered);
+      setLastRadius(radius);
+      setLastLocation(location);
       setIsSearching(false);
       return;
     }
