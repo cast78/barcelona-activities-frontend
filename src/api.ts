@@ -19,14 +19,31 @@ export interface Activity {
   attendees?: number;
 }
 
-export const fetchEvents = async (startDate?: string, endDate?: string, currentTime?: string): Promise<Activity[]> => {
-  const params: Record<string, string> = {};
-  if (startDate) params.startDate = startDate;
-  if (endDate) params.endDate = endDate;
-  if (currentTime) params.currentTime = currentTime;
-  console.log('[API] fetchEvents params:', { startDate, endDate, currentTime });
+export interface EventFilters {
+  startDate?: string;
+  endDate?: string;
+  currentTime?: string;
+  lat?: number;
+  lon?: number;
+  radius?: number;
+  category?: string;
+}
+
+// Permite obtener resultados parciales por fuente si el backend lo soporta (opcional)
+// Forzado: asegurar export fetchEventsBySource
+// Si ya existe, este cambio no afecta la lógica.
+
+export const fetchEventsBySource = async (filters: EventFilters = {}): Promise<{opendata: Activity[]; ticketmaster: Activity[]; allevents: Activity[]}> => {
+  const params: Record<string, string | number> = {};
+  if (filters.startDate) params.startDate = filters.startDate;
+  if (filters.endDate) params.endDate = filters.endDate;
+  if (filters.currentTime) params.currentTime = filters.currentTime;
+  if (filters.lat !== undefined) params.lat = filters.lat;
+  if (filters.lon !== undefined) params.lon = filters.lon;
+  if (filters.radius !== undefined) params.radius = filters.radius;
+  if (filters.category) params.category = filters.category;
+  params.bySource = 1;
   const response = await axios.get(`${API_BASE_URL}/events`, { params });
-  console.log('[API] fetchEvents returned:', response.data.length, 'events');
   return response.data;
 };
 
