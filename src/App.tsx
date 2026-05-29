@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import { MdGpsFixed } from 'react-icons/md';
-import QueryForm, { CATEGORIES } from './components/QueryForm';
+import QueryForm from './components/QueryForm';
 import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge, sortByTimeAndDistance } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
 import ItineraryPlanner from './components/ItineraryPlanner';
 import type { Itinerary } from './components/ItineraryPlanner';
-import { fetchActivities, Activity, fetchEventsBySource } from './api';
+import { Activity, fetchEventsBySource } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
 
 const HomeIcon = FaHome as React.ElementType;
@@ -209,35 +209,7 @@ function App() {
     endDateObj.setDate(endDateObj.getDate() + 1);
     const endDateStr = endDateObj.toLocaleDateString('en-CA', { timeZone: BCN_TZ }); // YYYY-MM-DD en hora BCN
 
-    // Función de búsqueda con coordenadas, fechas y hora actual
-    const runSearch = async (lat: number, lon: number, locStr: string, searchRadius: number = 10) => {
-      setIsSearching(true);
-      try {
-        // Carga progresiva inicial igual que en handleSearch
-        const bySource = await fetchEventsBySource({
-          startDate: startDateStr,
-          endDate: endDateStr,
-          currentTime: currentTimeStr,
-          lat: lat,
-          lon: lon,
-          radius: searchRadius
-        });
-        let partial = [...bySource.ticketmaster, ...bySource.allevents];
-        setActivities(partial);
-        setLastLocation(locStr);
-        setLastRadius(searchRadius);
-        setPanelOpen(false);
-        // Cuando OpenData esté lista, unir y mostrar todo
-        setTimeout(() => {
-          let all = [...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata];
-          setActivities(all);
-        }, 1000);
-      } catch (error) {
-        console.error('Failed to perform auto-search', error);
-      } finally {
-        setIsSearching(false);
-      }
-    };
+    // ...existing code...
 
     const loadData = async () => {
       setIsSearching(true);
@@ -324,41 +296,25 @@ function App() {
     return R * c;
   }
 
-  // Nuevo: permite filtrar por fuente (origen) además de radio, categoría y tiempo
-  const handleSearch = async ({ location, startDate, endDate, radius, categories, sources }: { location: string, startDate: string, endDate: string, radius: number, categories: string[], sources?: string[] }) => {
+  const handleSearch = async ({ location, startDate, endDate, radius, categories }: { location: string, startDate: string, endDate: string, radius: number, categories: string[] }) => {
     setIsSearching(true);
     setPanelOpen(false);
     setPinnedActivity(null);
     const queryKey = { location, startDate, endDate, radius };
-    // Si la consulta es igual a la última o el radio es menor, filtrar en frontend
-    const canFilterLocally = lastQuery &&
+    // Si la consulta es igual a la última, solo filtrar en frontend
+    if (
+      lastQuery &&
       lastQuery.location === location &&
       lastQuery.startDate === startDate &&
       lastQuery.endDate === endDate &&
-      rawActivities.length > 0 &&
-      radius <= lastQuery.radius;
-    if (canFilterLocally) {
+      lastQuery.radius === radius &&
+      rawActivities.length > 0
+    ) {
+      // Filtrar por categoría y/o timeFilter en frontend
       let filtered = rawActivities;
-      // Filtrar por radio (haversine)
-      if (location && location.includes(',') && radius > 0) {
-        const [lat, lon] = location.split(',').map(Number);
-        filtered = filtered.filter(act => {
-          if (!act.geo_epgs_4326_latlon) return false;
-          const parts = act.geo_epgs_4326_latlon.split(',').map(Number);
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-          const dist = haversine(lat, lon, parts[0], parts[1]);
-          return dist <= radius;
-        });
-      }
-      // Filtrar por fuente/origen si se especifica
-      if (sources && sources.length > 0) {
-        filtered = filtered.filter(act => act.origen && sources.includes(act.origen));
-      }
-      // Filtrar por categoría
       if (categories && categories.length > 0) {
         filtered = filtered.filter(act => act.category && categories.includes(act.category));
       }
-      // Filtrar por timeFilter
       if (timeFilter !== 'any') {
         filtered = filtered.filter(act => {
           if (timeFilter === 'now') return isHappeningNow(act);
@@ -372,7 +328,6 @@ function App() {
         });
       }
       setActivities(filtered);
-      setLastRadius(radius); // <-- Actualiza el radio mostrado en el mapa
       setIsSearching(false);
       return;
     }
@@ -407,7 +362,7 @@ function App() {
       setUserCoords(lat !== undefined && lon !== undefined ? [lat, lon] : [41.3851, 2.1734]);
       setUsingFallback(false);
       setLastLocation(lat !== undefined && lon !== undefined ? `${lat},${lon}` : '41.3851,2.1734');
-      setLastRadius(radius); // Asegura que el radio inicial se muestre
+      setLastRadius(radius);
       // Filtro temporal
       if (timeFilter !== 'any') {
         partial = partial.filter(act => {
@@ -510,7 +465,7 @@ function App() {
             <>
               {/* Mapa ocupa todo el espacio disponible */}
               <div className="map-fullscreen">
-                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={radius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
+                <MapComponent activities={activities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
                   <div style={{
