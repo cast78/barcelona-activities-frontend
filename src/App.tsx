@@ -248,7 +248,12 @@ function App() {
             lon,
             radius: 2
           });
-          let all = [...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata];
+          let all = [
+            ...bySource.ticketmaster,
+            ...bySource.allevents,
+            ...bySource.opendata,
+            ...(bySource.usuarioCityRadar || [])
+          ];
           setRawActivities(all);
           setLastQuery(queryKey);
           setActivities(all);
@@ -373,8 +378,13 @@ function App() {
         radius,
         category
       });
-      let partial = [...bySource.ticketmaster, ...bySource.allevents];
-      setRawActivities([...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata]);
+      let partial = [
+        ...bySource.ticketmaster,
+        ...bySource.allevents,
+        ...bySource.opendata,
+        ...(bySource.usuarioCityRadar || [])
+      ];
+      setRawActivities(partial);
       setLastQuery(queryKey);
       setActivities(partial);
       setUserCoords(lat !== undefined && lon !== undefined ? [lat, lon] : [41.3851, 2.1734]);
@@ -397,7 +407,12 @@ function App() {
       }
       // Cuando OpenData esté lista, unir y mostrar todo
       setTimeout(() => {
-        let all = [...bySource.ticketmaster, ...bySource.allevents, ...bySource.opendata];
+        let all = [
+          ...bySource.ticketmaster,
+          ...bySource.allevents,
+          ...bySource.opendata,
+          ...(bySource.usuarioCityRadar || [])
+        ];
         if (timeFilter !== 'any') {
           all = all.filter(act => {
             if (timeFilter === 'now') return isHappeningNow(act);
@@ -469,19 +484,7 @@ function App() {
           >
             <EditIcon style={{ marginRight: 10 }} /> Register Activities
           </button>
-          <div style={{ borderTop: '1px solid #ddd', marginTop: '10px', paddingTop: '10px' }}>
-            <button
-              className="sidebar-btn"
-              onClick={() => setShowDebugTable(!showDebugTable)}
-              title="Toggle categorization debug table"
-              style={{
-                background: showDebugTable ? '#3b82f6' : 'transparent',
-                color: showDebugTable ? 'white' : '#666'
-              }}
-            >
-              🔍 Debug{activities.length > 0 ? ` (${activities.length})` : ''}
-            </button>
-          </div>
+          {/* Botón Debug oculto */}
         </nav>
       </aside>
       <div className="App-content">

@@ -20,6 +20,7 @@ const RegistrationForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   const handleReset = () => {
     setName("");
@@ -37,14 +38,21 @@ const RegistrationForm: React.FC = () => {
   };
 
   const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setLocation(`${pos.coords.latitude},${pos.coords.longitude}`),
-        () => alert("Unable to get location")
-      );
-    } else {
+    if (!navigator.geolocation) {
       alert("Geolocation not supported");
+      return;
     }
+    setIsLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation(`${pos.coords.latitude},${pos.coords.longitude}`);
+        setIsLoadingLocation(false);
+      },
+      () => {
+        alert("Unable to get location");
+        setIsLoadingLocation(false);
+      }
+    );
   };
 
   const handleVenYa = () => {
@@ -214,8 +222,19 @@ const RegistrationForm: React.FC = () => {
               placeholder="latitude,longitude"
               required
             />
-            <button type="button" className="btn-icon" onClick={getCurrentLocation} title="Use my location">
-              📍
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={getCurrentLocation}
+              title="Use my location"
+              disabled={isLoadingLocation}
+              style={isLoadingLocation ? { opacity: 0.6, pointerEvents: 'none' } : {}}
+            >
+              {isLoadingLocation ? (
+                <span className="spinner" style={{ fontSize: '1.1em' }}>⏳</span>
+              ) : (
+                '📍'
+              )}
             </button>
           </div>
           <span className="reg-location-hint">Ejemplo: 41.3851,2.1734</span>

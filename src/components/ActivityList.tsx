@@ -612,7 +612,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                     }}>
                       {activity.origen === 'mock' 
                         ? '⚠️ ejemplo' 
-                        : `🌐 ${activity.origen} · ${catId || 'sin categoría'}`}
+                        : `🌐 ${activity.origen}`}
                     </span>
                   )}
 

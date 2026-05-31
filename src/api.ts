@@ -33,7 +33,7 @@ export interface EventFilters {
 // Forzado: asegurar export fetchEventsBySource
 // Si ya existe, este cambio no afecta la lógica.
 
-export const fetchEventsBySource = async (filters: EventFilters = {}): Promise<{opendata: Activity[]; ticketmaster: Activity[]; allevents: Activity[]}> => {
+export const fetchEventsBySource = async (filters: EventFilters = {}): Promise<{opendata: Activity[]; ticketmaster: Activity[]; allevents: Activity[]; usuarioCityRadar?: Activity[]}> => {
   const params: Record<string, string | number> = {};
   if (filters.startDate) params.startDate = filters.startDate;
   if (filters.endDate) params.endDate = filters.endDate;
