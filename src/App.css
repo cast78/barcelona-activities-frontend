@@ -185,7 +185,7 @@ body {
 .map-nav-btn-barcelona {
   position: absolute;
   top: 20px;
-  right: 20px;
+  right: 10px;
   width: 30px;
   height: 30px;
   background: #fff;
@@ -209,7 +209,7 @@ body {
 /* Segmented control: Planificar + toggle capa */
 .map-route-control {
   position: absolute;
-  top: 90px;
+  top: 70px;
   right: 10px;
   z-index: 900;
   display: flex;
@@ -256,7 +256,7 @@ body {
 /* Leyenda de modos de ruta — debajo del segmented control */
 .map-route-legend {
   position: absolute;
-  top: 130px;
+  top: 110px;
   right: 10px;
   z-index: 900;
   background: rgba(255,255,255,0.93);
