@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
-import { MdGpsFixed } from 'react-icons/md';
 import QueryForm, { CATEGORIES } from './components/QueryForm';
 import CategoryFilter from './components/CategoryFilter';
 import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge, sortByTimeAndDistance } from './components/ActivityList';
@@ -15,7 +14,6 @@ import RadiusSlider, { RADIUS_VALUES } from './components/RadiusSlider';
 
 const HomeIcon = FaHome as React.ElementType;
 const EditIcon = FaRegEdit as React.ElementType;
-const GpsIcon = MdGpsFixed as React.ElementType;
 
 type Page = 'main' | 'register';
 
