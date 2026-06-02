@@ -206,6 +206,38 @@ body {
   background: #f4f4f4;
 }
 
+.map-fallback-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 850;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: calc(100vw - 40px);
+  padding: 0.42rem 0.85rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: #1f2937;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 520px) {
+  .map-fallback-badge {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    max-width: none;
+    width: auto;
+    font-size: 0.68rem;
+    padding: 0.35rem 0.65rem;
+  }
+}
+
 /* Segmented control: Planificar + toggle capa */
 .map-route-control {
   position: absolute;
@@ -286,7 +318,7 @@ body {
 
 @media (max-width: 640px) {
   .map-route-legend {
-    top: 162px;
+    top: 110px;
     right: 10px;
     padding: 0.25rem 0.5rem;
     gap: 0.5rem;
@@ -302,7 +334,7 @@ body {
 
 @media (max-width: 640px) {
   .map-route-control {
-    top: 124px;
+    top: 70px;
     right: 10px;
     border-radius: 6px;
   }

@@ -528,14 +528,8 @@ function App() {
                 <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
-                  <div style={{
-                    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 800,
-                    background: 'rgba(234,179,8,0.92)', color: '#1c1917',
-                    fontSize: '0.72rem', fontWeight: 600,
-                    padding: '0.35rem 1rem', textAlign: 'center',
-                    backdropFilter: 'blur(4px)', pointerEvents: 'none'
-                  }}>
-                    📍 Usando Barcelona como referencia · Activa la ubicación para ver distancias reales
+                  <div className="map-fallback-badge">
+                    📍 Usando Barcelona como referencia · activa la ubicación para distancias reales
                   </div>
                 )}
 
