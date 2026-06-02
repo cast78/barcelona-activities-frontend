@@ -523,6 +523,11 @@ function App() {
                 <CategoryFilter
                   categories={CATEGORIES.map(c => c.id)}
                   selected={selectedCategories}
+                  counts={activities.reduce((acc, activity) => {
+                    if (!activity.category) return acc;
+                    acc[activity.category] = (acc[activity.category] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>)}
                   onChange={setSelectedCategories}
                 />
                 <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />

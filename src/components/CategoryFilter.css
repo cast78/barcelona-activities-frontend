@@ -18,15 +18,26 @@
   background: #f3f4f6;
   color: #222;
   border-radius: 8px;
-  padding: 2px 7px;
-  font-size: 0.82rem;
+  padding: 2px 8px;
+  font-size: 0.7rem;
   min-width: 44px;
-  min-height: 28px;
+  min-height: 18px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+}
+.cat-label {
+  white-space: nowrap;
+}
+.cat-count {
+  margin-left: auto;
+  color: #2a0ae2;
+  border-radius: 999px;
+  padding: 0 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
 }
 .cat-btn.selected {
   background: #2563eb;

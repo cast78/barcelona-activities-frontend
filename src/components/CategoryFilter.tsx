@@ -5,10 +5,11 @@ import { CATEGORIES } from './QueryForm';
 export interface CategoryFilterProps {
   categories: string[]; // IDs
   selected: string[];
+  counts: Record<string, number>;
   onChange: (selected: string[]) => void;
 }
 
-const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, onChange }) => {
+const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, counts, onChange }) => {
   const toggle = (cat: string) => {
     if (selected.includes(cat)) {
       onChange(selected.filter(c => c !== cat));
@@ -28,7 +29,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, o
             onClick={() => toggle(cat.id)}
             type="button"
           >
-            <span className="cat-emoji">{cat.emoji}</span> {cat.label}
+            <span className="cat-emoji">{cat.emoji}</span>
+            <span className="cat-label">{cat.label}</span>
+            <span className="cat-count">{counts[cat.id] ?? 0}</span>
           </button>
         );
       })}

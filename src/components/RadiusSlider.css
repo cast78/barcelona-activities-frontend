@@ -130,4 +130,7 @@
     padding: 6px 6px 6px 6px;
     top: 10px;
   }
+  .radius-slider-label {
+    display: none;
+  }
 }
