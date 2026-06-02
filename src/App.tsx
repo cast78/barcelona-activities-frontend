@@ -529,7 +529,7 @@ function App() {
 
                 {usingFallback && (
                   <div className="map-fallback-badge">
-                    📍 Usando Barcelona como referencia · activa la ubicación para distancias reales
+                    📍 Usando Barcelona como referencia· Activa la ubicación para distancias reales
                   </div>
                 )}
 
