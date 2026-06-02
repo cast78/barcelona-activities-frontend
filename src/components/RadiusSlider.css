@@ -36,9 +36,9 @@
 }
 
 .radius-slider-value {
-  width: 50px;
+  width: 40px;
   margin-left: auto;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   color: #4f46e5;
   padding: 0px 8px 0px 0px;
   border-radius: 20px;
@@ -110,7 +110,7 @@
 .radius-slider-mark {
   font-size: 0.62rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: #060606;
   cursor: pointer;
   transition: color 0.15s;
   line-height: 1;
