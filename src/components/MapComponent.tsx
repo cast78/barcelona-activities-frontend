@@ -97,10 +97,10 @@ const MapContent: React.FC<{
     } catch {}
   };
 
-  // Centrar en Barcelona al montar y mover zoom a la derecha
+  // Centrar en Barcelona al montar y ocultar zoom nativo (se usa rueda/pinch)
   React.useEffect(() => {
     map.setView([41.3851, 2.1734], 11);
-    map.zoomControl.setPosition('topright');
+    map.zoomControl.remove();
   }, [map]);
 
   // Re-centrar cuando cambia userLocation (búsqueda)
@@ -202,7 +202,7 @@ const MapContent: React.FC<{
           {...{
             center: userCoords as [number, number],
             radius: Number(radiusKm) * 1000,
-            pathOptions: { color: '#667eea', fillColor: '#667eea', fillOpacity: 0.15 }
+            pathOptions: { color: '#667eea', weight: 1.5, fillColor: '#667eea', fillOpacity: 0.07 }
           } as CircleProps}
         />
       )}

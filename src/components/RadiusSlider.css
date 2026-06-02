@@ -1,0 +1,133 @@
+/* ── Radius Slider Widget ──────────────────────────────────────────────────── */
+
+.radius-slider-widget {
+  position: absolute;
+  top: 10px;
+  left: 150px;
+  z-index: 450;
+  background: rgba(255, 255, 255, 0.411);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  padding: 8px 12px 10px 12px;
+  width: 300px;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  user-select: none;
+}
+
+/* Header row: icon + current value */
+.radius-slider-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #374151;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.radius-slider-icon {
+  font-size: 0.85rem;
+  color: #6366f1;
+}
+
+.radius-slider-value {
+  width: 50px;
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: #4f46e5;
+  padding: 0px 8px 0px 0px;
+  border-radius: 20px;
+}
+
+/* Track container */
+.radius-slider-track-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Native range input — styled */
+.radius-slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 200px;
+  height: 6px;
+  border-radius: 4px;
+  background: linear-gradient(
+    to right,
+    #6366f1 0%,
+    #6366f1 calc(var(--pct, 33%) ),
+    #d1d5db calc(var(--pct, 33%)),
+    #d1d5db 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.radius-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid #6366f1;
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.35);
+  cursor: grab;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.radius-slider-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.55);
+}
+
+.radius-slider-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid #6366f1;
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.35);
+  cursor: grab;
+}
+
+/* Marks row */
+.radius-slider-marks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.radius-slider-mark {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.radius-slider-mark:hover {
+  color: #6366f1;
+}
+
+.radius-slider-mark--active {
+  color: #4f46e5;
+  font-weight: 800;
+}
+
+/* Responsive: slightly smaller on very small screens */
+@media (max-width: 400px) {
+  .radius-slider-widget {
+    width: 140px;
+    padding: 6px 10px 8px 10px;
+    top: 10px;
+    left: 8px;
+  }
+}

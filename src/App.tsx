@@ -11,6 +11,7 @@ import ItineraryPlanner from './components/ItineraryPlanner';
 import type { Itinerary } from './components/ItineraryPlanner';
 import { Activity, fetchEventsBySource } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
+import RadiusSlider, { RADIUS_VALUES } from './components/RadiusSlider';
 
 const HomeIcon = FaHome as React.ElementType;
 const EditIcon = FaRegEdit as React.ElementType;
@@ -442,6 +443,27 @@ function App() {
     }
   };
 
+  // Filtra rawActivities por un nuevo radio sin llamar a la API
+  const handleRadiusSliderChange = (km: number) => {
+    setRadius(km);
+    setLastRadius(km);
+    if (!lastLocation || rawActivities.length === 0) return;
+    const [lat, lon] = lastLocation.split(',').map(Number);
+    if (isNaN(lat) || isNaN(lon)) return;
+    const filtered = rawActivities.filter(act => {
+      if (!act.geo_epgs_4326_latlon) return false;
+      const [aLat, aLon] = act.geo_epgs_4326_latlon.split(',').map(Number);
+      if (isNaN(aLat) || isNaN(aLon)) return false;
+      const R = 6371;
+      const dLat = (aLat - lat) * Math.PI / 180;
+      const dLon = (aLon - lon) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat * Math.PI / 180) * Math.cos(aLat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c <= km;
+    });
+    setActivities(filtered);
+  };
+
   const handleClear = () => {
     const todayStr = new Date().toISOString().split('T')[0];
     const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 2);
@@ -589,14 +611,20 @@ function App() {
                       >
                         {showRoute
                           ? <><span>🔍</span><span className="map-route-control__btn-text"> Explorar</span></>
-                          : <><span>🧭</span><span className="map-route-control__btn-text"> Ver ruta</span></>}
+                          : <><span>✈️</span><span className="map-route-control__btn-text"> Ver ruta</span></>}
                       </button>
                     )}
                   </div>
                 )}
 
                 {/* Botón volver a Barcelona */}
-                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="Back to Barcelona"><GpsIcon size={16} color="#333" /></button>
+                <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="My position">🧭</button>
+
+                {/* Slider de radio — arriba a la derecha */}
+                <RadiusSlider
+                  value={RADIUS_VALUES.includes(radius) ? radius : 2}
+                  onChange={handleRadiusSliderChange}
+                />
 
                 {/* Leyenda de colores de ruta */}
                 {itinerary && showRoute && (
