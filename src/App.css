@@ -208,8 +208,8 @@ body {
 
 .map-fallback-badge {
   position: absolute;
-  bottom : 80px;
-  right: 10px;
+  bottom : 65px;
+  right: 20px;
   z-index: 850;
   display: inline-flex;
   align-items: center;
@@ -228,8 +228,8 @@ body {
 
 @media (max-width: 520px) {
   .map-fallback-badge {
-    bottom : 80px;
-    right: 10px;
+    bottom : 65px;
+    right: 20px;
     max-width: none;
     width: auto;
     font-size: 0.6rem;

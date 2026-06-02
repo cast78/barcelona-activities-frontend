@@ -6,14 +6,13 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 450;
-  background: rgba(255, 255, 255, 0.411);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   padding: 4px 4px 4px 4px;
   width: clamp(200px, 35vw, 300px);
   display: flex;
   flex-direction: row;
-  gap: 6px;
   user-select: none;
 }
 
@@ -128,7 +127,7 @@
 @media (max-width: 480px) {
   .radius-slider-widget {
     width: calc(100vw - 100px); /* deja margen para botón GPS y panel búsqueda */
-    padding: 6px 10px 8px 10px;
+    padding: 6px 6px 6px 6px;
     top: 10px;
   }
 }
