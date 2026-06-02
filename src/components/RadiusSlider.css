@@ -7,11 +7,10 @@
   transform: translateX(-50%);
   z-index: 450;
   background: rgba(255, 255, 255, 0.411);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  padding: 8px 12px 10px 12px;
-  width: clamp(220px, 40vw, 320px);
+  padding: 4px 4px 4px 4px;
+  width: clamp(200px, 35vw, 300px);
   display: flex;
   flex-direction: row;
   gap: 6px;
@@ -110,7 +109,7 @@
 .radius-slider-mark {
   font-size: 0.62rem;
   font-weight: 600;
-  color: #060606;
+  color: #0781ec;
   cursor: pointer;
   transition: color 0.15s;
   line-height: 1;
