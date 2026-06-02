@@ -64,8 +64,7 @@
 /* === FORM ROW === */
 .form-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  flex-direction: column; 
 }
 
 .form-row label {
@@ -80,11 +79,11 @@
 /* === INPUTS & SELECT === */
 .form-row input,
 .form-row select {
-  height: 32px;
+  height: 25px;
   border: 1.5px solid var(--color-border, #e2e8f0);
   border-radius: 7px;
   padding: 0 0.65rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--color-text, #22223b);
   background: #fafafa;
   width: 100%;
@@ -119,7 +118,7 @@
 }
 
 .btn-icon {
-  height: 38px;
+  height: 25px;
   width: 38px;
   min-width: 38px;
   background: #f0f0f5;

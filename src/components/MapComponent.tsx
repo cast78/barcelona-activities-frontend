@@ -526,9 +526,18 @@ const MapContent: React.FC<{
 };
 
 const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
+  const mapProps = {
+    center: [41.3851, 2.1734] as [number, number],
+    zoom: 11,
+    scrollWheelZoom: true,
+  } as any;
+
   return (
     <div style={{ height: '100%', width: '100%' }}>
-      <MapContainer style={{ height: '100%', width: '100%', minHeight: '300px' }}>
+      <MapContainer
+        style={{ height: '100%', width: '100%', minHeight: '300px' }}
+        {...mapProps}
+      >
         <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} itinerary={itinerary} showRoute={showRoute} />
       </MapContainer>
     </div>

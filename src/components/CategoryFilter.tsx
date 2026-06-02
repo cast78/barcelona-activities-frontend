@@ -31,7 +31,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, c
           >
             <span className="cat-emoji">{cat.emoji}</span>
             <span className="cat-label">{cat.label}</span>
-            <span className="cat-count">{counts[cat.id] ?? 0}</span>
+            {(counts[cat.id] ?? 0) > 0 && (
+              <span className="cat-count">{counts[cat.id]}</span>
+            )}
           </button>
         );
       })}
