@@ -242,7 +242,7 @@
   border-radius: 999px;
   background: #fafafa;
   color: var(--color-text-muted, #6b7280);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.18s;
@@ -289,6 +289,6 @@
 }
 
 .chip-emoji {
-  font-size: 1.1rem;
+  
   line-height: 1;
 }
