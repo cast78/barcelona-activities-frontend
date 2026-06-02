@@ -21,7 +21,7 @@
   padding: 2px 8px;
   font-size: 0.7rem;
   min-width: 44px;
-  min-height: 18px;
+  min-height: 24px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
   display: inline-flex;
@@ -32,7 +32,7 @@
 }
 .cat-count {
   margin-left: auto;
-  color: #2a0ae2;
+  background: rgba(15, 23, 42, 0.08);
   border-radius: 999px;
   padding: 0 6px;
   font-size: 0.68rem;

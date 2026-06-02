@@ -126,7 +126,7 @@
 /* Responsive: smaller on mobile */
 @media (max-width: 480px) {
   .radius-slider-widget {
-    width: calc(100vw - 100px); /* deja margen para botón GPS y panel búsqueda */
+    width: calc(100vw - 130px); /* deja margen para botón GPS y panel búsqueda */
     padding: 6px 6px 6px 6px;
     top: 10px;
   }
