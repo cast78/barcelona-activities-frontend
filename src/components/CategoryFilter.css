@@ -43,6 +43,9 @@
   background: #2563eb;
   color: #fff;
 }
+.cat-btn.selected .cat-count {
+  color: #fff;
+}
 .cat-btn:focus {
   outline: 2px solid #2563eb;
 }

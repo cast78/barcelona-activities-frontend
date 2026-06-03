@@ -73,7 +73,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [rawActivities, setRawActivities] = useState<Activity[]>([]); // Último lote completo
-  const [lastQuery, setLastQuery] = useState<{ location: string; startDate: string; endDate: string; radius: number } | null>(null);
+
   const [lastLocation, setLastLocation] = useState<string | undefined>(undefined);
   const [lastRadius, setLastRadius] = useState<number | undefined>(undefined);
   const [centerOn, setCenterOn] = useState<CenterOn | null>(null);
@@ -237,7 +237,6 @@ function App() {
         const startDate = startDateStr;
         const endDate = endDateStr;
         const currentTime = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-        let queryKey = { location: locStr, startDate, endDate, radius: 2 };
         try {
           const bySource = await fetchEventsBySource({
             startDate,
@@ -254,11 +253,9 @@ function App() {
             ...(bySource.usuarioCityRadar || [])
           ];
           setRawActivities(all);
-          setLastQuery(queryKey);
           setActivities(all);
         } catch (e) {
           setRawActivities([]);
-          setLastQuery(null);
           setActivities([]);
         } finally {
           setIsSearching(false);
@@ -329,36 +326,11 @@ function App() {
       ];
 
       setRawActivities(all);
-      setLastQuery({ location, startDate, endDate, radius });
+      setActivities(all); // activities = todos los eventos del radio, sin filtro de categoría
       setUserCoords(lat !== undefined && lon !== undefined ? [lat, lon] : [41.3851, 2.1734]);
       setUsingFallback(false);
       setLastLocation(lat !== undefined && lon !== undefined ? `${lat},${lon}` : '41.3851,2.1734');
       setLastRadius(radius);
-
-      // Filtrar en cliente por categoría y timeFilter
-      const VALID_CAT_IDS = new Set(CATEGORIES.map(c => c.id));
-      let displayed = all;
-      if (categories && categories.length > 0) {
-        displayed = displayed.filter(act => {
-          const effectiveCat = act.category && VALID_CAT_IDS.has(act.category)
-            ? act.category
-            : inferCategory(act.name || '', act.body || '');
-          return categories.includes(effectiveCat);
-        });
-      }
-      if (timeFilter !== 'any') {
-        displayed = displayed.filter(act => {
-          if (timeFilter === 'now') return isHappeningNow(act);
-          const badge = getTimeBadge(act);
-          if (!badge) return false;
-          if (timeFilter === '30min') return ['Ahora', '30min'].includes(badge.label);
-          if (timeFilter === '1h')    return ['Ahora', '30min', '1h'].includes(badge.label);
-          if (timeFilter === '2h')    return ['Ahora', '30min', '1h', '2h'].includes(badge.label);
-          if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
-          return false;
-        });
-      }
-      setActivities(displayed);
 
       const elapsed = Date.now() - searchStart;
       const minDelay = 1400;
@@ -409,16 +381,48 @@ function App() {
     //handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: resetRadius, categories: [] });
   };
 
-  // Filtrado en frontend por categorías (solo para el mapa y lista)
+  // filteredActivities: única fuente de verdad para categoría + timeFilter
+  // activities = todos los eventos del radio actual (sin filtro de categoría)
+  // filteredActivities = activities filtrado por categorías seleccionadas y timeFilter
   const _validCatIds = new Set(CATEGORIES.map(c => c.id));
-  const filteredActivities = selectedCategories.length > 0
-    ? activities.filter(act => {
-        const effectiveCat = act.category && _validCatIds.has(act.category)
-          ? act.category
-          : inferCategory(act.name || '', act.body || '');
-        return selectedCategories.includes(effectiveCat);
-      })
-    : activities;
+  let filteredActivities = activities;
+  if (selectedCategories.length > 0) {
+    filteredActivities = filteredActivities.filter(act => {
+      const effectiveCat = act.category && _validCatIds.has(act.category)
+        ? act.category
+        : inferCategory(act.name || '', act.body || '');
+      return selectedCategories.includes(effectiveCat);
+    });
+  }
+  if (timeFilter !== 'any') {
+    filteredActivities = filteredActivities.filter(act => {
+      if (timeFilter === 'now') return isHappeningNow(act);
+      const badge = getTimeBadge(act);
+      if (!badge) return false;
+      if (timeFilter === '30min') return ['Ahora', '30min'].includes(badge.label);
+      if (timeFilter === '1h')    return ['Ahora', '30min', '1h'].includes(badge.label);
+      if (timeFilter === '2h')    return ['Ahora', '30min', '1h', '2h'].includes(badge.label);
+      if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
+      return false;
+    });
+  }
+
+  // Eventos dentro del radio actual sin filtro de categoría — para los contadores del mapa
+  const activitiesInRadius = (() => {
+    if (!lastLocation || !lastRadius || rawActivities.length === 0) return rawActivities;
+    const [lat, lon] = lastLocation.split(',').map(Number);
+    if (isNaN(lat) || isNaN(lon)) return rawActivities;
+    return rawActivities.filter(act => {
+      if (!act.geo_epgs_4326_latlon) return false;
+      const [aLat, aLon] = act.geo_epgs_4326_latlon.split(',').map(Number);
+      if (isNaN(aLat) || isNaN(aLon)) return false;
+      const R = 6371;
+      const dLat = (aLat - lat) * Math.PI / 180;
+      const dLon = (aLon - lon) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat * Math.PI / 180) * Math.cos(aLat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) <= lastRadius;
+    });
+  })();
 
   return (
     <div className="App">
@@ -461,9 +465,12 @@ function App() {
                 <CategoryFilter
                   categories={CATEGORIES.map(c => c.id)}
                   selected={selectedCategories}
-                  counts={activities.reduce((acc, activity) => {
-                    if (!activity.category) return acc;
-                    acc[activity.category] = (acc[activity.category] || 0) + 1;
+                  counts={activitiesInRadius.reduce((acc, activity) => {
+                    const VALID_CAT_IDS = new Set(CATEGORIES.map(c => c.id));
+                    const effectiveCat = activity.category && VALID_CAT_IDS.has(activity.category)
+                      ? activity.category
+                      : inferCategory(activity.name || '', activity.body || '');
+                    acc[effectiveCat] = (acc[effectiveCat] || 0) + 1;
                     return acc;
                   }, {} as Record<string, number>)}
                   onChange={setSelectedCategories}
