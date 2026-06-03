@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
-import QueryForm, { CATEGORIES } from './components/QueryForm';
+import QueryForm, { CATEGORIES, inferCategory } from './components/QueryForm';
 import CategoryFilter from './components/CategoryFilter';
 import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge, sortByTimeAndDistance } from './components/ActivityList';
 import MapComponent, { CenterOn } from './components/MapComponent';
@@ -296,65 +296,9 @@ function App() {
     setPanelOpen(false);
     setPinnedActivity(null);
     const searchStart = Date.now();
-    const queryKey = { location, startDate, endDate, radius };
-    // Si la consulta es igual a la última, o el radio es menor (y hay cache), solo filtrar en frontend
-    if (
-      lastQuery &&
-      lastQuery.location === location &&
-      lastQuery.startDate === startDate &&
-      lastQuery.endDate === endDate &&
-      rawActivities.length > 0 &&
-      radius <= lastQuery.radius // Nuevo: si el radio es menor o igual al cacheado
-    ) {
-      // Filtrar por distancia
-      let filtered = rawActivities;
-      const [lat, lon] = location.split(',').map(Number);
-      if (!isNaN(lat) && !isNaN(lon)) {
-        filtered = filtered.filter(act => {
-          if (!act.geo_epgs_4326_latlon) return false;
-          const [aLat, aLon] = act.geo_epgs_4326_latlon.split(',').map(Number);
-          if (isNaN(aLat) || isNaN(aLon)) return false;
-          // Haversine en km
-          const R = 6371;
-          const dLat = (aLat - lat) * Math.PI / 180;
-          const dLon = (aLon - lon) * Math.PI / 180;
-          const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat * Math.PI / 180) * Math.cos(aLat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          const dist = R * c;
-          return dist <= radius;
-        });
-      }
-      // Filtrar por categoría y/o timeFilter en frontend
-      if (categories && categories.length > 0) {
-        filtered = filtered.filter(act => act.category && categories.includes(act.category));
-      }
-      if (timeFilter !== 'any') {
-        filtered = filtered.filter(act => {
-          if (timeFilter === 'now') return isHappeningNow(act);
-          const badge = getTimeBadge(act);
-          if (!badge) return false;
-          if (timeFilter === '30min') return ['Ahora', '30min'].includes(badge.label);
-          if (timeFilter === '1h')    return ['Ahora', '30min', '1h'].includes(badge.label);
-          if (timeFilter === '2h')    return ['Ahora', '30min', '1h', '2h'].includes(badge.label);
-          if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
-          return false;
-        });
-      }
-      setActivities(filtered);
-      setLastRadius(radius);
-      setLastLocation(location);
-      // Delay mínimo para mostrar el radar
-      const elapsed = Date.now() - searchStart;
-      const minDelay = 1400;
-      if (elapsed < minDelay) {
-        setTimeout(() => setIsSearching(false), minDelay - elapsed);
-      } else {
-        setIsSearching(false);
-      }
-      return;
-    }
+
     try {
-      const currentTime = new Date().toISOString().split('T')[1]; // HH:MM:SS.sss
+      const currentTime = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
       let lat: number | undefined, lon: number | undefined;
       if (location) {
         const parts = location.split(',').map(Number);
@@ -363,36 +307,47 @@ function App() {
           lon = parts[1];
         }
       }
-      let category: string | undefined = undefined;
-      if (categories && categories.length === 1) {
-        category = categories[0];
-      }
-      // Carga progresiva: primero Ticketmaster y AllEvents, luego OpenData
+
+      // Siempre consultar la API — sin caché en el formulario de búsqueda.
+      // La categoría NO se pasa al backend: el backend devuelve todos los eventos del radio
+      // y el frontend filtra por categoría usando inferCategory como fallback para fuentes
+      // que no normalizan el campo category (ticketmaster, allevents).
       const bySource = await fetchEventsBySource({
         startDate,
         endDate,
         currentTime,
         lat,
         lon,
-        radius,
-        category
+        radius
       });
-      let partial = [
+
+      const all = [
         ...bySource.ticketmaster,
         ...bySource.allevents,
         ...bySource.opendata,
         ...(bySource.usuarioCityRadar || [])
       ];
-      setRawActivities(partial);
-      setLastQuery(queryKey);
-      setActivities(partial);
+
+      setRawActivities(all);
+      setLastQuery({ location, startDate, endDate, radius });
       setUserCoords(lat !== undefined && lon !== undefined ? [lat, lon] : [41.3851, 2.1734]);
       setUsingFallback(false);
       setLastLocation(lat !== undefined && lon !== undefined ? `${lat},${lon}` : '41.3851,2.1734');
       setLastRadius(radius);
-      // Filtro temporal
+
+      // Filtrar en cliente por categoría y timeFilter
+      const VALID_CAT_IDS = new Set(CATEGORIES.map(c => c.id));
+      let displayed = all;
+      if (categories && categories.length > 0) {
+        displayed = displayed.filter(act => {
+          const effectiveCat = act.category && VALID_CAT_IDS.has(act.category)
+            ? act.category
+            : inferCategory(act.name || '', act.body || '');
+          return categories.includes(effectiveCat);
+        });
+      }
       if (timeFilter !== 'any') {
-        partial = partial.filter(act => {
+        displayed = displayed.filter(act => {
           if (timeFilter === 'now') return isHappeningNow(act);
           const badge = getTimeBadge(act);
           if (!badge) return false;
@@ -402,32 +357,9 @@ function App() {
           if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
           return false;
         });
-        setActivities(partial);
       }
-      // Cuando OpenData esté lista, unir y mostrar todo
-      setTimeout(() => {
-        let all = [
-          ...bySource.ticketmaster,
-          ...bySource.allevents,
-          ...bySource.opendata,
-          ...(bySource.usuarioCityRadar || [])
-        ];
-        if (timeFilter !== 'any') {
-          all = all.filter(act => {
-            if (timeFilter === 'now') return isHappeningNow(act);
-            const badge = getTimeBadge(act);
-            if (!badge) return false;
-            if (timeFilter === '30min') return ['Ahora', '30min'].includes(badge.label);
-            if (timeFilter === '1h')    return ['Ahora', '30min', '1h'].includes(badge.label);
-            if (timeFilter === '2h')    return ['Ahora', '30min', '1h', '2h'].includes(badge.label);
-            if (timeFilter === '1dia')  return ['Ahora', '30min', '1h', '2h', '1día'].includes(badge.label);
-            return false;
-          });
-        }
-        setRawActivities(all);
-        setActivities(all);
-      }, 1000); // Simula llegada tardía de OpenData
-      // Delay mínimo para mostrar el radar
+      setActivities(displayed);
+
       const elapsed = Date.now() - searchStart;
       const minDelay = 1400;
       if (elapsed < minDelay) {
@@ -478,8 +410,14 @@ function App() {
   };
 
   // Filtrado en frontend por categorías (solo para el mapa y lista)
+  const _validCatIds = new Set(CATEGORIES.map(c => c.id));
   const filteredActivities = selectedCategories.length > 0
-    ? activities.filter(act => act.category && selectedCategories.includes(act.category))
+    ? activities.filter(act => {
+        const effectiveCat = act.category && _validCatIds.has(act.category)
+          ? act.category
+          : inferCategory(act.name || '', act.body || '');
+        return selectedCategories.includes(effectiveCat);
+      })
     : activities;
 
   return (
