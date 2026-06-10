@@ -368,17 +368,16 @@ function App() {
 
   const handleClear = () => {
     const todayStr = new Date().toISOString().split('T')[0];
-    const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 2);
+    const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 1);
     const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
     const resetLocation = lastLocation || "";
-    const resetRadius = lastRadius || 2;
     setStartDate(todayStr);
     setEndDate(tomorrowStr);
     setLocation(resetLocation);
-    setRadius(resetRadius);
+    setRadius(2);
     setSelectedCategories([]);
     setTimeFilter('any');
-    //handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: resetRadius, categories: [] });
+    //handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: 2, categories: [] });
   };
 
   // filteredActivities: única fuente de verdad para categoría + timeFilter

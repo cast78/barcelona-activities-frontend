@@ -167,7 +167,6 @@ const QueryForm: React.FC<QueryFormProps> = ({
             <option value={2}>2 km</option>
             <option value={5}>5 km</option>
             <option value={10}>10 km</option>
-            <option value={20}>20 km</option>
           </select>
         </div>
         <div className="form-row">

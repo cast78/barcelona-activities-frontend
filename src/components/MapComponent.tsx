@@ -108,9 +108,21 @@ const MapContent: React.FC<{
     if (!userLocation) return;
     const parts = userLocation.split(',').map(Number);
     if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-      map.setView([parts[0], parts[1]], 13, { animate: true });
+      const zoom = radiusKm === 10 ? 11 : radiusKm === 5 ? 12 : 13;
+      map.setView([parts[0], parts[1]], zoom, { animate: true });
     }
-  }, [userLocation, map]);
+  }, [userLocation, map]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Bajar zoom cuando el radio cambia a 5 km o 10 km (para ver el círculo completo)
+  React.useEffect(() => {
+    if (radiusKm !== 5 && radiusKm !== 10) return;
+    if (!userLocation) return;
+    const parts = userLocation.split(',').map(Number);
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      const zoom = radiusKm === 10 ? 11 : 12;
+      map.setView([parts[0], parts[1]], zoom, { animate: true });
+    }
+  }, [radiusKm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Re-centrar cuando se pide desde fuera (botones 📍 y 🏠)
   React.useEffect(() => {

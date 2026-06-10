@@ -458,8 +458,8 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
   return (
     <div style={{ margin: '0.5rem 0' }}>
       {activities.length === 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem 1rem 2rem', textAlign: 'center', gap: '1rem' }}>
-          <img src="/City.jpeg" alt="No activities" style={{ width: '300px', height: '300px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem 1rem 1rem', textAlign: 'center', gap: '1rem' }}>
+          <img src="/City.jpeg" alt="No activities" style={{ width: '230px', height: '230px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
           <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0, lineHeight: '1.6', maxWidth: '280px' }}>
             There are no activities nearby, based on the search parameters.
           </p>
