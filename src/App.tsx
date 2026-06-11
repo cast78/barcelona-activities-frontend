@@ -9,7 +9,7 @@ import RegistrationForm from './components/RegistrationForm';
 import ItineraryPlanner from './components/ItineraryPlanner';
 import type { Itinerary } from './components/ItineraryPlanner';
 import MyAgendaPanel from './components/MyAgendaPanel';
-import { Activity, fetchEventsBySource, getAllAttendingLocal, isAttending } from './api';
+import { Activity, fetchEventsBySource, isAttending } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
 import RadiusSlider, { RADIUS_VALUES } from './components/RadiusSlider';
 
