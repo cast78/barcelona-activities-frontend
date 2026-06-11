@@ -8,7 +8,8 @@ import MapComponent, { CenterOn } from './components/MapComponent';
 import RegistrationForm from './components/RegistrationForm';
 import ItineraryPlanner from './components/ItineraryPlanner';
 import type { Itinerary } from './components/ItineraryPlanner';
-import { Activity, fetchEventsBySource } from './api';
+import MyAgendaPanel from './components/MyAgendaPanel';
+import { Activity, fetchEventsBySource, getAllAttendingLocal, isAttending } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
 import RadiusSlider, { RADIUS_VALUES } from './components/RadiusSlider';
 
@@ -18,7 +19,7 @@ const EditIcon = FaRegEdit as React.ElementType;
 type Page = 'main' | 'register';
 
 // Bottom sheet component that manages its own open/close state
-function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, onSelectOnMap, pinnedActivityId }: {
+function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, onSelectOnMap, pinnedActivityId, onAttendChange }: {
   activities: Activity[];
   isSearching: boolean;
   userCoords: [number, number] | null;
@@ -26,6 +27,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
   setOpen: (v: boolean) => void;
   onSelectOnMap: (activity: Activity) => void;
   pinnedActivityId?: string | null;
+  onAttendChange?: () => void;
 }) {
 
   // Auto-open when results arrive, auto-close when searching starts
@@ -64,7 +66,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
         <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
       </div>
       <div className="bottom-sheet-body">
-        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} onSelectOnMap={onSelectOnMap} pinnedActivityId={pinnedActivityId} />
+        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} onSelectOnMap={onSelectOnMap} pinnedActivityId={pinnedActivityId} onAttendChange={onAttendChange} />
       </div>
     </div>
   );
@@ -92,6 +94,8 @@ function App() {
   const [pinnedActivity, setPinnedActivity] = useState<Activity | null>(null);
   const [popupTrigger, setPopupTrigger] = useState(0);
   const [fitBoundsTrigger, setFitBoundsTrigger] = useState(0);
+  const [showAgenda, setShowAgenda] = useState(false);
+  const [agendaRefreshKey, setAgendaRefreshKey] = useState(0);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showRoute, setShowRoute] = useState(false);
@@ -459,6 +463,23 @@ function App() {
           >
             <EditIcon style={{ marginRight: 10 }} /> Register Activities
           </button>
+          <button
+            className={showAgenda ? 'sidebar-btn active' : 'sidebar-btn'}
+            onClick={() => { setShowAgenda(a => !a); setAgendaRefreshKey(k => k + 1); }}
+            aria-label="Mi Agenda"
+            style={{ position: 'relative' }}
+          >
+            <span style={{ marginRight: 10 }}>🙋‍♂️</span> Mi Agenda
+            {(() => { const count = activities.filter(a => isAttending(a.id)).length; return count > 0 ? (
+              <span style={{
+                position: 'absolute', top: 4, right: 8,
+                background: '#25D366', color: '#fff',
+                borderRadius: '999px', fontSize: '0.65rem',
+                fontWeight: 800, padding: '1px 6px', minWidth: 18,
+                textAlign: 'center', lineHeight: '16px',
+              }}>{count}</span>
+            ) : null; })()}
+          </button>
           {/* Botón Debug oculto */}
         </nav>
       </aside>
@@ -610,6 +631,7 @@ function App() {
                   setOpen={setSheetOpen}
                   onSelectOnMap={handleSelectOnMap}
                   pinnedActivityId={pinnedActivity?.id}
+                  onAttendChange={() => setAgendaRefreshKey(k => k + 1)}
                 />
               </div>
             </>
@@ -706,6 +728,16 @@ function App() {
           onClose={() => setShowPlanner(false)}
           onItineraryReady={(itin) => { setItinerary(itin); setShowRoute(itin !== null); }}
           initialItinerary={itinerary}
+        />
+      )}
+
+      {/* Mi Agenda */}
+      {showAgenda && (
+        <MyAgendaPanel
+          key={agendaRefreshKey}
+          activities={activities}
+          onClose={() => setShowAgenda(false)}
+          onAttendChange={() => setAgendaRefreshKey(k => k + 1)}
         />
       )}
     </div>

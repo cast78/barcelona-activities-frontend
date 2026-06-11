@@ -26,6 +26,7 @@ interface ActivityListProps {
   userCoords?: [number, number] | null;
   onSelectOnMap?: (activity: Activity) => void;
   pinnedActivityId?: string | null;
+  onAttendChange?: () => void;
 }
 
 function formatDate(d: string) {
@@ -397,7 +398,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
   );
 };
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onSelectOnMap, pinnedActivityId }) => {
+const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onSelectOnMap, pinnedActivityId, onAttendChange }) => {
   const [selected, setSelected] = useState<Activity | null>(null);
   const pinnedRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -448,6 +449,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
     setAttendingLocal(id, action === 'attend');
     setAttendCounts(prev => ({ ...prev, [id]: newCount }));
     setAttendCountLocal(id, newCount);
+    onAttendChange?.();
     try {
       const serverCount = await toggleAttend(id, action);
       setAttendCounts(prev => ({ ...prev, [id]: serverCount }));
