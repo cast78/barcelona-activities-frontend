@@ -90,6 +90,8 @@ function App() {
   const [usingFallback, setUsingFallback] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pinnedActivity, setPinnedActivity] = useState<Activity | null>(null);
+  const [popupTrigger, setPopupTrigger] = useState(0);
+  const [fitBoundsTrigger, setFitBoundsTrigger] = useState(0);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showRoute, setShowRoute] = useState(false);
@@ -190,6 +192,7 @@ function App() {
       setCenterOn({ lat: parts[0], lng: parts[1], zoom: 16 });
       setSheetOpen(false);
       setPinnedActivity(activity);
+      setPopupTrigger(t => t + 1);
     }
   };
   const [page, setPage] = useState<Page>('main');
@@ -380,6 +383,17 @@ function App() {
     //handleSearch({ location: resetLocation, startDate: todayStr, endDate: tomorrowStr, radius: 2, categories: [] });
   };
 
+  // Al cambiar categoría con una actividad pinneada, hacer fitBounds y limpiar el pin
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (pinnedActivity) {
+      setPinnedActivity(null);
+      setFitBoundsTrigger(t => t + 1);
+    }
+  // Solo disparar cuando cambia selectedCategories
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategories]);
+
   // filteredActivities: única fuente de verdad para categoría + timeFilter
   // activities = todos los eventos del radio actual (sin filtro de categoría)
   // filteredActivities = activities filtrado por categorías seleccionadas y timeFilter
@@ -474,7 +488,7 @@ function App() {
                   }, {} as Record<string, number>)}
                   onChange={setSelectedCategories}
                 />
-                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} itinerary={itinerary} showRoute={showRoute} />
+                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} />
 
                 {usingFallback && (
                   <div className="map-fallback-badge">

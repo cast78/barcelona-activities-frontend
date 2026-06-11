@@ -35,6 +35,8 @@ interface MapComponentProps {
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
   openPopupForId?: string | null;
+  openPopupSeq?: number;
+  fitBoundsTrigger?: number;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
 }
@@ -47,9 +49,11 @@ const MapContent: React.FC<{
   centerOn?: CenterOn | null;
   onActivitySelect?: (activity: Activity) => void;
   openPopupForId?: string | null;
+  openPopupSeq?: number;
+  fitBoundsTrigger?: number;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute }) => {
   const map = useMap();
   const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
@@ -137,9 +141,28 @@ const MapContent: React.FC<{
       const marker = markerRefs.current.get(openPopupForId);
       if (marker) marker.openPopup();
     };
-    map.once('moveend', openIt);
+    // Si el mapa ya está quieto (mismo pin clicado de nuevo), abrir directamente
+    const marker = markerRefs.current.get(openPopupForId);
+    if (marker) {
+      marker.openPopup();
+    } else {
+      map.once('moveend', openIt);
+    }
     return () => { map.off('moveend', openIt); };
-  }, [openPopupForId, map]);
+  }, [openPopupForId, openPopupSeq, map]);
+
+  // fitBounds: ajustar zoom para ver todos los markers de las actividades filtradas
+  React.useEffect(() => {
+    if (!fitBoundsTrigger) return;
+    const coords = activities
+      .map(a => a.geo_epgs_4326_latlon)
+      .filter(Boolean)
+      .map(s => s!.split(',').map(Number))
+      .filter(p => p.length === 2 && !isNaN(p[0]) && !isNaN(p[1]));
+    if (coords.length === 0) return;
+    const bounds = (L as any).latLngBounds(coords.map(([lat, lng]) => [lat, lng]));
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, animate: true });
+  }, [fitBoundsTrigger, activities, map]);
 
   let userCoords: [number, number] | null = null;
   if (userLocation) {
@@ -537,7 +560,7 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, itinerary, showRoute }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute }) => {
   const mapProps = {
     center: [41.3851, 2.1734] as [number, number],
     zoom: 11,
@@ -550,7 +573,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, r
         style={{ height: '100%', width: '100%', minHeight: '300px' }}
         {...mapProps}
       >
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} itinerary={itinerary} showRoute={showRoute} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} openPopupSeq={openPopupSeq} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} />
       </MapContainer>
     </div>
   );
