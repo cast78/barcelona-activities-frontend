@@ -14,7 +14,7 @@
   align-items: flex-start;
 }
 .cat-btn {
-  border: none;
+   border-color: rgba(50, 19, 206, 0.139);
   background: #f3f4f6;
   color: #222;
   border-radius: 8px;
