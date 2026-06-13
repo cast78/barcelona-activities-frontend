@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { useT } from '../i18n/useT';
 import { Activity } from '../api';
 import { CATEGORIES, inferCategory } from './QueryForm';
 
@@ -356,19 +357,20 @@ interface ItineraryPlannerProps {
 const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
   activities, userCoords, endDate, onClose, onItineraryReady, initialItinerary
 }) => {
+  const t = useT();
   const [mode, setMode] = useState<TravelMode>('walking');
   const [itinerary, setItinerary] = useState<Itinerary | null>(initialItinerary ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
-    if (!userCoords) { setError('Ubicación no disponible'); return; }
+    if (!userCoords) { setError(t('planner.errorNoLocation')); return; }
     setLoading(true);
     setError(null);
     try {
       const result = await buildItinerary(activities, userCoords, mode, endDate);
       if (result.stops.length === 0) {
-        setError('No se encontraron actividades compatibles con el tiempo disponible.');
+        setError(t('planner.errorNoActivities'));
         setItinerary(null);
         onItineraryReady(null);
       } else {
@@ -376,7 +378,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
         onItineraryReady(result);
       }
     } catch {
-      setError('Error al calcular la ruta. Inténtalo de nuevo.');
+      setError(t('planner.errorRoute'));
     } finally {
       setLoading(false);
     }
@@ -406,7 +408,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
         <div style={{ background: headerGrad, borderRadius: '20px 20px 0 0', padding: '1rem 1.1rem 0.9rem', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
             <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.8 }}>CityRadar</div>
-            <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>🗺️ Planificador de ruta</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{t('planner.title')}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             {itinerary && (
@@ -419,7 +421,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
                   display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'inherit'
                 }}
               >
-                🗺️ Ver en el mapa
+                {t('planner.viewOnMap')}
               </button>
             )}
             <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -433,7 +435,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
           {!itinerary && (
             <>
               <div>
-                <p style={{ margin: '0 0 0.6rem', fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.4px' }}>¿Cómo te moverás?</p>
+                <p style={{ margin: '0 0 0.6rem', fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t('planner.transport')}</p>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {(['walking', 'cycling', 'metro'] as TravelMode[]).map(m => (
                     <button
@@ -446,7 +448,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
                         color: mode === m ? '#4f46e5' : '#374151', transition: 'all 0.15s'
                       }}
                     >
-                      {m === 'walking' ? '🚶 A pie' : m === 'cycling' ? '🚲 Bici' : '🚇 Metro'}
+                      {m === 'walking' ? t('planner.walking') : m === 'cycling' ? t('planner.cycling') : t('planner.metro')}
                     </button>
                   ))}
                 </div>
@@ -465,7 +467,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
                   boxShadow: loading ? 'none' : '0 4px 14px rgba(102,126,234,0.4)'
                 }}
               >
-                {loading ? '⏳ Calculando ruta...' : '✨ Generar itinerario'}
+                {loading ? t('planner.calculating') : t('planner.generate')}
               </button>
             </>
           )}
@@ -476,10 +478,10 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
               {/* Summary bar */}
               <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                 <span style={{ background: '#ede9fe', color: '#4f46e5', borderRadius: '20px', padding: '0.2rem 0.7rem', fontSize: '0.75rem', fontWeight: 700 }}>
-                  {itinerary.stops.length} paradas
+                  {itinerary.stops.length} {t('planner.stops')}
                 </span>
                 <span style={{ background: '#d1fae5', color: '#065f46', borderRadius: '20px', padding: '0.2rem 0.7rem', fontSize: '0.75rem', fontWeight: 700 }}>
-                  {fmtDuration(itinerary.totalMinutes)} total
+                  {fmtDuration(itinerary.totalMinutes)} {t('planner.total')}
                 </span>
                 <span style={{ background: '#fef3c7', color: '#92400e', borderRadius: '20px', padding: '0.2rem 0.7rem', fontSize: '0.75rem', fontWeight: 700 }}>
                   {itinerary.totalDistanceKm.toFixed(1)} km
@@ -488,7 +490,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
                   onClick={() => { setItinerary(null); onItineraryReady(null); }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#667eea', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
                 >
-                  ↩ Cambiar modo
+                  {t('planner.changeMode')}
                 </button>
               </div>
 

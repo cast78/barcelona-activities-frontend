@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { useT } from '../i18n/useT';
 import { CATEGORIES, inferCategory } from './QueryForm';
 import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal, isLiked,
   toggleAttend, setAttendingLocal, getAllAttendingLocal, getAttendCountsLocal, setAttendCountLocal, isAttending } from '../api';
@@ -183,6 +184,7 @@ export function sortByTimeAndDistance(activities: Activity[], userCoords: [numbe
 }
 
 export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; userCoords?: [number, number] | null }> = ({ activity, onClose, userCoords }) => {
+  const t = useT();
   const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
   const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
   const [liked, setLiked] = useState(() => isLiked(activity.id));
@@ -237,7 +239,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
               borderRadius: '20px', padding: '0.18rem 0.6rem',
               marginBottom: '0.5rem'
             }}>
-              {cat.emoji} {cat.label}
+              {cat.emoji} {t(`categories.${cat.id}`)}
             </span>
           )}
           {(() => {
@@ -294,103 +296,103 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
         </div>
 
         {/* Modal body */}
-        <div style={{ padding: '0.9rem 1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-          {/* Description */}
-          <div>
-            <p style={{ margin: '0 0 0.25rem', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
-              Description
-            </p>
-            <p style={{ margin: 0, color: '#22223b', lineHeight: '1.55', fontSize: '0.85rem', whiteSpace: 'pre-line' }}>
-              {activity.body ? renderBodyWithLinks(activity.body) : '—'}
-            </p>
-          </div>
-
-          {/* Fecha + Hora en fila */}
-          <div style={{ display: 'grid', gridTemplateColumns: formatTime(activity.start_time) ? '1fr 1fr' : '1fr', gap: '0.5rem' }}>
-            <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
-              <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Date</p>
-              <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>📅 {formatDate(activity.start_date)}</p>
-            </div>
-            {formatTime(activity.start_time) && (
-              <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
-                <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Time</p>
-                <p style={{ margin: 0, fontWeight: 600, color: '#667eea', fontSize: '0.85rem' }}>🕐 {formatTime(activity.start_time)}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Lugar / Venue */}
-          {(activity.venue_name || activity.direccion) && (
-            <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
-              <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Lugar</p>
-              {activity.venue_name && (
-                <p style={{ margin: activity.direccion ? '0 0 0.1rem' : '0', fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>
-                  🏛️ {activity.venue_name}
-                </p>
-              )}
-              {activity.direccion && (
-                <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.8rem' }}>
-                  📍 {activity.direccion}
-                </p>
-              )}
-              {getMapsUrl(activity) && (
-                <a
-                  href={getMapsUrl(activity)!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'inline-block', marginTop: '0.4rem', color: '#667eea', fontWeight: 600, fontSize: '0.78rem', textDecoration: 'none' }}
-                >
-                  🗺️ Ver en Google Maps →
-                </a>
-              )}
-            </div>
-          )}
-
-          {/* Fuente */}
-          {activity.origen && (
-            <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
-              <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>Fuente</p>
-              <p style={{ margin: 0, fontWeight: 500, color: activity.origen === 'mock' ? '#d97706' : '#059669', fontSize: '0.82rem' }}>
-                {activity.origen === 'mock' ? '⚠️ Datos de ejemplo' : `🌐 ${activity.origen}`}
+          <div style={{ padding: '0.9rem 1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            {/* Description */}
+            <div>
+              <p style={{ margin: '0 0 0.25rem', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>
+                {t('activity.description')}
+              </p>
+              <p style={{ margin: 0, color: '#22223b', lineHeight: '1.55', fontSize: '0.85rem', whiteSpace: 'pre-line' }}>
+                {activity.body ? renderBodyWithLinks(activity.body) : '—'}
               </p>
             </div>
-          )}
 
-          {/* Pie: botones like + asistir — igual que tarjetas */}
-          <div style={{ marginTop: '0.2rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <button
-              onClick={handleModalLike}
-              title={liked ? 'Quitar me gusta' : 'Me gusta'}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: '0.25rem',
-                fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
-                color: liked ? '#ef4444' : '#9ca3af',
-                transition: 'color 0.15s, transform 0.1s',
-                transform: liked ? 'scale(1.15)' : 'scale(1)',
-                padding: '0.2rem 0.3rem'
-              }}
-            >
-              {liked ? '❤️' : '🤍'}
-              <span style={{ fontSize: '0.72rem' }}>{likeCount}</span>
-            </button>
-            <button
-              onClick={handleModalAttend}
-              title={attending ? 'Cancelar asistencia' : '¡Asistiré!'}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: '0.25rem',
-                fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
-                color: attending ? '#22c55e' : '#9ca3af',
-                transition: 'color 0.15s, transform 0.1s',
-                transform: attending ? 'scale(1.15)' : 'scale(1)',
-                padding: '0.2rem 0.3rem'
-              }}
-            >
-              <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
-              <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
-            </button>
-          </div>
+            {/* Fecha + Hora en fila */}
+            <div style={{ display: 'grid', gridTemplateColumns: formatTime(activity.start_time) ? '1fr 1fr' : '1fr', gap: '0.5rem' }}>
+              <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+                <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>{t('activity.date')}</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>📅 {formatDate(activity.start_date)}</p>
+              </div>
+              {formatTime(activity.start_time) && (
+                <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+                  <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>{t('activity.time')}</p>
+                  <p style={{ margin: 0, fontWeight: 600, color: '#667eea', fontSize: '0.85rem' }}>🕐 {formatTime(activity.start_time)}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Lugar / Venue */}
+            {(activity.venue_name || activity.direccion) && (
+              <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+                <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>{t('activity.place')}</p>
+                {activity.venue_name && (
+                  <p style={{ margin: activity.direccion ? '0 0 0.1rem' : '0', fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>
+                    🏛️ {activity.venue_name}
+                  </p>
+                )}
+                {activity.direccion && (
+                  <p style={{ margin: 0, fontWeight: 500, color: '#22223b', fontSize: '0.8rem' }}>
+                    📍 {activity.direccion}
+                  </p>
+                )}
+                {getMapsUrl(activity) && (
+                  <a
+                    href={getMapsUrl(activity)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-block', marginTop: '0.4rem', color: '#667eea', fontWeight: 600, fontSize: '0.78rem', textDecoration: 'none' }}
+                  >
+                    {t('activity.viewOnMaps')}
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* Fuente */}
+            {activity.origen && (
+              <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
+                <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>{t('activity.source')}</p>
+                <p style={{ margin: 0, fontWeight: 500, color: activity.origen === 'mock' ? '#d97706' : '#059669', fontSize: '0.82rem' }}>
+                  {activity.origen === 'mock' ? t('activity.sampleData') : `🌐 ${activity.origen}`}
+                </p>
+              </div>
+            )}
+
+            {/* Pie: botones like + asistir */}
+            <div style={{ marginTop: '0.2rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                onClick={handleModalLike}
+                title={liked ? t('activity.unlike') : t('activity.like')}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
+                  color: liked ? '#ef4444' : '#9ca3af',
+                  transition: 'color 0.15s, transform 0.1s',
+                  transform: liked ? 'scale(1.15)' : 'scale(1)',
+                  padding: '0.2rem 0.3rem'
+                }}
+              >
+                {liked ? '❤️' : '🤍'}
+                <span style={{ fontSize: '0.72rem' }}>{likeCount}</span>
+              </button>
+              <button
+                onClick={handleModalAttend}
+                title={attending ? t('activity.unattend') : t('activity.attend')}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
+                  color: attending ? '#22c55e' : '#9ca3af',
+                  transition: 'color 0.15s, transform 0.1s',
+                  transform: attending ? 'scale(1.15)' : 'scale(1)',
+                  padding: '0.2rem 0.3rem'
+                }}
+              >
+                <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
+                <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
+              </button>
+            </div>
         </div>
       </div>
     </div>,
@@ -399,6 +401,7 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
 };
 
 const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onSelectOnMap, pinnedActivityId, onAttendChange }) => {
+  const t = useT();
   const [selected, setSelected] = useState<Activity | null>(null);
   const pinnedRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -463,7 +466,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem 1rem 1rem', textAlign: 'center', gap: '1rem' }}>
           <img src="/City.jpeg" alt="No activities" style={{ width: '230px', height: '230px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
           <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0, lineHeight: '1.6', maxWidth: '280px' }}>
-            There are no activities nearby, based on the search parameters.
+            {t('activity.noActivities')}
           </p>
         </div>
       ) : (
@@ -516,7 +519,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                     padding: '0.15rem 0.5rem', borderRadius: '10px',
                     letterSpacing: '0.3px', boxShadow: '0 2px 6px rgba(102,126,234,0.4)'
                   }}>
-                    📍 En mapa
+                    {t('activity.onMap')}
                   </div>
                 )}
                 {/* Header */}
@@ -613,7 +616,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                       color: activity.origen === 'mock' ? '#92400e' : '#065f46'
                     }}>
                       {activity.origen === 'mock' 
-                        ? '⚠️ ejemplo' 
+                        ? `⚠️ ${t('activity.sampleData').replace('⚠️ ', '')}` 
                         : `🌐 ${activity.origen}`}
                     </span>
                   )}
@@ -629,12 +632,12 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                         alignItems: 'center', gap: '0.25rem', fontFamily: 'inherit'
                       }}
                     >
-                      Ver detalle →
+                      {t('activity.viewDetail')} →
                     </button>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <button
                         onClick={(e) => handleLike(activity, e)}
-                        title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
+                        title={likedIds[activity.id] ? t('activity.unlike') : t('activity.like')}
                         style={{
                           background: 'none', border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '0.25rem',
@@ -652,7 +655,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                       </button>
                       <button
                         onClick={(e) => handleAttend(activity, e)}
-                        title={attendingIds[activity.id] ? 'Cancelar asistencia' : '¡Asistiré!'}
+                        title={attendingIds[activity.id] ? t('activity.unattend') : t('activity.attend')}
                         style={{
                           background: 'none', border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '0.25rem',

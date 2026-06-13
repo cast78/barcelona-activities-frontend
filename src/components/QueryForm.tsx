@@ -1,4 +1,5 @@
 import React from "react";
+import { useT } from '../i18n/useT';
 import "./QueryForm.css";
 
 export interface CategoryChip {
@@ -71,6 +72,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
   timeFilter,
   setTimeFilter
 }) => {
+  const t = useT();
 
   const toggleCategory = (id: string) => {
     const newCategories = selectedCategories.includes(id) 
@@ -104,12 +106,12 @@ const QueryForm: React.FC<QueryFormProps> = ({
           setIsLoadingLocation?.(false);
         },
         () => {
-          alert("Unable to get location");
+          alert(t('search.locationError'));
           setIsLoadingLocation?.(false);
         }
       );
     } else {
-      alert("Geolocation not supported");
+      alert(t('search.locationUnsupported'));
     }
   };
 
@@ -117,14 +119,14 @@ const QueryForm: React.FC<QueryFormProps> = ({
     <form onSubmit={handleSubmit} className="query-form">
       <div className="query-form-body">
         <div className="form-row">
-          <label htmlFor="location">Location</label>
+          <label htmlFor="location">{t('search.location')}</label>
           <div className="location-input-group">
             <input
               id="location"
               type="text"
               value={location}
               onChange={e => setLocation(e.target.value)}
-              placeholder="latitude,longitude"
+              placeholder={t('search.locationPlaceholder')}
               autoComplete="off"
             />
             <button
@@ -132,14 +134,14 @@ const QueryForm: React.FC<QueryFormProps> = ({
               className="btn-icon"
               onClick={getCurrentLocation}
               disabled={isLoadingLocation}
-              title="Use my current location"
+              title={t('search.useMyLocation')}
             >
               {isLoadingLocation ? <span className="spinner">⟳</span> : '📍'}
             </button>
           </div>
         </div>
         <div className="form-row">
-          <label htmlFor="startDate">Start Date</label>
+          <label htmlFor="startDate">{t('search.startDate')}</label>
           <input
             id="startDate"
             type="date"
@@ -148,7 +150,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
           />
         </div>
         <div className="form-row">
-          <label htmlFor="endDate">End Date</label>
+          <label htmlFor="endDate">{t('search.endDate')}</label>
           <input
             id="endDate"
             type="date"
@@ -157,7 +159,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
           />
         </div>
         <div className="form-row">
-          <label htmlFor="radius">Search Radius</label>
+          <label htmlFor="radius">{t('search.radius')}</label>
           <select
             id="radius"
             value={radius}
@@ -170,22 +172,22 @@ const QueryForm: React.FC<QueryFormProps> = ({
           </select>
         </div>
         <div className="form-row">
-          <label htmlFor="timeFilter">¿Cuándo?</label>
+          <label htmlFor="timeFilter">{t('search.when')}</label>
           <select
             id="timeFilter"
             value={timeFilter}
             onChange={e => setTimeFilter(e.target.value)}
           >
-            <option value="any">Cualquier hora</option>
-            <option value="now">⚡ Ahora mismo</option>
-            <option value="30min">⏰ En 30 minutos</option>
-            <option value="1h">🕐 En 1 hora</option>
-            <option value="2h">🕑 En 2 horas</option>
-            <option value="1dia">📅 En 1 día</option>
+            <option value="any">{t('search.anytime')}</option>
+            <option value="now">{t('search.now')}</option>
+            <option value="30min">{t('search.in30min')}</option>
+            <option value="1h">{t('search.in1h')}</option>
+            <option value="2h">{t('search.in2h')}</option>
+            <option value="1dia">{t('search.in1day')}</option>
           </select>
         </div>
         <div className="form-row">
-          <label>Activity Type</label>
+          <label>{t('search.type')}</label>
           <div className="chip-group">
             {CATEGORIES.map(cat => (
               <button
@@ -196,18 +198,18 @@ const QueryForm: React.FC<QueryFormProps> = ({
                 aria-pressed={selectedCategories.includes(cat.id)}
               >
                 <span className="chip-emoji">{cat.emoji}</span>
-                {cat.label}
+                {t(`categories.${cat.id}`)}
               </button>
             ))}
           </div>
         </div>
         <div className="form-actions">
           <button type="submit" className="btn-primary">
-            Search
+            {t('search.button')}
           </button>
           {onClear && (
             <button type="button" className="btn-secondary" onClick={handleClear}>
-              Clear
+              {t('search.clear')}
             </button>
           )}
         </div>

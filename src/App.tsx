@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useT } from './i18n/useT';
 import './App.css';
 import { FaHome, FaRegEdit } from 'react-icons/fa';
 import QueryForm, { CATEGORIES, inferCategory } from './components/QueryForm';
@@ -12,6 +13,7 @@ import MyAgendaPanel from './components/MyAgendaPanel';
 import { Activity, fetchEventsBySource, isAttending } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
 import RadiusSlider, { RADIUS_VALUES } from './components/RadiusSlider';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 const HomeIcon = FaHome as React.ElementType;
 const EditIcon = FaRegEdit as React.ElementType;
@@ -29,6 +31,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
   pinnedActivityId?: string | null;
   onAttendChange?: () => void;
 }) {
+  const t = useT();
 
   // Auto-open when results arrive, auto-close when searching starts
   useEffect(() => {
@@ -54,13 +57,13 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
         <div className="bottom-sheet-info">
           <span className="bottom-sheet-count">
             {isSearching
-              ? 'Searching activities...'
+              ? t('sheet.searching')
               : activities.length > 0
-                ? `${activities.length} activit${activities.length === 1 ? 'y' : 'ies'} found`
-                : 'No activities — adjust filters'}
+                ? t('sheet.found', { count: activities.length })
+                : t('sheet.none')}
           </span>
           {!isSearching && activities.length > 0 && (
-            <span className="bottom-sheet-hint">Tap to {open ? 'hide' : 'see'} the list</span>
+            <span className="bottom-sheet-hint">{open ? t('sheet.tapHide') : t('sheet.tapSee')}</span>
           )}
         </div>
         <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
@@ -73,6 +76,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
 }
 
 function App() {
+  const t = useT();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [rawActivities, setRawActivities] = useState<Activity[]>([]); // Último lote completo
 
@@ -454,22 +458,22 @@ function App() {
             onClick={() => setPage('main')}
             aria-label="Home"
           >
-            <HomeIcon style={{ marginRight: 10 }} /> Home
+            <HomeIcon style={{ marginRight: 10 }} /> {t('nav.home')}
           </button>
           <button
             className={page === 'register' ? 'sidebar-btn active' : 'sidebar-btn'}
             onClick={() => setPage('register')}
-            aria-label="Register Activities"
+            aria-label={t('nav.register')}
           >
-            <EditIcon style={{ marginRight: 10 }} /> Register Activities
+            <EditIcon style={{ marginRight: 10 }} /> {t('nav.register')}
           </button>
           <button
             className={showAgenda ? 'sidebar-btn active' : 'sidebar-btn'}
             onClick={() => { setShowAgenda(a => !a); setAgendaRefreshKey(k => k + 1); }}
-            aria-label="Mi Agenda"
+            aria-label={t('nav.agenda')}
             style={{ position: 'relative' }}
           >
-            <span style={{ marginRight: 10 }}>🙋‍♂️</span> Mi Agenda
+            <span style={{ marginRight: 10 }}>🙋‍♂️</span> {t('nav.agenda')}
             {(() => { const count = activities.filter(a => isAttending(a.id)).length; return count > 0 ? (
               <span style={{
                 position: 'absolute', top: 4, right: 8,
@@ -486,8 +490,9 @@ function App() {
       <div className="App-content">
         <header className="App-header">
           <div>
-            <h1>{page === "main" ? "Explore nearby activities and events" : "Register Activities"}</h1>
+            <h1>{page === 'main' ? t('header.title') : t('header.titleRegister')}</h1>
           </div>
+          <LanguageSwitcher />
         </header>
         <main className="App-main">
           {page === 'main' && (

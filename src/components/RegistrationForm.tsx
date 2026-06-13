@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useT } from '../i18n/useT';
 import { addActivity } from "../api";
 import { CATEGORIES } from "./QueryForm";
 import "./RegistrationForm.css";
@@ -6,6 +7,7 @@ import "./RegistrationForm.css";
 type MessageState = { type: "success" | "error"; text: string } | null;
 
 const RegistrationForm: React.FC = () => {
+  const t = useT();
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -39,7 +41,7 @@ const RegistrationForm: React.FC = () => {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported");
+      alert(t('search.locationUnsupported'));
       return;
     }
     setIsLoadingLocation(true);
@@ -49,7 +51,7 @@ const RegistrationForm: React.FC = () => {
         setIsLoadingLocation(false);
       },
       () => {
-        alert("Unable to get location");
+        alert(t('search.locationError'));
         setIsLoadingLocation(false);
       }
     );
@@ -79,7 +81,7 @@ const RegistrationForm: React.FC = () => {
     setMessage(null);
 
     if (!location.includes(",")) {
-      setMessage({ type: "error", text: "Location must be in latitude,longitude format." });
+      setMessage({ type: "error", text: t('register.errorCoords') });
       return;
     }
 
@@ -95,13 +97,13 @@ const RegistrationForm: React.FC = () => {
         geo_epgs_4326_latlon: location,
         category
       });
-      setMessage({ type: "success", text: "Activity registered successfully." });
+      setMessage({ type: "success", text: t('register.successMsg') });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       handleReset();
     } catch (error) {
       console.error("Failed to add activity", error);
-      setMessage({ type: "error", text: "Error registering activity. Try again." });
+      setMessage({ type: "error", text: t('register.errorSubmit') });
     } finally {
       setLoading(false);
     }
@@ -111,14 +113,14 @@ const RegistrationForm: React.FC = () => {
     <div className="registration-card">
       {showToast && (
         <div className="reg-toast-success">
-          ✅ Tu evento creado con éxito
+          {t('register.success')}
         </div>
       )}
       <div className="registration-card-header">
         <span style={{ fontSize: "1.1rem" }}>📝</span>
-        <h2 className="registration-card-title">New Activity</h2>
-        <button type="button" className="btn-ven-ya" onClick={handleVenYa} title="Rellenar con fecha, hora y ubicación actuales">
-          ⚡ ¡Ven ya!
+        <h2 className="registration-card-title">{t('register.title')}</h2>
+        <button type="button" className="btn-ven-ya" onClick={handleVenYa} title={t('register.fillNow')}>
+          {t('register.fillNow')}
         </button>
       </div>
       <form onSubmit={handleSubmit} className="registration-card-body">
@@ -128,45 +130,45 @@ const RegistrationForm: React.FC = () => {
           </div>
         )}
         <div className="reg-field">
-          <label htmlFor="reg-name">Activity Name</label>
+          <label htmlFor="reg-name">{t('register.name')}</label>
           <input
             id="reg-name"
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="E.g.: Hiking in Montjuïc"
+            placeholder={t('register.namePlaceholder')}
             required
           />
         </div>
         <div className="reg-field">
-          <label htmlFor="reg-body">Description</label>
+          <label htmlFor="reg-body">{t('register.description')}</label>
           <textarea
             id="reg-body"
             value={body}
             onChange={e => setBody(e.target.value)}
-            placeholder="Describe the activity..."
+            placeholder={t('register.descriptionPlaceholder')}
             required
           />
         </div>
         <div className="reg-venue-row">
           <div className="reg-field">
-            <label htmlFor="reg-category">Category</label>
+            <label htmlFor="reg-category">{t('register.category')}</label>
             <select
               id="reg-category"
               value={category}
               onChange={e => setCategory(e.target.value)}
               required
             >
-              <option value="" disabled>— Select category —</option>
+              <option value="" disabled>{t('register.categorySelect')}</option>
               {CATEGORIES.filter(cat => cat.id !== 'ahora').map(cat => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.emoji} {cat.label}
+                  {cat.emoji} {t(`categories.${cat.id}`)}
                 </option>
               ))}
             </select>
           </div>
           <div className="reg-field">
-            <label htmlFor="reg-venue">Venue</label>
+            <label htmlFor="reg-venue">{t('register.venue')}</label>
             <input
               id="reg-venue"
               type="text"
@@ -178,7 +180,7 @@ const RegistrationForm: React.FC = () => {
           </div>
         </div>
         <div className="reg-field">
-          <label htmlFor="reg-start">Date</label>
+          <label htmlFor="reg-start">{t('register.date')}</label>
           <input
             id="reg-start"
             type="date"
@@ -189,7 +191,7 @@ const RegistrationForm: React.FC = () => {
         </div>
         <div className="reg-date-row">
           <div className="reg-field">
-            <label htmlFor="reg-time">Start time</label>
+            <label htmlFor="reg-time">{t('register.startTime')}</label>
             <input
               id="reg-time"
               type="time"
@@ -199,7 +201,7 @@ const RegistrationForm: React.FC = () => {
             />
           </div>
           <div className="reg-field">
-            <label htmlFor="reg-end-time">End time{isVenYa && <span style={{ color: '#f59e0b', marginLeft: '0.25rem', fontSize: '0.65rem' }}>max +3h</span>}</label>
+            <label htmlFor="reg-end-time">{t('register.endTime')}{isVenYa && <span style={{ color: '#f59e0b', marginLeft: '0.25rem', fontSize: '0.65rem' }}>{t('register.endTimeNote')}</span>}</label>
             <input
               id="reg-end-time"
               type="time"
@@ -212,7 +214,7 @@ const RegistrationForm: React.FC = () => {
           </div>
         </div>
         <div className="reg-field">
-          <label htmlFor="reg-location">Location (coordinates)</label>
+          <label htmlFor="reg-location">{t('register.coordinates')}</label>
           <div className="location-input-group">
             <input
               id="reg-location"
@@ -226,7 +228,7 @@ const RegistrationForm: React.FC = () => {
               type="button"
               className="btn-icon"
               onClick={getCurrentLocation}
-              title="Use my location"
+              title={t('register.useMyLocation')}
               disabled={isLoadingLocation}
               style={isLoadingLocation ? { opacity: 0.6, pointerEvents: 'none' } : {}}
             >
@@ -237,14 +239,14 @@ const RegistrationForm: React.FC = () => {
               )}
             </button>
           </div>
-          <span className="reg-location-hint">Ejemplo: 41.3851,2.1734</span>
+          <span className="reg-location-hint">{t('register.coordinatesHint')}</span>
         </div>
         <div className="reg-actions">
           <button type="submit" className="reg-btn-submit" disabled={loading}>
-            {loading ? "Registering..." : "Register Activity"}
+            {loading ? t('register.submitting') : t('register.submit')}
           </button>
           <button type="button" className="reg-btn-reset" onClick={handleReset}>
-            Clear
+            {t('register.clear')}
           </button>
         </div>
       </form>
