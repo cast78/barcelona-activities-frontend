@@ -10,7 +10,9 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <React.Suspense fallback={<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#0f172a',color:'#fff',fontSize:'1rem'}}>...</div>}>
+      <App />
+    </React.Suspense>
   </React.StrictMode>
 );
 
