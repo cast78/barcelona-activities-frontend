@@ -2,10 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../i18n/useT';
 
 const LANGUAGES = [
-  { code: 'ca', label: '🌎 CAT' },
-  { code: 'es', label: '🌎 ESP' },
-  { code: 'en', label: '🌎 ENG' },
-  { code: 'fr', label: '🌎 FRA' },
+  { code: 'ca', flag: 'es-ct', label: 'CAT' },
+  { code: 'es', flag: 'es',    label: 'ESP' },
+  { code: 'en', flag: 'gb',    label: 'ENG' },
+  { code: 'fr', flag: 'fr',    label: 'FRA' },
 ];
 
 const LanguageSwitcher: React.FC = () => {
@@ -32,7 +32,7 @@ const LanguageSwitcher: React.FC = () => {
     setOpen(false);
   };
 
-  const currentLabel = LANGUAGES.find(l => l.code === current)?.label ?? '🌎';
+  const currentLang = LANGUAGES.find(l => l.code === current) ?? LANGUAGES[0];
 
   return (
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
@@ -49,11 +49,12 @@ const LanguageSwitcher: React.FC = () => {
           cursor: 'pointer',
           whiteSpace: 'nowrap',
           position: 'relative',
-          minWidth: '74px',
+          minWidth: '82px',
           textAlign: 'left',
         }}
       >
-        {currentLabel}
+        <span className={`fi fi-${currentLang.flag}`} style={{ marginRight: 6, fontSize: '1rem' }} />
+        {currentLang.label}
         <span style={{
           position: 'absolute', right: 8, top: '50%',
           transform: `translateY(-50%) rotate(${open ? 180 : 0}deg)`,
@@ -89,6 +90,7 @@ const LanguageSwitcher: React.FC = () => {
                 whiteSpace: 'nowrap',
               }}
             >
+              <span className={`fi fi-${lang.flag}`} style={{ marginRight: 6, fontSize: '1rem' }} />
               {lang.label}
             </button>
           ))}
