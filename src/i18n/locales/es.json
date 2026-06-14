@@ -1,12 +1,12 @@
 {
   "nav": {
     "home": "Inicio",
-    "register": "Registrar actividades",
+    "register": "Crear actividad",
     "agenda": "Mi agenda"
   },
   "header": {
     "title": "Explora actividades y eventos cercanos",
-    "titleRegister": "Registrar actividades"
+    "titleRegister": "Crear actividad"
   },
   "sheet": {
     "searching": "Buscando actividades...",

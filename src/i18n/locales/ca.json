@@ -1,12 +1,12 @@
 {
   "nav": {
     "home": "Inici",
-    "register": "Registrar activitats",
+    "register": "Crear activitat",
     "agenda": "La meva agenda"
   },
   "header": {
     "title": "Explora activitats i esdeveniments propers",
-    "titleRegister": "Registrar activitats"
+    "titleRegister": "Crear activitat"
   },
   "sheet": {
     "searching": "Cercant activitats...",

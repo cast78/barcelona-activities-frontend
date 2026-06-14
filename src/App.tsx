@@ -456,7 +456,7 @@ function App() {
       <aside className="App-sidebar">
         <div className="sidebar-logo">
           <img src="/logo192.png" alt="CityRadar" style={{height: 50, width: 50}} />
-          <div className="sidebar-title">CityRadar<br/>Barcelona</div>
+          <div className="sidebar-title">Barcelona</div>
         </div>
         <nav className="sidebar-nav">
           <button
@@ -464,14 +464,14 @@ function App() {
             onClick={() => setPage('main')}
             aria-label="Home"
           >
-            <HomeIcon style={{ marginRight: 10 }} /> {t('nav.home')}
+            <HomeIcon style={{ marginRight: 2 }} /> {t('nav.home')}
           </button>
           <button
             className={page === 'register' ? 'sidebar-btn active' : 'sidebar-btn'}
             onClick={() => setPage('register')}
             aria-label={t('nav.register')}
           >
-            <EditIcon style={{ marginRight: 10 }} /> {t('nav.register')}
+            <EditIcon style={{ marginRight: 2 }} /> {t('nav.register')}
           </button>
           <button
             className={showAgenda ? 'sidebar-btn active' : 'sidebar-btn'}
@@ -479,7 +479,7 @@ function App() {
             aria-label={t('nav.agenda')}
             style={{ position: 'relative' }}
           >
-            <span style={{ marginRight: 10 }}>🙋‍♂️</span> {t('nav.agenda')}
+            <span style={{ marginRight: 2 }}>🙋‍♂️</span> {t('nav.agenda')}
             {(() => { const count = activities.filter(a => isAttending(a.id)).length; return count > 0 ? (
               <span style={{
                 position: 'absolute', top: 4, right: 8,
