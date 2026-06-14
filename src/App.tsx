@@ -191,7 +191,13 @@ function App() {
   }, [activities]);
   // ─────────────────────────────────────────────────────────────────────────
 
-  const handleGoToBarcelona = () => setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 11 });
+  const handleGoToBarcelona = () => {
+    if (userCoords) {
+      setCenterOn({ lat: userCoords[0], lng: userCoords[1], zoom: 13 });
+    } else {
+      setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 15 });
+    }
+  };
 
   const handleSelectOnMap = (activity: Activity) => {
     if (!activity.geo_epgs_4326_latlon) return;
