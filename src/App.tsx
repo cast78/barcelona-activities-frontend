@@ -486,15 +486,13 @@ function App() {
           </button>
           {/* Botón Debug oculto */}
         </nav>
-        <div style={{ marginTop: 'auto', padding: '0.75rem 0.5rem 1rem' }}>
-          <LanguageSwitcher />
-        </div>
       </aside>
       <div className="App-content">
         <header className="App-header">
           <div>
             <h1>{page === 'main' ? t('header.title') : t('header.titleRegister')}</h1>
           </div>
+          <LanguageSwitcher />
         </header>
         <main className="App-main">
           {page === 'main' && (
