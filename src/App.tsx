@@ -479,13 +479,13 @@ function App() {
             aria-label={t('nav.agenda')}
             style={{ position: 'relative' }}
           >
-            <span style={{ marginRight: 2 }}>🙋‍♂️</span> {t('nav.agenda')}
+            <span style={{ marginRight: 1 }}>🙋‍♂️</span> {t('nav.agenda')}
             {(() => { const count = activities.filter(a => isAttending(a.id)).length; return count > 0 ? (
               <span style={{
                 position: 'absolute', top: 4, right: 8,
                 background: '#25D366', color: '#fff',
                 borderRadius: '999px', fontSize: '0.65rem',
-                fontWeight: 800, padding: '1px 6px', minWidth: 18,
+                fontWeight: 800, padding: '1px 4px', minWidth: 18,
                 textAlign: 'center', lineHeight: '16px',
               }}>{count}</span>
             ) : null; })()}
