@@ -43,17 +43,17 @@ const LanguageSwitcher: React.FC = () => {
           border: '1px solid #667eea',
           color: '#667eea',
           borderRadius: '6px',
-          padding: '3px 22px 3px 8px',
-          fontSize: '0.72rem',
+          padding: '2px 18px 2px 4px',
+          fontSize: '0.65rem',
           fontWeight: 600,
           cursor: 'pointer',
           whiteSpace: 'nowrap',
           position: 'relative',
-          minWidth: '82px',
+          minWidth: '68px',
           textAlign: 'left',
         }}
       >
-        <span className={`fi fi-${currentLang.flag}`} style={{ marginRight: 6, fontSize: '1rem' }} />
+        <span className={`fi fi-${currentLang.flag}`} style={{ marginRight: 5, fontSize: '0.85rem' }} />
         {currentLang.label}
         <span style={{
           position: 'absolute', right: 8, top: '50%',
@@ -80,17 +80,17 @@ const LanguageSwitcher: React.FC = () => {
               onClick={() => handleSelect(lang.code)}
               style={{
                 display: 'block', width: '100%', textAlign: 'left',
-                padding: '6px 12px',
+                padding: '5px 10px',
                 background: lang.code === current ? 'rgba(102,126,234,0.3)' : 'transparent',
                 border: 'none',
                 color: '#334155',
-                fontSize: '0.72rem',
+                fontSize: '0.65rem',
                 fontWeight: lang.code === current ? 700 : 400,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
               }}
             >
-              <span className={`fi fi-${lang.flag}`} style={{ marginRight: 6, fontSize: '1rem' }} />
+              <span className={`fi fi-${lang.flag}`} style={{ marginRight: 5, fontSize: '0.85rem' }} />
               {lang.label}
             </button>
           ))}
