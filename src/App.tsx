@@ -195,7 +195,7 @@ function App() {
     if (userCoords) {
       setCenterOn({ lat: userCoords[0], lng: userCoords[1], zoom: 13 });
     } else {
-      setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 15 });
+      setCenterOn({ lat: 41.3851, lng: 2.1734, zoom: 13 });
     }
   };
 
@@ -203,7 +203,7 @@ function App() {
     if (!activity.geo_epgs_4326_latlon) return;
     const parts = activity.geo_epgs_4326_latlon.split(',').map(Number);
     if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-      setCenterOn({ lat: parts[0], lng: parts[1], zoom: 16 });
+      setCenterOn({ lat: parts[0], lng: parts[1], zoom: 13 });
       setSheetOpen(false);
       setPinnedActivity(activity);
       setPopupTrigger(t => t + 1);
