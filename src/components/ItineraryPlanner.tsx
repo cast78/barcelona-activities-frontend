@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useT } from '../i18n/useT';
 import { Activity } from '../api';
@@ -362,6 +362,12 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
   const [itinerary, setItinerary] = useState<Itinerary | null>(initialItinerary ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   const handleGenerate = async () => {
     if (!userCoords) { setError(t('planner.errorNoLocation')); return; }
