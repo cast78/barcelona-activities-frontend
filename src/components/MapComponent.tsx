@@ -385,7 +385,7 @@ const MapContent: React.FC<{
                         loc ? `📍 ${loc}` : '',
                         mapsLink ? `🗺️ ${mapsLink}` : '',
                         '',
-                        '🏙️ Compartido desde CityRadar Barcelona',
+                        '🏙️ Compartido desde GoOnMap Barcelona',
                       ].filter(Boolean);
                       const url = `https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`;
                       return (

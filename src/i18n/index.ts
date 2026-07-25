@@ -18,11 +18,12 @@ i18n
       fr: { translation: fr },
     },
     fallbackLng: 'ca',
+    lng: localStorage.getItem('goonmap_lang') || 'ca',
     supportedLngs: ['ca', 'es', 'en', 'fr'],
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
-      lookupLocalStorage: 'cityradar_lang',
+      lookupLocalStorage: 'goonmap_lang',
     },
     interpolation: {
       escapeValue: false,

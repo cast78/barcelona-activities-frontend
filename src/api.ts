@@ -58,8 +58,8 @@ export const addActivity = async (activity: Omit<Activity, 'id'>): Promise<Activ
 };
 
 // ── Local storage helpers for likes ──────────────────────────────────────────
-const LIKES_KEY = 'cityradar_liked';
-const LIKE_COUNTS_KEY = 'cityradar_like_counts';
+const LIKES_KEY = 'goonmap_liked';
+const LIKE_COUNTS_KEY = 'goonmap_like_counts';
 
 export function getAllLikedLocal(): Record<string, boolean> {
   try { return JSON.parse(localStorage.getItem(LIKES_KEY) || '{}'); } catch { return {}; }
@@ -90,8 +90,8 @@ export async function toggleLike(activityId: string, action: string): Promise<nu
 }
 
 // ── Local storage helpers for attendees ──────────────────────────────────────
-const ATTEND_KEY = 'cityradar_attending';
-const ATTEND_COUNTS_KEY = 'cityradar_attend_counts';
+const ATTEND_KEY = 'goonmap_attending';
+const ATTEND_COUNTS_KEY = 'goonmap_attend_counts';
 
 export function getAllAttendingLocal(): Record<string, boolean> {
   try { return JSON.parse(localStorage.getItem(ATTEND_KEY) || '{}'); } catch { return {}; }

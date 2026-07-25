@@ -283,7 +283,7 @@ function exportICS(itinerary: Itinerary) {
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//CityRadar Barcelona//ES',
+    'PRODID:-//GoOnMap Barcelona//ES',
     'CALSCALE:GREGORIAN',
   ];
   itinerary.stops.forEach((stop, i) => {
@@ -295,7 +295,7 @@ function exportICS(itinerary: Itinerary) {
       `DTSTART:${toICSDate(stop.arrivalTime)}`,
       `DTEND:${toICSDate(stop.departureTime)}`,
       `LOCATION:${loc}`,
-      `DESCRIPTION:Parada ${i + 1} de tu itinerario CityRadar Barcelona`,
+      `DESCRIPTION:Parada ${i + 1} de tu itinerario GoOnMap Barcelona`,
       'END:VEVENT'
     );
   });
@@ -303,7 +303,7 @@ function exportICS(itinerary: Itinerary) {
   const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'itinerario-cityradar.ics'; a.click();
+  a.href = url; a.download = 'itinerario-goonmap.ics'; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -322,7 +322,7 @@ function shareWhatsApp(itinerary: Itinerary) {
       lines.push(`   ${modeIcon(stop.travelMode)} ${itinerary.stops[i + 1].travelMinutes}min ${modeLabel(stop.travelMode)}`);
     }
   });
-  lines.push('', '🏙️ Generado con CityRadar Barcelona');
+  lines.push('', '🏙️ Generado con GoOnMap Barcelona');
   const text = encodeURIComponent(lines.join('\n'));
   window.open(`https://wa.me/?text=${text}`, '_blank');
 }
@@ -332,7 +332,7 @@ function openGoogleCalendar(stop: ItineraryStop) {
   const loc = [stop.activity.venue_name, stop.activity.direccion, 'Barcelona'].filter(Boolean).join(', ');
   const cat = CATEGORIES.find(c => c.id === (stop.activity.category || inferCategory(stop.activity.name || '', stop.activity.body || ''))) || CATEGORIES.find(c => c.id === 'other')!;
   const mapsUrl = stop.activity.geo_epgs_4326_latlon ? `https://maps.google.com/?q=${stop.activity.geo_epgs_4326_latlon}` : null;
-  const details = ['Planificado con CityRadar Barcelona', mapsUrl ? `📍 Ver en Google Maps: ${mapsUrl}` : ''].filter(Boolean).join('\n\n');
+  const details = ['Planificado con GoOnMap Barcelona', mapsUrl ? `📍 Ver en Google Maps: ${mapsUrl}` : ''].filter(Boolean).join('\n\n');
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: `${cat.emoji} ${stop.activity.name}`,
@@ -407,7 +407,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
         {/* Header */}
         <div style={{ background: headerGrad, borderRadius: '20px 20px 0 0', padding: '1rem 1.1rem 0.9rem', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.8 }}>CityRadar</div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.8 }}>GoOnMap</div>
             <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{t('planner.title')}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

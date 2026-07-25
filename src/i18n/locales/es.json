@@ -4,8 +4,11 @@
     "register": "Crear actividad",
     "agenda": "Mi agenda"
   },
+  "footer": {
+    "tagline": "Descubre actividades y eventos cerca de ti"
+  },
   "header": {
-    "title": "Explora actividades y eventos cercanos",
+    "title": "Tu Ciudad en tiempo real",
     "titleRegister": "Crear actividad"
   },
   "sheet": {

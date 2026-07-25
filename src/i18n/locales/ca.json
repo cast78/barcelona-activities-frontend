@@ -4,8 +4,11 @@
     "register": "Crear activitat",
     "agenda": "La meva agenda"
   },
+  "footer": {
+    "tagline": "Descobreix activitats i esdeveniments prop teu"
+  },
   "header": {
-    "title": "Explora activitats i esdeveniments propers",
+    "title": "La teva Ciutat en temps real",
     "titleRegister": "Crear activitat"
   },
   "sheet": {

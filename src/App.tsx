@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useT } from './i18n/useT';
 import './App.css';
-import { FaHome, FaRegEdit } from 'react-icons/fa';
+import { FaHome, FaRegEdit, FaInstagram, FaTiktok, FaEnvelope } from 'react-icons/fa';
 import QueryForm, { CATEGORIES, inferCategory } from './components/QueryForm';
 import CategoryFilter from './components/CategoryFilter';
 import ActivityList, { ActivityModal, isHappeningNow, getTimeBadge, sortByTimeAndDistance } from './components/ActivityList';
@@ -17,6 +17,9 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 
 const HomeIcon = FaHome as React.ElementType;
 const EditIcon = FaRegEdit as React.ElementType;
+const InstagramIcon = FaInstagram as React.ElementType;
+const TiktokIcon = FaTiktok as React.ElementType;
+const MailIcon = FaEnvelope as React.ElementType;
 
 type Page = 'main' | 'register';
 
@@ -455,8 +458,8 @@ function App() {
     <div className="App">
       <aside className="App-sidebar">
         <div className="sidebar-logo">
-          <img src="/logo192.png" alt="CityRadar" style={{height: 50, width: 50}} />
-          <div className="sidebar-title">Barcelona</div>
+          <img src="/logo192.png" alt="GoOnMap" style={{height: 65, width: 50, borderRadius: 3}} />
+          <div className="sidebar-title sidebar-city--barcelona">Barcelona</div>         
         </div>
         <nav className="sidebar-nav">
           <button
@@ -717,7 +720,21 @@ function App() {
         )}
 
         <footer className="App-footer">
-          <p>CityRadar &copy; 2026 | Discover activities and events near you</p>
+          <p>GoOnMap &copy; 2026 | {t('footer.tagline')}</p>
+          <div className="footer-links">
+            <a href="mailto:info@goonmap.es" className="footer-link footer-link--mail" title="Email">
+              <MailIcon className="footer-link-icon" />
+              <span>info@goonmap.es</span>
+            </a>
+            <a href="https://www.instagram.com/goonmap.app" target="_blank" rel="noopener noreferrer" className="footer-link footer-link--instagram" title="Instagram">
+              <InstagramIcon className="footer-link-icon" />
+              <span>goonmap.app</span>
+            </a>
+            <a href="https://www.tiktok.com/@goonmap" target="_blank" rel="noopener noreferrer" className="footer-link footer-link--tiktok" title="TikTok">
+              <TiktokIcon className="footer-link-icon" />
+              <span>@goonmap</span>
+            </a>
+          </div>
         </footer>
       </div>
 
