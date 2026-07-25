@@ -839,16 +839,23 @@ body {
 
   .sidebar-nav {
     flex-direction: row;
-    gap: 0;
+    gap: 0.25rem;
     flex: 1;
-    justify-content: right;
+    justify-content: flex-end;
   }
 
   .sidebar-btn {
-    font-size: 0.78rem;
-    padding: 0.4rem 0.5rem;
-    gap: 0.25rem;
+    font-size: 0;
+    padding: 0.45rem 0.6rem;
+    gap: 0;
     white-space: nowrap;
+    min-width: 36px;
+    justify-content: center;
+  }
+
+  .sidebar-btn svg,
+  .sidebar-btn span:first-child {
+    font-size: 1.1rem;
   }
 
   .App-header { 
