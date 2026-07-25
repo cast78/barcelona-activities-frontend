@@ -21,7 +21,7 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#667eea",
+  "theme_color": "#1a73e8",
   "background_color": "#f4f4f8",
   "description": "Descubre actividades y eventos en Barcelona"
 }
