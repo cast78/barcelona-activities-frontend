@@ -38,10 +38,10 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
 
   // Auto-open when results arrive, auto-close when searching starts
   useEffect(() => {
-    if (isSearching) {
+    if (isSearching && window.innerWidth < 768) {
       setOpen(false);
     }
-    // Ya no se abre automáticamente al llegar resultados
+    // En escritorio el panel permanece visible; en movil se colapsa al buscar
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSearching]);
 
@@ -98,7 +98,7 @@ function App() {
   const [timeFilter, setTimeFilter] = useState<string>('any');
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(() => window.innerWidth >= 768);
   const [pinnedActivity, setPinnedActivity] = useState<Activity | null>(null);
   const [popupTrigger, setPopupTrigger] = useState(0);
   const [fitBoundsTrigger, setFitBoundsTrigger] = useState(0);
@@ -113,6 +113,7 @@ function App() {
   const notifiedIdsRef = useRef<Set<string>>(new Set());
   const lastCheckedPosRef = useRef<[number, number] | null>(null);
   const lastNotifTimeRef = useRef<number>(0);
+  const floatingPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!('geolocation' in navigator)) return;
@@ -217,6 +218,18 @@ function App() {
   const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 768);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  // Cerrar el panel de búsqueda al hacer clic fuera de él
+  useEffect(() => {
+    if (!panelOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (floatingPanelRef.current && !floatingPanelRef.current.contains(e.target as Node)) {
+        setPanelOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [panelOpen]);
 
   useEffect(() => {
     // Calcular fechas siempre: hoy y +1 día, + hora actual (zona horaria Barcelona)
@@ -551,7 +564,7 @@ function App() {
                 )}
 
                 {/* Panel flotante de búsqueda (arriba-izquierda) */}
-                <div className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
+                <div ref={floatingPanelRef} className={`floating-panel${panelOpen ? '' : ' floating-panel--collapsed'}`}>
                   <button
                     className="panel-toggle-btn"
                     onClick={() => setPanelOpen(o => !o)}
