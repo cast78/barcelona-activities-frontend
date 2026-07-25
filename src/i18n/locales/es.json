@@ -23,6 +23,7 @@
     "location": "Ubicación",
     "locationPlaceholder": "Dirección o código postal…",
     "addressNotFound": "No se encontró la dirección. Prueba a ser más específico.",
+    "clearLocation": "Borrar dirección",
     "useMyLocation": "Usar mi ubicación actual",
     "locationError": "No se pudo obtener la ubicación",
     "locationUnsupported": "Geolocalización no disponible",

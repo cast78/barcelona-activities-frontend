@@ -41,6 +41,8 @@ interface QueryFormProps {
   setIsLoadingLocation?: (loading: boolean) => void;
   location: string;
   setLocation: (value: string) => void;
+  addressLabel: string;
+  setAddressLabel: (value: string) => void;
   startDate: string;
   setStartDate: (value: string) => void;
   endDate: string;
@@ -62,6 +64,8 @@ const QueryForm: React.FC<QueryFormProps> = ({
   setIsLoadingLocation,
   location,
   setLocation,
+  addressLabel,
+  setAddressLabel,
   startDate,
   setStartDate,
   endDate,
@@ -76,7 +80,9 @@ const QueryForm: React.FC<QueryFormProps> = ({
   const t = useT();
 
   // ── Geocoding / autocomplete state ──────────────────────────────────────
-  const [addressInput, setAddressInput] = useState('');
+  // addressInput es estado elevado (App.tsx) para persistir la búsqueda vigente
+  const addressInput = addressLabel;
+  const setAddressInput = setAddressLabel;
   const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
@@ -85,9 +91,15 @@ const QueryForm: React.FC<QueryFormProps> = ({
   const locationWrapRef = useRef<HTMLDivElement>(null);
   // Evita relanzar geocoding cuando el input cambia por seleccionar una sugerencia
   const justSelectedRef = useRef(false);
+  // Evita geocodificar el texto persistido al re-montar el componente (reabrir panel)
+  const isFirstRender = useRef(true);
 
   // Debounce: buscar sugerencias mientras el usuario escribe
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     if (justSelectedRef.current) {
       justSelectedRef.current = false;
       return;
@@ -128,6 +140,15 @@ const QueryForm: React.FC<QueryFormProps> = ({
     justSelectedRef.current = true;
     setAddressInput(s.label);
     setLocation(`${s.lat},${s.lon}`);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setActiveIndex(-1);
+  };
+
+  const clearAddress = () => {
+    justSelectedRef.current = true;
+    setAddressInput('');
+    setLocation('');
     setSuggestions([]);
     setShowSuggestions(false);
     setActiveIndex(-1);
@@ -235,11 +256,23 @@ const QueryForm: React.FC<QueryFormProps> = ({
                 onKeyDown={handleAddressKeyDown}
                 placeholder={t('search.locationPlaceholder')}
                 autoComplete="off"
+                title={addressInput || undefined}
                 role="combobox"
                 aria-expanded={showSuggestions}
                 aria-controls="location-suggestion-list"
                 aria-autocomplete="list"
               />
+              {addressInput && !isGeocoding && (
+                <button
+                  type="button"
+                  className="location-clear-btn"
+                  onClick={clearAddress}
+                  aria-label={t('search.clearLocation')}
+                  title={t('search.clearLocation')}
+                >
+                  ✕
+                </button>
+              )}
               {isGeocoding && <span className="location-spinner">⟳</span>}
               {showSuggestions && suggestions.length > 0 && (
                 <ul className="location-suggestions" role="listbox" id="location-suggestion-list">

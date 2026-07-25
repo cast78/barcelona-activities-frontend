@@ -24,6 +24,7 @@
     "location": "Location",
     "locationPlaceholder": "Address or postal code…",
     "addressNotFound": "Address not found. Try being more specific.",
+    "clearLocation": "Clear address",
     "useMyLocation": "Use my current location",
     "locationError": "Unable to get location",
     "locationUnsupported": "Geolocation not supported",

@@ -90,6 +90,7 @@ function App() {
   
   // Estado del formulario
   const [location, setLocation] = useState("");
+  const [addressLabel, setAddressLabel] = useState("");
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; });
   const [radius, setRadius] = useState(2);
@@ -569,6 +570,8 @@ function App() {
                       setIsLoadingLocation={setIsLoadingLocation}
                       location={location}
                       setLocation={setLocation}
+                      addressLabel={addressLabel}
+                      setAddressLabel={setAddressLabel}
                       startDate={startDate}
                       setStartDate={setStartDate}
                       endDate={endDate}
