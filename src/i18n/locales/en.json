@@ -22,7 +22,8 @@
   },
   "search": {
     "location": "Location",
-    "locationPlaceholder": "latitude,longitude",
+    "locationPlaceholder": "Address or postal code…",
+    "addressNotFound": "Address not found. Try being more specific.",
     "useMyLocation": "Use my current location",
     "locationError": "Unable to get location",
     "locationUnsupported": "Geolocation not supported",

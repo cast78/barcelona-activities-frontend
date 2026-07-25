@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useT } from '../i18n/useT';
+import { geocodeAddress, reverseGeocode, GeoResult } from '../api';
 import "./QueryForm.css";
 
 export interface CategoryChip {
@@ -74,6 +75,80 @@ const QueryForm: React.FC<QueryFormProps> = ({
 }) => {
   const t = useT();
 
+  // ── Geocoding / autocomplete state ──────────────────────────────────────
+  const [addressInput, setAddressInput] = useState('');
+  const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const locationWrapRef = useRef<HTMLDivElement>(null);
+  // Evita relanzar geocoding cuando el input cambia por seleccionar una sugerencia
+  const justSelectedRef = useRef(false);
+
+  // Debounce: buscar sugerencias mientras el usuario escribe
+  useEffect(() => {
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const q = addressInput.trim();
+    if (q.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setIsGeocoding(false);
+      return;
+    }
+    setIsGeocoding(true);
+    debounceRef.current = setTimeout(async () => {
+      const results = await geocodeAddress(q);
+      setSuggestions(results);
+      setShowSuggestions(true);
+      setActiveIndex(-1);
+      setIsGeocoding(false);
+    }, 400);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [addressInput]);
+
+  // Cerrar el desplegable al hacer clic fuera
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (locationWrapRef.current && !locationWrapRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const selectSuggestion = (s: GeoResult) => {
+    justSelectedRef.current = true;
+    setAddressInput(s.label);
+    setLocation(`${s.lat},${s.lon}`);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setActiveIndex(-1);
+  };
+
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex(i => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex(i => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault();
+      selectSuggestion(suggestions[activeIndex]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
+
   const toggleCategory = (id: string) => {
     const newCategories = selectedCategories.includes(id) 
       ? selectedCategories.filter((c: string) => c !== id) 
@@ -81,13 +156,34 @@ const QueryForm: React.FC<QueryFormProps> = ({
     setSelectedCategories(newCategories);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch({ location, startDate, endDate, radius, categories: selectedCategories });
+    let loc = location;
+    // Si el usuario escribió una dirección pero no seleccionó sugerencia,
+    // resolvemos la mejor coincidencia antes de buscar.
+    const typed = addressInput.trim();
+    if (typed.length >= 3 && !loc) {
+      setIsGeocoding(true);
+      const results = await geocodeAddress(typed);
+      setIsGeocoding(false);
+      if (results.length > 0) {
+        loc = `${results[0].lat},${results[0].lon}`;
+        setLocation(loc);
+        setAddressInput(results[0].label);
+      } else {
+        alert(t('search.addressNotFound'));
+        return;
+      }
+    }
+    setShowSuggestions(false);
+    onSearch({ location: loc, startDate, endDate, radius, categories: selectedCategories });
   };
 
   const handleClear = () => {
     setLocation("");
+    setAddressInput("");
+    setSuggestions([]);
+    setShowSuggestions(false);
     setStartDate("");
     setEndDate("");
     setRadius(5);
@@ -100,9 +196,14 @@ const QueryForm: React.FC<QueryFormProps> = ({
     if (navigator.geolocation) {
       setIsLoadingLocation?.(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
           setLocation(`${latitude},${longitude}`);
+          // Mostrar la dirección legible en vez de coordenadas
+          justSelectedRef.current = true;
+          const label = await reverseGeocode(latitude, longitude);
+          setAddressInput(label ?? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          setShowSuggestions(false);
           setIsLoadingLocation?.(false);
         },
         () => {
@@ -120,15 +221,44 @@ const QueryForm: React.FC<QueryFormProps> = ({
       <div className="query-form-body">
         <div className="form-row">
           <label htmlFor="location">{t('search.location')}</label>
-          <div className="location-input-group">
-            <input
-              id="location"
-              type="text"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder={t('search.locationPlaceholder')}
-              autoComplete="off"
-            />
+          <div className="location-input-group" ref={locationWrapRef}>
+            <div className="location-autocomplete">
+              <input
+                id="location"
+                type="text"
+                value={addressInput}
+                onChange={e => {
+                  setAddressInput(e.target.value);
+                  setLocation("");
+                }}
+                onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                onKeyDown={handleAddressKeyDown}
+                placeholder={t('search.locationPlaceholder')}
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={showSuggestions}
+                aria-controls="location-suggestion-list"
+                aria-autocomplete="list"
+              />
+              {isGeocoding && <span className="location-spinner">⟳</span>}
+              {showSuggestions && suggestions.length > 0 && (
+                <ul className="location-suggestions" role="listbox" id="location-suggestion-list">
+                  {suggestions.map((s, i) => (
+                    <li
+                      key={`${s.lat},${s.lon}`}
+                      role="option"
+                      aria-selected={i === activeIndex}
+                      className={`location-suggestion${i === activeIndex ? ' location-suggestion--active' : ''}`}
+                      onMouseDown={e => { e.preventDefault(); selectSuggestion(s); }}
+                      onMouseEnter={() => setActiveIndex(i)}
+                    >
+                      <span className="location-suggestion-pin">📍</span>
+                      <span className="location-suggestion-text">{s.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <button
               type="button"
               className="btn-icon"

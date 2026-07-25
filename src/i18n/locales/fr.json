@@ -21,7 +21,8 @@
   },
   "search": {
     "location": "Lieu",
-    "locationPlaceholder": "latitude,longitude",
+    "locationPlaceholder": "Adresse ou code postal…",
+    "addressNotFound": "Adresse introuvable. Essayez d'être plus précis.",
     "useMyLocation": "Utiliser ma position actuelle",
     "locationError": "Impossible d'obtenir la position",
     "locationUnsupported": "Géolocalisation non disponible",

@@ -21,7 +21,8 @@
   },
   "search": {
     "location": "Ubicació",
-    "locationPlaceholder": "latitud,longitud",
+    "locationPlaceholder": "Adreça o codi postal…",
+    "addressNotFound": "No s'ha trobat l'adreça. Prova de ser més específic.",
     "useMyLocation": "Usa la meva ubicació actual",
     "locationError": "No s'ha pogut obtenir la ubicació",
     "locationUnsupported": "Geolocalització no disponible",

@@ -52,6 +52,63 @@ export const fetchActivities = async (): Promise<Activity[]> => {
   return response.data;
 };
 
+// ── Geocoding (OpenStreetMap / Nominatim) ────────────────────────────────────
+export interface GeoResult {
+  label: string;   // display name, e.g. "Carrer de Mallorca, 401, Barcelona"
+  lat: number;
+  lon: number;
+}
+
+const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
+
+// Convierte una dirección o código postal en coordenadas (autocompletado).
+// Prioriza el área de Barcelona pero permite el resto de España.
+export const geocodeAddress = async (query: string): Promise<GeoResult[]> => {
+  const q = query.trim();
+  if (q.length < 3) return [];
+  try {
+    const response = await axios.get(`${NOMINATIM_BASE}/search`, {
+      params: {
+        q,
+        format: 'json',
+        addressdetails: 0,
+        limit: 5,
+        countrycodes: 'es',
+        // Bounding box aproximado del área metropolitana de Barcelona
+        viewbox: '1.95,41.50,2.35,41.28',
+        bounded: 0,
+        'accept-language': 'ca,es',
+      },
+    });
+    return (response.data as Array<{ display_name: string; lat: string; lon: string }>).map(r => ({
+      label: r.display_name,
+      lat: parseFloat(r.lat),
+      lon: parseFloat(r.lon),
+    }));
+  } catch {
+    return [];
+  }
+};
+
+// Geocodificación inversa: coordenadas → dirección legible (para el botón GPS).
+export const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
+  try {
+    const response = await axios.get(`${NOMINATIM_BASE}/reverse`, {
+      params: {
+        lat,
+        lon,
+        format: 'json',
+        zoom: 16,
+        addressdetails: 0,
+        'accept-language': 'ca,es',
+      },
+    });
+    return (response.data as { display_name?: string })?.display_name ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export const addActivity = async (activity: Omit<Activity, 'id'>): Promise<Activity[]> => {
   const response = await axios.post(`${API_BASE_URL}/activities`, activity);
   return response.data;
