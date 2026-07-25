@@ -213,7 +213,7 @@ function App() {
     }
   };
   const [page, setPage] = useState<Page>('main');
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 768);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
