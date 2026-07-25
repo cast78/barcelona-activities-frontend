@@ -77,6 +77,7 @@
     "close": "Fermer l'agenda",
     "emptyHint": "Marquez 🙋‍♂️ sur les activités auxquelles vous souhaitez participer et elles apparaîtront ici.",
     "remove": "Retirer de mon agenda",
+    "showOnMap": "Voir sur la carte",
     "share": "Partager sur WhatsApp",
     "shareHint": "WhatsApp s'ouvrira avec votre liste de plans",
     "shareHeader": "📅 *Mon plan à Barcelone :*",

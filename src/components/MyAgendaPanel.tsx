@@ -7,6 +7,8 @@ interface MyAgendaPanelProps {
   activities: Activity[];
   onClose: () => void;
   onAttendChange: () => void;
+  onSelectOnMap?: (activity: Activity) => void;
+  selectedActivityId?: string;
 }
 
 function formatDate(d: string) {
@@ -22,7 +24,7 @@ function formatTime(t?: string): string {
   return match ? match[1] : '';
 }
 
-const MyAgendaPanel: React.FC<MyAgendaPanelProps> = ({ activities, onClose, onAttendChange }) => {
+const MyAgendaPanel: React.FC<MyAgendaPanelProps> = ({ activities, onClose, onAttendChange, onSelectOnMap, selectedActivityId }) => {
   const t = useT();
   const [attendingIds, setAttendingIds] = React.useState<Record<string, boolean>>(
     () => getAllAttendingLocal()
@@ -124,13 +126,25 @@ const MyAgendaPanel: React.FC<MyAgendaPanelProps> = ({ activities, onClose, onAt
             const emoji = cat?.emoji || '📌';
             const time = activity.start_time ? formatTime(activity.start_time) + 'h' : '';
             const venue = activity.venue_name || activity.direccion || '';
+            const hasCoords = !!activity.geo_epgs_4326_latlon;
+            const isSelected = selectedActivityId === activity.id;
+            const clickable = hasCoords && !!onSelectOnMap;
 
             return (
-              <div key={activity.id} style={{
-                display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
-                padding: '0.7rem 0.5rem',
-                borderBottom: idx < agendaActivities.length - 1 ? '1px solid #f0f0f4' : 'none',
-              }}>
+              <div
+                key={activity.id}
+                onClick={clickable ? () => onSelectOnMap!(activity) : undefined}
+                title={clickable ? t('agenda.showOnMap') : undefined}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
+                  padding: '0.7rem 0.5rem',
+                  borderBottom: idx < agendaActivities.length - 1 ? '1px solid #f0f0f4' : 'none',
+                  cursor: clickable ? 'pointer' : 'default',
+                  background: isSelected ? 'rgba(102,126,234,0.10)' : 'transparent',
+                  borderLeft: isSelected ? '3px solid #667eea' : '3px solid transparent',
+                  transition: 'background 0.15s',
+                }}
+              >
                 {/* Index + emoji */}
                 <div style={{
                   minWidth: 28, height: 28,
@@ -159,7 +173,7 @@ const MyAgendaPanel: React.FC<MyAgendaPanelProps> = ({ activities, onClose, onAt
 
                 {/* Remove button */}
                 <button
-                  onClick={() => handleRemove(activity)}
+                  onClick={(e) => { e.stopPropagation(); handleRemove(activity); }}
                   title={t('agenda.remove')}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',

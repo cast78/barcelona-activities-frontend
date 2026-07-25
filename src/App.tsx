@@ -782,6 +782,8 @@ function App() {
           activities={activities}
           onClose={() => setShowAgenda(false)}
           onAttendChange={() => setAgendaRefreshKey(k => k + 1)}
+          onSelectOnMap={handleSelectOnMap}
+          selectedActivityId={pinnedActivity?.id}
         />
       )}
     </div>

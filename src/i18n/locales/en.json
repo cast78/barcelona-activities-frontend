@@ -78,6 +78,7 @@
     "close": "Close agenda",
     "emptyHint": "Mark 🙋‍♂️ on activities you want to attend and they'll appear here.",
     "remove": "Remove from my agenda",
+    "showOnMap": "Show on map",
     "share": "Share on WhatsApp",
     "shareHint": "WhatsApp will open with your plan list",
     "shareHeader": "📅 *My plan in Barcelona:*",
