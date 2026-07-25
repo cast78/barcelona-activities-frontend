@@ -12,7 +12,8 @@
     "titleRegister": "Create activity"
   },
   "sheet": {
-    "searching": "Searching activities...",
+    "searching": "Searching for activities...",
+
     "found_one": "1 activity found",
     "found_other": "{{count}} activities found",
     "none": "No activities — adjust filters",
