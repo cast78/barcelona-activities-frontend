@@ -18,7 +18,8 @@
     "found_other": "{{count}} activities found",
     "none": "No activities — adjust filters",
     "tapHide": "Tap to hide the list",
-    "tapSee": "Tap to see the list"
+    "tapSee": "Tap to see the list",
+    "fallbackBadge": "📍 Using Barcelona as reference· Enable location for real distances"
   },
   "search": {
     "location": "Location",

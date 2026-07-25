@@ -17,7 +17,8 @@
     "found_other": "{{count}} actividades encontradas",
     "none": "Sin actividades — ajusta los filtros",
     "tapHide": "Toca para ocultar la lista",
-    "tapSee": "Toca para ver la lista"
+    "tapSee": "Toca para ver la lista",
+    "fallbackBadge": "📍 Usando Barcelona como referencia· Activa la ubicación para distancias reales"
   },
   "search": {
     "location": "Ubicación",
