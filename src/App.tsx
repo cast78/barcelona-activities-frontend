@@ -214,6 +214,19 @@ function App() {
       setPopupTrigger(t => t + 1);
     }
   };
+
+  // Selección desde "Mi Agenda": centra y marca el evento en el mapa.
+  // El panel de actividades permanece colapsado mientras la agenda esté abierta
+  // (ver prop open del BottomSheetPanel).
+  const handleSelectFromAgenda = (activity: Activity) => {
+    if (!activity.geo_epgs_4326_latlon) return;
+    const parts = activity.geo_epgs_4326_latlon.split(',').map(Number);
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      setCenterOn({ lat: parts[0], lng: parts[1], zoom: 13 });
+      setPinnedActivity(activity);
+      setPopupTrigger(t => t + 1);
+    }
+  };
   const [page, setPage] = useState<Page>('main');
   const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 768);
   const [isSearching, setIsSearching] = useState(false);
@@ -657,7 +670,7 @@ function App() {
                   activities={filteredActivities}
                   isSearching={isSearching}
                   userCoords={userCoords}
-                  open={sheetOpen}
+                  open={sheetOpen && !showAgenda}
                   setOpen={setSheetOpen}
                   onSelectOnMap={handleSelectOnMap}
                   pinnedActivityId={pinnedActivity?.id}
@@ -782,7 +795,7 @@ function App() {
           activities={activities}
           onClose={() => setShowAgenda(false)}
           onAttendChange={() => setAgendaRefreshKey(k => k + 1)}
-          onSelectOnMap={handleSelectOnMap}
+          onSelectOnMap={handleSelectFromAgenda}
           selectedActivityId={pinnedActivity?.id}
         />
       )}
