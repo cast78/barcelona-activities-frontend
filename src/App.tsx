@@ -511,7 +511,6 @@ function App() {
             <span style={{ marginRight: 1 }}>🙋‍♂️</span> {t('nav.agenda')}
             {(() => { const count = activities.filter(a => isAttending(a.id)).length; return count > 0 ? (
               <span style={{
-                marginLeft: 5,
                 background: '#25D366', color: '#fff',
                 borderRadius: '999px', fontSize: '0.65rem',
                 fontWeight: 800, padding: '1px 5px', minWidth: 18,

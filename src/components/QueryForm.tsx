@@ -299,7 +299,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
               disabled={isLoadingLocation}
               title={t('search.useMyLocation')}
             >
-              {isLoadingLocation ? <span className="spinner">⟳</span> : '📍'}
+              {isLoadingLocation ? <span className="spinner" style={{ fontSize: '1.1em' }}>⏳</span> : '📍'}
             </button>
           </div>
         </div>
