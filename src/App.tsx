@@ -485,7 +485,7 @@ function App() {
     <div className="App">
       <aside className="App-sidebar">
         <div className="sidebar-logo">
-          <img src="/logo192.png" alt="GoOnMap" style={{height: 65, width: 50, borderRadius: 3}} />
+          <img src="/logo192.png" alt="GoOnMap" className="sidebar-logo__img" style={{borderRadius: 3}} />
           <div className="sidebar-title sidebar-city--barcelona">Barcelona</div>         
         </div>
         <nav className="sidebar-nav">
@@ -507,16 +507,16 @@ function App() {
             className={showAgenda ? 'sidebar-btn active' : 'sidebar-btn'}
             onClick={() => { setShowAgenda(a => !a); setAgendaRefreshKey(k => k + 1); }}
             aria-label={t('nav.agenda')}
-            style={{ position: 'relative' }}
           >
             <span style={{ marginRight: 1 }}>🙋‍♂️</span> {t('nav.agenda')}
             {(() => { const count = activities.filter(a => isAttending(a.id)).length; return count > 0 ? (
               <span style={{
-                position: 'absolute', top: 4, right: 8,
+                marginLeft: 5,
                 background: '#25D366', color: '#fff',
                 borderRadius: '999px', fontSize: '0.65rem',
-                fontWeight: 800, padding: '1px 4px', minWidth: 18,
+                fontWeight: 800, padding: '1px 5px', minWidth: 18,
                 textAlign: 'center', lineHeight: '16px',
+                display: 'inline-block', verticalAlign: 'middle',
               }}>{count}</span>
             ) : null; })()}
           </button>
@@ -612,27 +612,18 @@ function App() {
                   )}
                 </div>
 
-                {/* Segmented control: Planificar + toggle capa ruta/explorar */}
+                {/* Botón único: abre el planificador si no hay ruta, o alterna vista ruta/mapa si ya existe */}
                 {activities.length >= 2 && !isSearching && (
                   <div className="map-route-control">
                     <button
-                      className="map-route-control__btn map-route-control__btn--plan"
-                      onClick={() => setShowPlanner(true)}
-                      title="Planificar ruta"
+                      className={`map-route-control__btn map-route-control__btn--layer${itinerary && showRoute ? ' active' : ''}`}
+                      onClick={() => itinerary ? setShowRoute(r => !r) : setShowPlanner(true)}
+                      title={itinerary ? (showRoute ? 'Modo explorar' : 'Ver ruta') : 'Planificar ruta'}
                     >
-                      🗺️<span className="map-route-control__btn-text"> Planificar</span>
+                      {itinerary && showRoute
+                        ? <><span>🔍</span><span className="map-route-control__btn-text"> {t('planner.explore')}</span></>
+                        : <><span>🗺️</span><span className="map-route-control__btn-text"> {itinerary ? t('planner.viewRoute') : t('planner.createRoute')}</span></>}
                     </button>
-                    {itinerary && (
-                      <button
-                        className={`map-route-control__btn map-route-control__btn--layer${showRoute ? ' active' : ''}`}
-                        onClick={() => setShowRoute(r => !r)}
-                        title={showRoute ? 'Modo explorar' : 'Ver ruta'}
-                      >
-                        {showRoute
-                          ? <><span>🔍</span><span className="map-route-control__btn-text"> Explorar</span></>
-                          : <><span>✈️</span><span className="map-route-control__btn-text"> Ver ruta</span></>}
-                      </button>
-                    )}
                   </div>
                 )}
 
@@ -647,11 +638,11 @@ function App() {
 
                 {/* Leyenda de colores de ruta */}
                 {itinerary && showRoute && (
-                  <div className="map-route-legend">
+                  <div className="map-route-legend" onClick={() => setShowPlanner(true)} style={{ cursor: 'pointer' }} title="Abrir planificador de ruta">
                     {[
-                      { mode: 'walking', color: '#10b981', dash: '6 4', label: 'A pie' },
-                      { mode: 'cycling', color: '#f59e0b', dash: '10 4', label: 'Bici' },
-                      { mode: 'metro',   color: '#ef4444', dash: undefined, label: 'Metro' },
+                      { mode: 'walking', color: '#10b981', dash: '6 4', label: t('planner.walking') },
+                      { mode: 'cycling', color: '#f59e0b', dash: '10 4', label: t('planner.cycling') },
+                      { mode: 'metro',   color: '#ef4444', dash: undefined, label: t('planner.metro') },
                     ].filter(l => itinerary.stops.some(s => s.travelMode === l.mode)).map(l => (
                       <div key={l.mode} className="map-route-legend__item">
                         <svg width="28" height="6" className="map-route-legend__line">

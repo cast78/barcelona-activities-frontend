@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useT } from '../i18n/useT';
-import { addActivity } from "../api";
+import { addActivity, geocodeAddress, reverseGeocode, GeoResult } from "../api";
 import { CATEGORIES } from "./QueryForm";
 import "./RegistrationForm.css";
 
@@ -18,6 +18,15 @@ const RegistrationForm: React.FC = () => {
   const [isVenYa, setIsVenYa] = useState(false);
   const [venueName, setVenueName] = useState("");
   const [location, setLocation] = useState("");
+  const [addressLabel, setAddressLabel] = useState("");
+  const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const locationWrapRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justSelectedRef = useRef(false);
+  const isFirstRender = useRef(true);
   const [message, setMessage] = useState<MessageState>(null);
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState("");
@@ -35,25 +44,83 @@ const RegistrationForm: React.FC = () => {
     setIsVenYa(false);
     setVenueName("");
     setLocation("");
+    setAddressLabel("");
+    setSuggestions([]);
+    setShowSuggestions(false);
     setCategory("");
     setMessage(null);
   };
 
+  // Debounce geocoding while user types
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (justSelectedRef.current) { justSelectedRef.current = false; return; }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const q = addressLabel.trim();
+    if (q.length < 3) { setSuggestions([]); setShowSuggestions(false); setIsGeocoding(false); return; }
+    setIsGeocoding(true);
+    debounceRef.current = setTimeout(async () => {
+      const results = await geocodeAddress(q);
+      // Exclude purely postal-code results (label starts with 5 digits)
+      const filtered = results.filter(r => !/^\d{5}[,\s]/.test(r.label));
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+      setActiveIndex(-1);
+      setIsGeocoding(false);
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [addressLabel]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (locationWrapRef.current && !locationWrapRef.current.contains(e.target as Node))
+        setShowSuggestions(false);
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const selectSuggestion = (s: GeoResult) => {
+    justSelectedRef.current = true;
+    setAddressLabel(s.label);
+    setLocation(`${s.lat},${s.lon}`);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setActiveIndex(-1);
+  };
+
+  const clearAddress = () => {
+    justSelectedRef.current = true;
+    setAddressLabel('');
+    setLocation('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setActiveIndex(-1);
+  };
+
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIndex(i => Math.min(i + 1, suggestions.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIndex(i => Math.max(i - 1, 0)); }
+    else if (e.key === 'Enter' && activeIndex >= 0) { e.preventDefault(); selectSuggestion(suggestions[activeIndex]); }
+    else if (e.key === 'Escape') setShowSuggestions(false);
+  };
+
   const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert(t('search.locationUnsupported'));
-      return;
-    }
+    if (!navigator.geolocation) { alert(t('search.locationUnsupported')); return; }
     setIsLoadingLocation(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation(`${pos.coords.latitude},${pos.coords.longitude}`);
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLocation(`${latitude},${longitude}`);
+        justSelectedRef.current = true;
+        const label = await reverseGeocode(latitude, longitude);
+        setAddressLabel(label ?? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        setShowSuggestions(false);
         setIsLoadingLocation(false);
       },
-      () => {
-        alert(t('search.locationError'));
-        setIsLoadingLocation(false);
-      }
+      () => { alert(t('search.locationError')); setIsLoadingLocation(false); }
     );
   };
 
@@ -70,7 +137,13 @@ const RegistrationForm: React.FC = () => {
     setIsVenYa(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => setLocation(`${pos.coords.latitude},${pos.coords.longitude}`),
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setLocation(`${latitude},${longitude}`);
+          justSelectedRef.current = true;
+          const label = await reverseGeocode(latitude, longitude);
+          setAddressLabel(label ?? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        },
         () => {}
       );
     }
@@ -80,8 +153,9 @@ const RegistrationForm: React.FC = () => {
     e.preventDefault();
     setMessage(null);
 
-    if (!location.includes(",")) {
-      setMessage({ type: "error", text: t('register.errorCoords') });
+    // Require that an address was resolved to coordinates
+    if (!location || !location.includes(",")) {
+      setMessage({ type: "error", text: t('register.errorAddress') });
       return;
     }
 
@@ -215,15 +289,45 @@ const RegistrationForm: React.FC = () => {
         </div>
         <div className="reg-field">
           <label htmlFor="reg-location">{t('register.coordinates')}</label>
-          <div className="location-input-group">
-            <input
-              id="reg-location"
-              type="text"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder="latitude,longitude"
-              required
-            />
+          <div className="location-input-group" ref={locationWrapRef}>
+            <div className="location-autocomplete">
+              <input
+                id="reg-location"
+                type="text"
+                value={addressLabel}
+                onChange={e => { setAddressLabel(e.target.value); setLocation(''); }}
+                onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                onKeyDown={handleAddressKeyDown}
+                placeholder={t('register.addressPlaceholder')}
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={showSuggestions}
+                aria-controls="reg-location-suggestions"
+                aria-autocomplete="list"
+                required
+              />
+              {addressLabel && !isGeocoding && (
+                <button type="button" className="location-clear-btn" onClick={clearAddress} aria-label={t('search.clearLocation')}>✕</button>
+              )}
+              {isGeocoding && <span className="location-spinner">⟳</span>}
+              {showSuggestions && suggestions.length > 0 && (
+                <ul className="location-suggestions" role="listbox" id="reg-location-suggestions">
+                  {suggestions.map((s, i) => (
+                    <li
+                      key={`${s.lat},${s.lon}`}
+                      role="option"
+                      aria-selected={i === activeIndex}
+                      className={`location-suggestion${i === activeIndex ? ' location-suggestion--active' : ''}`}
+                      onMouseDown={e => { e.preventDefault(); selectSuggestion(s); }}
+                      onMouseEnter={() => setActiveIndex(i)}
+                    >
+                      <span className="location-suggestion-pin">📍</span>
+                      <span className="location-suggestion-text">{s.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <button
               type="button"
               className="btn-icon"
@@ -232,11 +336,7 @@ const RegistrationForm: React.FC = () => {
               disabled={isLoadingLocation}
               style={isLoadingLocation ? { opacity: 0.6, pointerEvents: 'none' } : {}}
             >
-              {isLoadingLocation ? (
-                <span className="spinner" style={{ fontSize: '1.1em' }}>⏳</span>
-              ) : (
-                '📍'
-              )}
+              {isLoadingLocation ? <span className="spinner" style={{ fontSize: '1.1em' }}>⏳</span> : '📍'}
             </button>
           </div>
           <span className="reg-location-hint">{t('register.coordinatesHint')}</span>

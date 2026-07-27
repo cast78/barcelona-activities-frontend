@@ -61,6 +61,12 @@ body {
   margin-bottom: 1rem;
 }
 
+.sidebar-logo__img {
+  height: 100px;
+  width: 75px;
+  border-radius: 3px;
+}
+
 .sidebar-title {
   font-size: 0.65rem;
   font-weight: 800;
@@ -830,6 +836,11 @@ body {
     flex-direction: row;
     align-items: center;
     gap: 0.1rem;
+  }
+
+  .sidebar-logo__img {
+    height: 65px;
+    width: 50px;
   }
 
   .sidebar-title {

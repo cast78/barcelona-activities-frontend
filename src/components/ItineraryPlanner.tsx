@@ -419,15 +419,16 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             {itinerary && (
               <button
-                onClick={onClose}
+                onClick={() => { setItinerary(null); onItineraryReady(null); }}
                 style={{
-                  background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.4)',
-                  color: '#fff', borderRadius: '20px', padding: '0.3rem 0.75rem',
-                  cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-                  display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'inherit'
+                  background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.5)',
+                  color: '#fff', borderRadius: '20px', padding: '0.3rem 0.85rem',
+                  cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+                  display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'inherit',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                 }}
               >
-                {t('planner.viewOnMap')}
+                {t('planner.changeMode')}
               </button>
             )}
             <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -492,12 +493,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
                 <span style={{ background: '#fef3c7', color: '#92400e', borderRadius: '20px', padding: '0.2rem 0.7rem', fontSize: '0.75rem', fontWeight: 700 }}>
                   {itinerary.totalDistanceKm.toFixed(1)} km
                 </span>
-                <button
-                  onClick={() => { setItinerary(null); onItineraryReady(null); }}
-                  style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#667eea', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-                >
-                  {t('planner.changeMode')}
-                </button>
+
               </div>
 
               {/* Stops */}
