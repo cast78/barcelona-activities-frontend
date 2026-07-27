@@ -850,9 +850,9 @@ body {
 
   .sidebar-nav {
     flex-direction: row;
-    gap: 0.1rem;
     flex: 1;
-    justify-content: flex-end;
+    gap: 0.1rem;
+    justify-content: space-evenly; 
   }
 
   .sidebar-btn {
