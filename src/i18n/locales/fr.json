@@ -67,7 +67,9 @@
     "unattend": "Annuler la participation",
     "onMap": "📍 Sur la carte",
     "viewDetail": "Voir détail",
-    "noActivities": "Aucune activité à proximité selon les paramètres de recherche."
+    "noActivities": "Aucune activité à proximité selon les paramètres de recherche.",
+    "shareHeader": "👀 *Regarde cette activité à Barcelone :*",
+    "shareFooter": "Rejoins si tu veux ! 🙌"
   },
   "agenda": {
     "title": "🙋‍♂️ Mon Agenda",
@@ -110,11 +112,11 @@
     "description": "Description",
     "descriptionPlaceholder": "Décrivez l'activité...",
     "category": "Catégorie",
-    "categorySelect": "— Sélectionnez une catégorie —",
+    "categorySelect": "Catégories...",
     "venue": "Lieu",
     "date": "Date",
-    "startTime": "Heure de début",
-    "endTime": "Heure de fin",
+    "startTime": "Début",
+    "endTime": "Fin",
     "endTimeNote": "max +3h",
     "coordinates": "Emplacement",
     "addressPlaceholder": "Entrez une adresse ou un nom de lieu…",

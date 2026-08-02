@@ -67,7 +67,9 @@
     "unattend": "Cancel·lar assistència",
     "onMap": "📍 Al mapa",
     "viewDetail": "Veure detall",
-    "noActivities": "No hi ha activitats properes, segons els paràmetres de cerca."
+    "noActivities": "No hi ha activitats properes, segons els paràmetres de cerca.",
+    "shareHeader": "👀 *Mira aquesta activitat a Barcelona:*",
+    "shareFooter": "Uneix-te si vols! 🙌"
   },
   "agenda": {
     "title": "🙋‍♂️ La meva agenda",
@@ -110,11 +112,11 @@
     "description": "Descripció",
     "descriptionPlaceholder": "Descriu l'activitat...",
     "category": "Categoria",
-    "categorySelect": "— Selecciona categoria —",
+    "categorySelect": "Categories...",
     "venue": "Lloc",
     "date": "Data",
-    "startTime": "Hora d'inici",
-    "endTime": "Hora de fi",
+    "startTime": "Inici",
+    "endTime": "Fi",
     "endTimeNote": "màx +3h",
     "coordinates": "Ubicació",
     "addressPlaceholder": "Escriu una adreça o nom del lloc…",

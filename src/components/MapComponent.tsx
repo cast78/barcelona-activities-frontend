@@ -39,6 +39,8 @@ interface MapComponentProps {
   fitBoundsTrigger?: number;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
+  shareHeader?: string;
+  shareFooter?: string;
 }
 
 // Componente auxiliar para manejar el mapa
@@ -53,7 +55,9 @@ const MapContent: React.FC<{
   fitBoundsTrigger?: number;
   itinerary?: Itinerary | null;
   showRoute?: boolean;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute }) => {
+  shareHeader?: string;
+  shareFooter?: string;
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter }) => {
   const map = useMap();
   const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
@@ -380,12 +384,16 @@ const MapContent: React.FC<{
                       const loc = [activity.venue_name, activity.direccion].filter(Boolean).join(', ');
                       const mapsLink = activity.geo_epgs_4326_latlon ? `https://maps.google.com/?q=${activity.geo_epgs_4326_latlon}` : null;
                       const lines = [
+                        shareHeader || '👀 *Mira esta actividad en Barcelona:*',
+                        '',
                         `🎭 ${activity.name || ''}`,
                         dateStr ? `📅 ${dateStr}${timeStr ? ` · ${timeStr}` : ''}` : '',
                         loc ? `📍 ${loc}` : '',
                         mapsLink ? `🗺️ ${mapsLink}` : '',
+                        activity.body ? `\n${activity.body}` : '',
                         '',
-                        '🏙️ Compartido desde GoOnMap Barcelona',
+                        shareFooter || '¡Únete si quieres! 🙌',
+                        '👉 https://GoOnMap.es',
                       ].filter(Boolean);
                       const url = `https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`;
                       return (
@@ -560,7 +568,7 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter }) => {
   const mapProps = {
     center: [41.3851, 2.1734] as [number, number],
     zoom: 11,
@@ -573,7 +581,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, r
         style={{ height: '100%', width: '100%', minHeight: '300px' }}
         {...mapProps}
       >
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} openPopupSeq={openPopupSeq} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} openPopupSeq={openPopupSeq} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={shareHeader} shareFooter={shareFooter} />
       </MapContainer>
     </div>
   );

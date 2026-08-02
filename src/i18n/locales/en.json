@@ -68,7 +68,9 @@
     "unattend": "Cancel attendance",
     "onMap": "📍 On map",
     "viewDetail": "View details",
-    "noActivities": "There are no activities nearby, based on the search parameters."
+    "noActivities": "There are no activities nearby, based on the search parameters.",
+    "shareHeader": "👀 *Check out this activity in Barcelona:*",
+    "shareFooter": "Join if you want! 🙌"
   },
   "agenda": {
     "title": "🙋‍♂️ My Agenda",
@@ -111,11 +113,11 @@
     "description": "Description",
     "descriptionPlaceholder": "Describe the activity...",
     "category": "Category",
-    "categorySelect": "— Select category —",
+    "categorySelect": "Categories...",
     "venue": "Venue",
     "date": "Date",
-    "startTime": "Start time",
-    "endTime": "End time",
+    "startTime": "Start",
+    "endTime": "End",
     "endTimeNote": "max +3h",
     "coordinates": "Location",
     "addressPlaceholder": "Enter an address or place name…",

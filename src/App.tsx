@@ -91,8 +91,8 @@ function App() {
   // Estado del formulario
   const [location, setLocation] = useState("");
   const [addressLabel, setAddressLabel] = useState("");
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; });
+  const [startDate, setStartDate] = useState(() => new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' }));
+  const [endDate, setEndDate] = useState(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' }); });
   const [radius, setRadius] = useState(2);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [timeFilter, setTimeFilter] = useState<string>('any');
@@ -414,9 +414,9 @@ function App() {
   };
 
   const handleClear = () => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
     const tomorrowObj = new Date(); tomorrowObj.setDate(tomorrowObj.getDate() + 1);
-    const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
+    const tomorrowStr = tomorrowObj.toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
     const resetLocation = lastLocation || "";
     setStartDate(todayStr);
     setEndDate(tomorrowStr);
@@ -529,7 +529,7 @@ function App() {
           </div>
           <LanguageSwitcher />
         </header>
-        <main className="App-main">
+        <main className={`App-main${page === 'register' ? ' App-main--scrollable' : ''}`}>
           {page === 'main' && (
             <>
               {/* Mapa ocupa todo el espacio disponible */}
@@ -549,7 +549,7 @@ function App() {
                   }, {} as Record<string, number>)}
                   onChange={setSelectedCategories}
                 />
-                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} />
+                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} />
 
                 {usingFallback && (
                   <div className="map-fallback-badge">
@@ -670,7 +670,7 @@ function App() {
             </>
           )}
           {page === 'register' && (
-            <div style={{ maxWidth: 580, margin: '2rem auto', padding: '0 1rem' }}>
+            <div style={{ maxWidth: 580, width: '100%', margin: '2rem auto', padding: '0 1rem 2rem' }}>
               <RegistrationForm />
             </div>
           )}

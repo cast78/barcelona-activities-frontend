@@ -74,16 +74,18 @@ export type TimeBadge = {
 
 export function getTimeBadge(activity: Activity): TimeBadge {
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const BCN_TZ = 'Europe/Madrid';
+  const todayStr    = today.toLocaleDateString('en-CA', { timeZone: BCN_TZ });
   const tomorrowDate = new Date(today);
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-  const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+  const tomorrowStr = tomorrowDate.toLocaleDateString('en-CA', { timeZone: BCN_TZ });
 
   const isToday    = activity.start_date === todayStr;
   const isTomorrow = activity.start_date === tomorrowStr;
   if (!isToday && !isTomorrow) return null;
 
-  const nowMinutes = today.getHours() * 60 + today.getMinutes();
+  const bcnNow = new Date(today.toLocaleString('en-US', { timeZone: BCN_TZ }));
+  const nowMinutes = bcnNow.getHours() * 60 + bcnNow.getMinutes();
 
   if (!activity.start_time) {
     if (isTomorrow) return { label: '1día', emoji: '📅', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', borderColor: '#8b5cf6' };

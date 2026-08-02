@@ -126,7 +126,7 @@ const RegistrationForm: React.FC = () => {
 
   const handleVenYa = () => {
     const now = new Date();
-    setStartDate(now.toISOString().split('T')[0]);
+    setStartDate(now.toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' }));
     const startHHMM = now.toTimeString().slice(0, 5);
     setStartTime(startHHMM);
     setEndTimeMin(startHHMM);
@@ -253,17 +253,17 @@ const RegistrationForm: React.FC = () => {
             />
           </div>
         </div>
-        <div className="reg-field">
-          <label htmlFor="reg-start">{t('register.date')}</label>
-          <input
-            id="reg-start"
-            type="date"
-            value={startDate}
-            onChange={e => setStartDate(e.target.value)}
-            required
-          />
-        </div>
-        <div className="reg-date-row">
+        <div className="reg-datetime-row">
+          <div className="reg-field">
+            <label htmlFor="reg-start">{t('register.date')}</label>
+            <input
+              id="reg-start"
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              required
+            />
+          </div>
           <div className="reg-field">
             <label htmlFor="reg-time">{t('register.startTime')}</label>
             <input

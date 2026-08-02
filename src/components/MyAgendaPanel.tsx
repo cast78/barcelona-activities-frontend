@@ -61,7 +61,7 @@ const MyAgendaPanel: React.FC<MyAgendaPanelProps> = ({ activities, onClose, onAt
       lines.push('');
     });
     lines.push(t('agenda.shareFooter'));
-    lines.push('👉 https://barcelona-activities-frontend.vercel.app');
+    lines.push('👉 https://GoOnMap.es');
     const text = lines.join('\n');
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };

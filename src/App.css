@@ -179,6 +179,11 @@ body {
   padding: 0;
 }
 
+.App-main--scrollable {
+  overflow-y: auto;
+  align-items: center;
+}
+
 /* === LAYOUT MAP-FIRST === */
 .map-fullscreen {
   position: relative;
