@@ -597,7 +597,7 @@ function App() {
                   <img
                     src="/favicon-192.png"
                     alt={trackingMode ? 'Modo ciudad activo' : 'Activar modo ciudad'}
-                    style={{ width: 20, height: 20, objectFit: 'contain', filter: trackingMode ? 'none' : 'grayscale(0.2) brightness(1.1)' }}
+                    style={{ width: 20, height: 20, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                   />
                 </button>
 

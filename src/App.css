@@ -253,29 +253,28 @@ body {
   right: 10px;
   width: 30px;
   height: 30px;
-  background: #fff;
-  border: 2px solid rgba(0,0,0,0.15);
+  background: #e53e3e;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.3);
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+  transition: background 0.2s, box-shadow 0.2s;
   padding: 0;
   z-index: 950;
 }
 .tracking-mode-btn:hover {
-  background: #f3f4f6;
+  background: #c53030;
 }
 .tracking-mode-btn--active {
-  background: #fff;
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26,115,232,0.25), 0 1px 5px rgba(0,0,0,0.4);
+  background: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.3), 0 1px 5px rgba(0,0,0,0.35);
 }
 .tracking-mode-btn--active:hover {
-  background: #f0f4ff;
+  background: #1557b0;
 }
 
 /* Animación de pulso para el marcador GPS en tiempo real en el mapa */
