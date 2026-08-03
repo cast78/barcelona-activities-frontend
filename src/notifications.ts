@@ -16,7 +16,8 @@ export const showNotification = async (title: string, body: string) => {
     const registration = await navigator.serviceWorker.ready;
     registration.showNotification(title, {
       body,
-      icon: '/logo192.png'
+      icon: '/pwa-icon.png',
+      badge: '/badge-icon.png'
     });
   } else {
     // Fallback para escritorio

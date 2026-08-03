@@ -7,6 +7,12 @@
       "type": "image/png",
       "sizes": "1254x1254",
       "purpose": "any maskable"
+    },
+    {
+      "src": "badge-icon.png",
+      "type": "image/png",
+      "sizes": "96x96",
+      "purpose": "monochrome"
     }
   ],
   "start_url": "/",
