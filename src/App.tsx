@@ -110,6 +110,17 @@ function App() {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const [trackingMode, setTrackingMode] = useState(false);
   const trackingModeRef = useRef(false);
+  const [showTrackingHint, setShowTrackingHint] = useState(() => !localStorage.getItem('goonmap_tracking_hint_seen'));
+
+  // Auto-ocultar el hint tras 5s y marcarlo como visto
+  useEffect(() => {
+    if (!showTrackingHint) return;
+    const timer = setTimeout(() => {
+      setShowTrackingHint(false);
+      localStorage.setItem('goonmap_tracking_hint_seen', '1');
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [showTrackingHint]);
 
   // Sincronizar ref con el estado (para leer en el callback del watchPosition sin stale closure)
   useEffect(() => { trackingModeRef.current = trackingMode; }, [trackingMode]);
@@ -572,13 +583,35 @@ function App() {
 
                 {/* Botón modo ciudad — tracking GPS en tiempo real */}
                 <button
-                  className={`tracking-mode-btn${trackingMode ? ' tracking-mode-btn--active' : ''}`}
-                  onClick={() => setTrackingMode(m => !m)}
+                  className={`tracking-mode-btn${trackingMode ? ' tracking-mode-btn--active' : ''}${showTrackingHint && !trackingMode ? ' tracking-mode-btn--hint' : ''}`}
+                  onClick={() => {
+                    setTrackingMode(m => !m);
+                    if (showTrackingHint) {
+                      setShowTrackingHint(false);
+                      localStorage.setItem('goonmap_tracking_hint_seen', '1');
+                    }
+                  }}
                   title={trackingMode ? 'Desactivar modo ciudad' : 'Activar modo ciudad'}
                   aria-label={trackingMode ? 'Desactivar modo ciudad' : 'Activar modo ciudad'}
                 >
-                  {trackingMode ? '🔵' : '📍'}
+                  <img
+                    src="/favicon-192.png"
+                    alt={trackingMode ? 'Modo ciudad activo' : 'Activar modo ciudad'}
+                    style={{ width: 20, height: 20, objectFit: 'contain', filter: trackingMode ? 'none' : 'grayscale(0.2) brightness(1.1)' }}
+                  />
                 </button>
+
+                {/* Callout de primera visita */}
+                {showTrackingHint && !trackingMode && (
+                  <div className="tracking-hint-callout">
+                    <span>¿De paseo? Activa el modo ciudad</span>
+                    <button
+                      className="tracking-hint-callout__close"
+                      onClick={() => { setShowTrackingHint(false); localStorage.setItem('goonmap_tracking_hint_seen', '1'); }}
+                      aria-label="Cerrar"
+                    >×</button>
+                  </div>
+                )}
 
                 {usingFallback && (
                   <div className="map-fallback-badge">
