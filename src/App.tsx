@@ -115,9 +115,17 @@ function App() {
   useEffect(() => { trackingModeRef.current = trackingMode; }, [trackingMode]);
 
   // Auto-centrar el mapa cuando está en modo tracking y la posición cambia
+  // Al desactivar: zoom out a nivel de barrio (zoom 13)
+  const prevTrackingRef = useRef(false);
   useEffect(() => {
-    if (!trackingMode || !userCoords) return;
-    setCenterOn({ lat: userCoords[0], lng: userCoords[1], zoom: 16 });
+    if (trackingMode && userCoords) {
+      // Activado o posición actualizada en modo tracking → zoom nivel calle
+      setCenterOn({ lat: userCoords[0], lng: userCoords[1], zoom: 16 });
+    } else if (!trackingMode && prevTrackingRef.current && userCoords) {
+      // Transición true → false → zoom out a nivel barrio
+      setCenterOn({ lat: userCoords[0], lng: userCoords[1], zoom: 13 });
+    }
+    prevTrackingRef.current = trackingMode;
   }, [userCoords, trackingMode]);
 
   // ── Proximity notifications (Modo 1) ──────────────────────────────────────
