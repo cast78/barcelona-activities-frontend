@@ -264,7 +264,7 @@ body {
   box-shadow: 0 1px 5px rgba(0,0,0,0.65);
   transition: background 0.15s, border-color 0.2s, box-shadow 0.2s;
   padding: 0;
-  z-index: 400;
+  z-index: 950;
 }
 .tracking-mode-btn:hover {
   background: #f4f4f4;
@@ -316,7 +316,7 @@ body {
 /* Segmented control: Planificar + toggle capa */
 .map-route-control {
   position: absolute;
-  top: 70px;
+  top: 100px;
   right: 10px;
   z-index: 900;
   display: flex;
@@ -409,7 +409,7 @@ body {
 
 @media (max-width: 640px) {
   .map-route-control {
-    top: 70px;
+    top: 100px;
     right: 10px;
     border-radius: 6px;
   }
