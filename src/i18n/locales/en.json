@@ -105,6 +105,11 @@
     "errorNoActivities": "No activities found compatible with the available time.",
     "errorRoute": "Error calculating the route. Please try again."
   },
+  "tracking": {
+    "live": "Live",
+    "activate": "Go Live",
+    "deactivate": "Stop Live"
+  },
   "register": {
     "title": "New activity",
     "fillNow": "⚡ Fill now!",

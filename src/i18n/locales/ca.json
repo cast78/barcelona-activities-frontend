@@ -104,6 +104,11 @@
     "errorNoActivities": "No s'han trobat activitats compatibles amb el temps disponible.",
     "errorRoute": "Error al calcular la ruta. Torna-ho a intentar."
   },
+  "tracking": {
+    "live": "En viu",
+    "activate": "Activar mode En viu",
+    "deactivate": "Desactivar mode En viu"
+  },
   "register": {
     "title": "Nova activitat",
     "fillNow": "⚡ Omple ara!",

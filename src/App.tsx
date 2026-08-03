@@ -591,14 +591,15 @@ function App() {
                       localStorage.setItem('goonmap_tracking_hint_seen', '1');
                     }
                   }}
-                  title={trackingMode ? 'Desactivar modo ciudad' : 'Activar modo ciudad'}
-                  aria-label={trackingMode ? 'Desactivar modo ciudad' : 'Activar modo ciudad'}
+                  title={trackingMode ? t('tracking.deactivate') : t('tracking.activate')}
+                  aria-label={trackingMode ? t('tracking.deactivate') : t('tracking.activate')}
                 >
                   <img
                     src="/badge-icon.png"
-                    alt={trackingMode ? 'Modo ciudad activo' : 'Activar modo ciudad'}
-                    style={{ width: 22, height: 22, objectFit: 'contain' }}
+                    alt=""
+                    style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }}
                   />
+                  <span className="tracking-mode-btn__text">{t('tracking.live')}</span>
                 </button>
 
                 {/* Callout de primera visita */}

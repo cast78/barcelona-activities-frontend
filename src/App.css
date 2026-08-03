@@ -224,7 +224,7 @@ body {
 /* Botón de navegación del mapa (Barcelona) */
 .map-nav-btn-barcelona {
   position: absolute;
-  top: 20px;
+  top: 110px;
   right: 10px;
   width: 30px;
   height: 30px;
@@ -249,29 +249,34 @@ body {
 /* Botón modo ciudad (tracking GPS en tiempo real) */
 .tracking-mode-btn {
   position: absolute;
-  top: 60px;
+  top: 70px;
   right: 10px;
-  width: 30px;
-  height: 30px;
-  background: #e53e3e;
+  height: auto;
+  background: #6b7280;
   border: none;
-  border-radius: 4px;
+  border-radius: 24px;
   cursor: pointer;
-  font-size: 1rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem 0.45rem 0.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   transition: background 0.2s, box-shadow 0.2s;
-  padding: 0;
   z-index: 950;
 }
+.tracking-mode-btn__text {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
 .tracking-mode-btn:hover {
-  background: #c53030;
+  background: #4b5563;
 }
 .tracking-mode-btn--active {
   background: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26,115,232,0.35), 0 1px 5px rgba(0,0,0,0.35);
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.35), 0 2px 8px rgba(0,0,0,0.2);
 }
 .tracking-mode-btn--active:hover {
   background: #1557b0;
@@ -376,7 +381,7 @@ body {
 /* Segmented control: Planificar + toggle capa */
 .map-route-control {
   position: absolute;
-  top: 100px;
+  top: 150px;
   right: 10px;
   z-index: 910;
   display: flex;
@@ -423,7 +428,7 @@ body {
 /* Leyenda de modos de ruta — debajo del botón Ver ruta/Modo explorar */
 .map-route-legend {
   position: absolute;
-  top: 137px;
+  top: 187px;
   right: 10px;
   left: auto;
   bottom: auto;
@@ -455,7 +460,7 @@ body {
 
 @media (max-width: 640px) {
   .map-route-legend {
-    top: 137px;
+    top: 187px;
     right: 10px;
     left: auto;
     bottom: auto;
@@ -473,7 +478,7 @@ body {
 
 @media (max-width: 640px) {
   .map-route-control {
-    top: 100px;
+    top: 150px;
     right: 10px;
     border-radius: 6px;
   }

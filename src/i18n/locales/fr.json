@@ -104,6 +104,11 @@
     "errorNoActivities": "Aucune activité compatible avec le temps disponible.",
     "errorRoute": "Erreur lors du calcul de l'itinéraire. Veuillez réessayer."
   },
+  "tracking": {
+    "live": "En direct",
+    "activate": "Activer En direct",
+    "deactivate": "Désactiver En direct"
+  },
   "register": {
     "title": "Nouvelle activité",
     "fillNow": "⚡ Remplir maintenant !",

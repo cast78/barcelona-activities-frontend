@@ -104,6 +104,11 @@
     "errorNoActivities": "No se encontraron actividades compatibles con el tiempo disponible.",
     "errorRoute": "Error al calcular la ruta. Inténtalo de nuevo."
   },
+  "tracking": {
+    "live": "En vivo",
+    "activate": "Activar modo En vivo",
+    "deactivate": "Desactivar modo En vivo"
+  },
   "register": {
     "title": "Nueva actividad",
     "fillNow": "⚡ ¡Ven ya!",
