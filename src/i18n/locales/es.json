@@ -99,7 +99,7 @@
     "changeMode": "↩ Cambiar modo",
     "explore": "Explorar",
     "viewRoute": "Ver ruta",
-    "createRoute": "Crear ruta",
+    "createRoute": "Ruta",
     "errorNoLocation": "Ubicación no disponible",
     "errorNoActivities": "No se encontraron actividades compatibles con el tiempo disponible.",
     "errorRoute": "Error al calcular la ruta. Inténtalo de nuevo."

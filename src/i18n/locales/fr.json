@@ -99,7 +99,7 @@
     "changeMode": "↩ Changer de mode",
     "explore": "Explorer",
     "viewRoute": "Voir l'itinéraire",
-    "createRoute": "Créer un itinéraire",
+    "createRoute": "Itinéraire",
     "errorNoLocation": "Position non disponible",
     "errorNoActivities": "Aucune activité compatible avec le temps disponible.",
     "errorRoute": "Erreur lors du calcul de l'itinéraire. Veuillez réessayer."

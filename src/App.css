@@ -224,7 +224,7 @@ body {
 /* Botón de navegación del mapa (Barcelona) */
 .map-nav-btn-barcelona {
   position: absolute;
-  top: 110px;
+  top: 20px;
   right: 10px;
   width: 30px;
   height: 30px;
@@ -248,21 +248,18 @@ body {
 
 /* Botón modo ciudad (tracking GPS en tiempo real) */
 .tracking-mode-btn {
-  position: absolute;
-  top: 70px;
-  right: 10px;
   height: auto;
-  background: #6b7280;
-  border: none;
+  background: #9ca3af;
+  border: 2px solid rgba(26,115,232,0.85);
   border-radius: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
   padding: 0.45rem 0.85rem 0.45rem 0.6rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   transition: background 0.2s, box-shadow 0.2s;
-  z-index: 950;
 }
 .tracking-mode-btn__text {
   font-family: inherit;
@@ -378,20 +375,29 @@ body {
   }
 }
 
+/* Stack columna derecha: botón En vivo + botón Ruta */
+.map-btn-stack {
+  position: absolute;
+  top: 60px;
+  right: 10px;
+  z-index: 950;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
 /* Segmented control: Planificar + toggle capa */
 .map-route-control {
-  position: absolute;
-  top: 150px;
-  right: 10px;
-  z-index: 910;
   display: flex;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(26,115,232,0.3);
-  border: 1.5px solid rgba(26,115,232,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border: 2px solid rgba(26,115,232,0.85);
 }
 
 .map-route-control__btn {
+  flex: 1;
   padding: 0.5rem 1rem;
   font-family: inherit;
   font-size: 0.8rem;
@@ -400,6 +406,7 @@ body {
   border: none;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
   white-space: nowrap;
   transition: background 0.15s;
@@ -411,24 +418,24 @@ body {
 }
 
 .map-route-control__btn--layer {
-  background: #fff;
-  color: #6b7280;
-  border-left: 1.5px solid rgba(102,126,234,0.3);
+  background: #9ca3af;
+  color: #fff;
 }
 
 .map-route-control__btn--layer:hover {
-  background: #f3f4f6;
+  background: #6b7280;
 }
 
 .map-route-control__btn--layer.active {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: #1a73e8;
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.35) inset;
 }
 
 /* Leyenda de modos de ruta — debajo del botón Ver ruta/Modo explorar */
 .map-route-legend {
   position: absolute;
-  top: 187px;
+  top: 150px;
   right: 10px;
   left: auto;
   bottom: auto;
@@ -460,7 +467,7 @@ body {
 
 @media (max-width: 640px) {
   .map-route-legend {
-    top: 187px;
+    top: 150px;
     right: 10px;
     left: auto;
     bottom: auto;
@@ -478,19 +485,12 @@ body {
 
 @media (max-width: 640px) {
   .map-route-control {
-    top: 150px;
-    right: 10px;
-    border-radius: 6px;
+    border-radius: 24px;
   }
   .map-route-control__btn {
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    font-size: 1rem;
+    padding: 0.45rem 0.75rem 0.45rem 0.55rem;
+    font-size: 0.78rem;
     justify-content: center;
-  }
-  .map-route-control__btn-text {
-    display: none;
   }
 }
 

@@ -581,28 +581,46 @@ function App() {
                 />
                 <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} liveCoords={userCoords} trackingMode={trackingMode} />
 
-                {/* Botón modo ciudad — tracking GPS en tiempo real */}
-                <button
-                  className={`tracking-mode-btn${trackingMode ? ' tracking-mode-btn--active' : ''}${showTrackingHint && !trackingMode ? ' tracking-mode-btn--hint' : ''}`}
-                  onClick={() => {
-                    setTrackingMode(m => !m);
-                    if (showTrackingHint) {
-                      setShowTrackingHint(false);
-                      localStorage.setItem('goonmap_tracking_hint_seen', '1');
-                    }
-                  }}
-                  title={trackingMode ? t('tracking.deactivate') : t('tracking.activate')}
-                  aria-label={trackingMode ? t('tracking.deactivate') : t('tracking.activate')}
-                >
-                  <img
-                    src="/badge-icon.png"
-                    alt=""
-                    style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }}
-                  />
-                  <span className="tracking-mode-btn__text">{t('tracking.live')}</span>
-                </button>
+                {/* Stack derecho: botón En vivo + botón Ruta (mismo ancho) */}
+                <div className="map-btn-stack">
+                  {/* Botón modo ciudad — tracking GPS en tiempo real */}
+                  <button
+                    className={`tracking-mode-btn${trackingMode ? ' tracking-mode-btn--active' : ''}${showTrackingHint && !trackingMode ? ' tracking-mode-btn--hint' : ''}`}
+                    onClick={() => {
+                      setTrackingMode(m => !m);
+                      if (showTrackingHint) {
+                        setShowTrackingHint(false);
+                        localStorage.setItem('goonmap_tracking_hint_seen', '1');
+                      }
+                    }}
+                    title={trackingMode ? t('tracking.deactivate') : t('tracking.activate')}
+                    aria-label={trackingMode ? t('tracking.deactivate') : t('tracking.activate')}
+                  >
+                    <img
+                      src={trackingMode ? '/favicon-192.png' : '/badge-icon.png'}
+                      alt=""
+                      style={{ width: 24, height: 24, objectFit: 'contain', flexShrink: 0 }}
+                    />
+                    <span className="tracking-mode-btn__text">{t('tracking.live')}</span>
+                  </button>
 
-                {/* Callout de primera visita */}
+                  {/* Botón único: abre el planificador si no hay ruta, o alterna vista ruta/mapa si ya existe */}
+                  {activities.length >= 2 && !isSearching && (
+                    <div className="map-route-control">
+                      <button
+                        className={`map-route-control__btn map-route-control__btn--layer${itinerary && showRoute ? ' active' : ''}`}
+                        onClick={() => itinerary ? setShowRoute(r => !r) : setShowPlanner(true)}
+                        title={itinerary ? (showRoute ? 'Modo explorar' : 'Ver ruta') : 'Planificar ruta'}
+                      >
+                        {itinerary && showRoute
+                          ? <><span>🔍</span><span className="map-route-control__btn-text"> {t('planner.explore')}</span></>
+                          : <><span>🗺️</span><span className="map-route-control__btn-text"> {itinerary ? t('planner.viewRoute') : t('planner.createRoute')}</span></>}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Callout de primera visita — absoluto, fuera del stack */}
                 {showTrackingHint && !trackingMode && (
                   <div className="tracking-hint-callout">
                     <span>¿De paseo? Activa el modo ciudad</span>
@@ -673,21 +691,6 @@ function App() {
                     />
                   )}
                 </div>
-
-                {/* Botón único: abre el planificador si no hay ruta, o alterna vista ruta/mapa si ya existe */}
-                {activities.length >= 2 && !isSearching && (
-                  <div className="map-route-control">
-                    <button
-                      className={`map-route-control__btn map-route-control__btn--layer${itinerary && showRoute ? ' active' : ''}`}
-                      onClick={() => itinerary ? setShowRoute(r => !r) : setShowPlanner(true)}
-                      title={itinerary ? (showRoute ? 'Modo explorar' : 'Ver ruta') : 'Planificar ruta'}
-                    >
-                      {itinerary && showRoute
-                        ? <><span>🔍</span><span className="map-route-control__btn-text"> {t('planner.explore')}</span></>
-                        : <><span>🗺️</span><span className="map-route-control__btn-text"> {itinerary ? t('planner.viewRoute') : t('planner.createRoute')}</span></>}
-                    </button>
-                  </div>
-                )}
 
                 {/* Botón volver a Barcelona */}
                 <button className="map-nav-btn-barcelona" onClick={handleGoToBarcelona} title="My position">🧭</button>

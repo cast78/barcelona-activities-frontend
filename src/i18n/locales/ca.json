@@ -99,7 +99,7 @@
     "changeMode": "↩ Canviar mode",
     "explore": "Explorar",
     "viewRoute": "Veure ruta",
-    "createRoute": "Crear ruta",
+    "createRoute": "Ruta",
     "errorNoLocation": "Ubicació no disponible",
     "errorNoActivities": "No s'han trobat activitats compatibles amb el temps disponible.",
     "errorRoute": "Error al calcular la ruta. Torna-ho a intentar."
