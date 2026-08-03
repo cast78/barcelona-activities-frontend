@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Inici",
-    "register": "Crear activitat",
+    "register": "Nova activitat",
     "agenda": "La meva agenda"
   },
   "footer": {
@@ -9,7 +9,7 @@
   },
   "header": {
     "title": "La teva Ciutat en temps real",
-    "titleRegister": "Crear activitat"
+    "titleRegister": "Nova activitat"
   },
   "sheet": {
     "searching": "Cercant activitats...",

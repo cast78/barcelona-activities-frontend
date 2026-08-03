@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Home",
-    "register": "Create activity",
+    "register": "New activity",
     "agenda": "My agenda"
   },
   "footer": {
@@ -9,7 +9,7 @@
   },
   "header": {
     "title": "Your City in real time",
-    "titleRegister": "Create activity"
+    "titleRegister": "New activity"
   },
   "sheet": {
     "searching": "Searching for activities...",
