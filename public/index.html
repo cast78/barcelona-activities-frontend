@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/pwa-icon.png" type="image/png" />
@@ -25,7 +25,12 @@
 
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/pwa-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>GoOnMap Barcelona</title>
+    <title>GoOnMap — Actividades y Eventos en Barcelona Hoy | Qué hacer en Barcelona</title>
+    <link rel="alternate" hreflang="es" href="https://www.goonmap.es/?lang=es" />
+    <link rel="alternate" hreflang="ca" href="https://www.goonmap.es/?lang=ca" />
+    <link rel="alternate" hreflang="en" href="https://www.goonmap.es/?lang=en" />
+    <link rel="alternate" hreflang="fr" href="https://www.goonmap.es/?lang=fr" />
+    <link rel="alternate" hreflang="x-default" href="https://www.goonmap.es" />
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -36,9 +41,48 @@
       "description": "Descubre actividades y eventos en Barcelona en tiempo real"
     }
     </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "GoOnMap Barcelona",
+      "url": "https://www.goonmap.es",
+      "image": "https://www.goonmap.es/pwa-icon.png",
+      "description": "Descubre qué hacer en Barcelona hoy: actividades, conciertos, deporte, cultura, gastronomía y eventos en tiempo real.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Barcelona",
+        "addressRegion": "Cataluña",
+        "addressCountry": "ES"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 41.3851,
+        "longitude": 2.1734
+      },
+      "areaServed": "Barcelona",
+      "serviceType": "Actividades y eventos en Barcelona"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "GoOnMap Barcelona",
+      "url": "https://www.goonmap.es",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.goonmap.es/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>Necesitas activar JavaScript para usar esta aplicación.</noscript>
     <div id="root"></div>
     <!--
       This HTML file is a template.
