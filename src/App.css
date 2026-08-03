@@ -249,7 +249,7 @@ body {
 /* Botón modo ciudad (tracking GPS en tiempo real) */
 .tracking-mode-btn {
   height: auto;
-  background: #9ca3af;
+  background: #fff;
   border: 2px solid rgba(26,115,232,0.85);
   border-radius: 24px;
   cursor: pointer;
@@ -265,15 +265,18 @@ body {
   font-family: inherit;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #fff;
+  color: #6b7280;
   white-space: nowrap;
 }
 .tracking-mode-btn:hover {
-  background: #4b5563;
+  background: #f3f4f6;
 }
 .tracking-mode-btn--active {
   background: #1a73e8;
   box-shadow: 0 0 0 3px rgba(26,115,232,0.35), 0 2px 8px rgba(0,0,0,0.2);
+}
+.tracking-mode-btn--active .tracking-mode-btn__text {
+  color: #fff;
 }
 .tracking-mode-btn--active:hover {
   background: #1557b0;
@@ -418,12 +421,12 @@ body {
 }
 
 .map-route-control__btn--layer {
-  background: #9ca3af;
-  color: #fff;
+  background: #fff;
+  color: #6b7280;
 }
 
 .map-route-control__btn--layer:hover {
-  background: #6b7280;
+  background: #f3f4f6;
 }
 
 .map-route-control__btn--layer.active {

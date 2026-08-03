@@ -597,9 +597,9 @@ function App() {
                     aria-label={trackingMode ? t('tracking.deactivate') : t('tracking.activate')}
                   >
                     <img
-                      src={trackingMode ? '/favicon-192.png' : '/badge-icon.png'}
+                      src="/favicon-192.png"
                       alt=""
-                      style={{ width: 24, height: 24, objectFit: 'contain', flexShrink: 0 }}
+                      style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }}
                     />
                     <span className="tracking-mode-btn__text">{t('tracking.live')}</span>
                   </button>
