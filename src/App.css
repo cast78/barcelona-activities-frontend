@@ -253,7 +253,7 @@ body {
   right: 10px;
   width: 30px;
   height: 30px;
-  background: #fff;
+  background: #6b7280;
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 4px;
   cursor: pointer;
@@ -262,24 +262,85 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-  transition: background 0.15s, border-color 0.2s, box-shadow 0.2s;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   padding: 0;
   z-index: 950;
 }
 .tracking-mode-btn:hover {
-  background: #f4f4f4;
+  background: #4b5563;
 }
 .tracking-mode-btn--active {
-  background: #e8f0fe;
+  background: #fff;
   border-color: #1a73e8;
   box-shadow: 0 0 0 3px rgba(26,115,232,0.25), 0 1px 5px rgba(0,0,0,0.4);
+}
+.tracking-mode-btn--active:hover {
+  background: #f0f4ff;
 }
 
 /* Animación de pulso para el marcador GPS en tiempo real en el mapa */
 @keyframes liveRipple {
-  0%   { transform: scale(0.8); opacity: 0.7; }
-  70%  { transform: scale(2.4); opacity: 0; }
-  100% { transform: scale(2.4); opacity: 0; }
+  0%   { transform: scale(0.5); opacity: 0.8; }
+  80%  { transform: scale(3.5); opacity: 0; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+
+/* Pulso del botón en la primera visita */
+@keyframes trackingBtnPulse {
+  0%, 100% { box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
+  50%       { box-shadow: 0 0 0 7px rgba(107,114,128,0.28), 0 1px 5px rgba(0,0,0,0.4); }
+}
+@keyframes hintFadeIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.tracking-mode-btn--hint {
+  animation: trackingBtnPulse 1.8s ease-in-out infinite;
+}
+
+/* Callout de primera visita */
+.tracking-hint-callout {
+  position: absolute;
+  top: 58px;
+  right: 50px;
+  z-index: 951;
+  background: rgba(26, 115, 232, 0.93);
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 10px 5px 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: hintFadeIn 0.3s ease;
+  pointer-events: all;
+}
+.tracking-hint-callout::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: rgba(26, 115, 232, 0.93);
+  border-right: none;
+}
+.tracking-hint-callout__close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.tracking-hint-callout__close:hover {
+  color: #fff;
 }
 
 .map-fallback-badge {
@@ -318,7 +379,7 @@ body {
   position: absolute;
   top: 100px;
   right: 10px;
-  z-index: 900;
+  z-index: 910;
   display: flex;
   border-radius: 24px;
   overflow: hidden;
@@ -360,18 +421,20 @@ body {
   color: var(--color-primary);
 }
 
-/* Leyenda de modos de ruta — debajo del segmented control */
+/* Leyenda de modos de ruta — debajo del botón Ver ruta/Modo explorar */
 .map-route-legend {
   position: absolute;
-  top: 110px;
+  top: 137px;
   right: 10px;
+  left: auto;
+  bottom: auto;
   z-index: 900;
-  background: rgba(255,255,255,0.93);
-  border-radius: 12px;
-  padding: 0.35rem 0.75rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.14);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(26,115,232,0.15);
+  background: rgba(255,255,255,0.55);
+  border-radius: 4px;
+  padding: 0.35rem 0.3rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.4);
   display: flex;
   flex-direction: row;
   gap: 0.85rem;
@@ -393,11 +456,13 @@ body {
 
 @media (max-width: 640px) {
   .map-route-legend {
-    top: 110px;
+    top: 137px;
     right: 10px;
-    padding: 0.25rem 0.5rem;
+    left: auto;
+    bottom: auto;
+    padding: 0.25rem 0.3rem;
     gap: 0.5rem;
-    border-radius: 6px;
+    border-radius: 4px;
   }
   .map-route-legend__line {
     width: 20px;

@@ -191,13 +191,14 @@ const MapContent: React.FC<{
   const liveIcon = (L as any).divIcon({
     className: '',
     html: `
-      <div style="position:relative;width:22px;height:22px;">
-        <div style="position:absolute;top:4px;left:4px;width:14px;height:14px;background:#1a73e8;border:2.5px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #1a73e8;z-index:2;"></div>
-        <div style="position:absolute;inset:0;background:rgba(26,115,232,0.25);border-radius:50%;animation:liveRipple 2s ease-out infinite;"></div>
-        <div style="position:absolute;inset:0;background:rgba(26,115,232,0.12);border-radius:50%;animation:liveRipple 2s ease-out 0.7s infinite;"></div>
+      <div style="position:relative;width:60px;height:60px;">
+        <div style="position:absolute;top:23px;left:23px;width:14px;height:14px;background:#1a73e8;border:2.5px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #1a73e8;z-index:2;"></div>
+        <div style="position:absolute;top:14px;left:14px;width:32px;height:32px;background:rgba(16,185,129,0.60);border-radius:50%;animation:liveRipple 2s ease-out infinite;"></div>
+        <div style="position:absolute;top:14px;left:14px;width:32px;height:32px;background:rgba(14,150,200,0.42);border-radius:50%;animation:liveRipple 2s ease-out 0.65s infinite;"></div>
+        <div style="position:absolute;top:14px;left:14px;width:32px;height:32px;background:rgba(26,115,232,0.26);border-radius:50%;animation:liveRipple 2s ease-out 1.3s infinite;"></div>
       </div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    iconSize: [60, 60],
+    iconAnchor: [30, 30],
   });
 
   const getLikeColor = (likes: number = 0): string => {
