@@ -108,6 +108,17 @@ function App() {
   const [showPlanner, setShowPlanner] = useState(false);
   const [showRoute, setShowRoute] = useState(false);
   const [showDebugTable, setShowDebugTable] = useState(false);
+  const [trackingMode, setTrackingMode] = useState(false);
+  const trackingModeRef = useRef(false);
+
+  // Sincronizar ref con el estado (para leer en el callback del watchPosition sin stale closure)
+  useEffect(() => { trackingModeRef.current = trackingMode; }, [trackingMode]);
+
+  // Auto-centrar el mapa cuando está en modo tracking y la posición cambia
+  useEffect(() => {
+    if (!trackingMode || !userCoords) return;
+    setCenterOn({ lat: userCoords[0], lng: userCoords[1], zoom: 16 });
+  }, [userCoords, trackingMode]);
 
   // ── Proximity notifications (Modo 1) ──────────────────────────────────────
   const notifiedIdsRef = useRef<Set<string>>(new Set());
@@ -189,7 +200,7 @@ function App() {
         }
       },
       () => { /* silenciar errores de watchPosition */ },
-      { enableHighAccuracy: false, maximumAge: 30000 }
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
@@ -549,7 +560,17 @@ function App() {
                   }, {} as Record<string, number>)}
                   onChange={setSelectedCategories}
                 />
-                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} />
+                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} liveCoords={userCoords} trackingMode={trackingMode} />
+
+                {/* Botón modo ciudad — tracking GPS en tiempo real */}
+                <button
+                  className={`tracking-mode-btn${trackingMode ? ' tracking-mode-btn--active' : ''}`}
+                  onClick={() => setTrackingMode(m => !m)}
+                  title={trackingMode ? 'Desactivar modo ciudad' : 'Activar modo ciudad'}
+                  aria-label={trackingMode ? 'Desactivar modo ciudad' : 'Activar modo ciudad'}
+                >
+                  {trackingMode ? '🔵' : '📍'}
+                </button>
 
                 {usingFallback && (
                   <div className="map-fallback-badge">

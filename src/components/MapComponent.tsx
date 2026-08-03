@@ -41,6 +41,8 @@ interface MapComponentProps {
   showRoute?: boolean;
   shareHeader?: string;
   shareFooter?: string;
+  liveCoords?: [number, number] | null;
+  trackingMode?: boolean;
 }
 
 // Componente auxiliar para manejar el mapa
@@ -57,7 +59,9 @@ const MapContent: React.FC<{
   showRoute?: boolean;
   shareHeader?: string;
   shareFooter?: string;
-}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter }) => {
+  liveCoords?: [number, number] | null;
+  trackingMode?: boolean;
+}> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter, liveCoords }) => {
   const map = useMap();
   const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
@@ -183,6 +187,19 @@ const MapContent: React.FC<{
     iconAnchor: [7, 7],
   });
 
+  // Icono animado para posición GPS en tiempo real
+  const liveIcon = (L as any).divIcon({
+    className: '',
+    html: `
+      <div style="position:relative;width:22px;height:22px;">
+        <div style="position:absolute;top:4px;left:4px;width:14px;height:14px;background:#1a73e8;border:2.5px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #1a73e8;z-index:2;"></div>
+        <div style="position:absolute;inset:0;background:rgba(26,115,232,0.25);border-radius:50%;animation:liveRipple 2s ease-out infinite;"></div>
+        <div style="position:absolute;inset:0;background:rgba(26,115,232,0.12);border-radius:50%;animation:liveRipple 2s ease-out 0.7s infinite;"></div>
+      </div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+
   const getLikeColor = (likes: number = 0): string => {
     if (likes === 0) return '#3b82f6';  // azul — sin datos
     if (likes <= 3)  return '#eab308';  // amarillo — poco interés
@@ -231,9 +248,16 @@ const MapContent: React.FC<{
   return (
     <>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      {userCoords && (
+      {/* Marcador de centro de búsqueda (dirección buscada) — solo si no hay GPS activo */}
+      {userCoords && !liveCoords && (
         <Marker position={userCoords} {...{ icon: userIcon } as any}>
-          <Popup><strong>Tu ubicación</strong></Popup>
+          <Popup><strong>Centro de búsqueda</strong></Popup>
+        </Marker>
+      )}
+      {/* Marcador GPS en tiempo real */}
+      {liveCoords && (
+        <Marker position={liveCoords} {...{ icon: liveIcon } as any}>
+          <Popup><strong>📍 Tu posición actual</strong></Popup>
         </Marker>
       )}
       {userCoords && radiusKm !== undefined && (
@@ -253,7 +277,8 @@ const MapContent: React.FC<{
           const coords = activity.geo_epgs_4326_latlon.split(',').map(Number);
           if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
             const timeBadge = getTimeBadge(activity);
-            const distBadge = getDistanceBadge(activity, userCoords);
+            // Usar GPS en tiempo real para distancia si está disponible
+            const distBadge = getDistanceBadge(activity, liveCoords ?? userCoords);
             const inItinerary = showRoute && itineraryStopIds.has(activity.id);
             const markerBadge = inItinerary ? undefined : (timeBadge ?? distBadge);
             return (
@@ -568,7 +593,7 @@ const MapContent: React.FC<{
   );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter, liveCoords, trackingMode }) => {
   const mapProps = {
     center: [41.3851, 2.1734] as [number, number],
     zoom: 11,
@@ -581,7 +606,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ activities, userLocation, r
         style={{ height: '100%', width: '100%', minHeight: '300px' }}
         {...mapProps}
       >
-        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} openPopupSeq={openPopupSeq} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={shareHeader} shareFooter={shareFooter} />
+        <MapContent activities={activities} userLocation={userLocation} radiusKm={radiusKm} centerOn={centerOn} onActivitySelect={onActivitySelect} openPopupForId={openPopupForId} openPopupSeq={openPopupSeq} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={shareHeader} shareFooter={shareFooter} liveCoords={liveCoords} trackingMode={trackingMode} />
       </MapContainer>
     </div>
   );
