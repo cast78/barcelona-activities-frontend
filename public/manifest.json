@@ -3,6 +3,16 @@
   "name": "GoOnMap Barcelona",
   "icons": [
     {
+      "src": "favicon.ico",
+      "type": "image/x-icon",
+      "sizes": "16x16 32x32 48x48"
+    },
+    {
+      "src": "favicon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
       "src": "pwa-icon.png",
       "type": "image/png",
       "sizes": "1254x1254",
