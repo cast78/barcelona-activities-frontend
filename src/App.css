@@ -271,7 +271,7 @@ body {
 }
 .tracking-mode-btn--active {
   background: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26,115,232,0.3), 0 1px 5px rgba(0,0,0,0.35);
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.35), 0 1px 5px rgba(0,0,0,0.35);
 }
 .tracking-mode-btn--active:hover {
   background: #1557b0;
