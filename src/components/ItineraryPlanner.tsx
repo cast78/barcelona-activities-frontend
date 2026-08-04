@@ -322,7 +322,7 @@ function shareWhatsApp(itinerary: Itinerary) {
       lines.push(`   ${modeIcon(stop.travelMode)} ${itinerary.stops[i + 1].travelMinutes}min ${modeLabel(stop.travelMode)}`);
     }
   });
-  lines.push('', '🏙️ Generado con GoOnMap Barcelona');
+  lines.push('', '🏙️ Generado con GoOnMap Barcelona', '👉 https://GoOnMap.es');
   const text = encodeURIComponent(lines.join('\n'));
   window.open(`https://wa.me/?text=${text}`, '_blank');
 }
