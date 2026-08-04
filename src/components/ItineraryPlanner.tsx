@@ -308,7 +308,7 @@ function exportICS(itinerary: Itinerary) {
 }
 
 function shareWhatsApp(itinerary: Itinerary) {
-  const lines = ['🗺️ Mi plan para hoy en Barcelona:', ''];
+  const lines = ['� https://GoOnMap.es', '', '�🗺️ Mi plan para hoy en Barcelona:', ''];
   itinerary.stops.forEach((stop, i) => {
     const cat = CATEGORIES.find(c => c.id === (stop.activity.category || inferCategory(stop.activity.name || '', stop.activity.body || ''))) || CATEGORIES.find(c => c.id === 'other')!;
     lines.push(`${i + 1}️⃣ ${cat.emoji} ${stop.activity.name} · ${fmtTime(stop.arrivalTime)}`);
@@ -322,7 +322,7 @@ function shareWhatsApp(itinerary: Itinerary) {
       lines.push(`   ${modeIcon(stop.travelMode)} ${itinerary.stops[i + 1].travelMinutes}min ${modeLabel(stop.travelMode)}`);
     }
   });
-  lines.push('', '🏙️ Generado con GoOnMap Barcelona', '👉 https://GoOnMap.es');
+  lines.push('', '🏙️ Generado con GoOnMap Barcelona');
   const text = encodeURIComponent(lines.join('\n'));
   window.open(`https://wa.me/?text=${text}`, '_blank');
 }
