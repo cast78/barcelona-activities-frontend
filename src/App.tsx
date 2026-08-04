@@ -579,7 +579,7 @@ function App() {
                   }, {} as Record<string, number>)}
                   onChange={setSelectedCategories}
                 />
-                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} liveCoords={userCoords} trackingMode={trackingMode} />
+                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} liveCoords={userCoords} trackingMode={trackingMode} onAttendChange={() => setAgendaRefreshKey(k => k + 1)} />
 
                 {/* Stack derecho: botón En vivo + botón Ruta (mismo ancho) */}
                 <div className="map-btn-stack">
