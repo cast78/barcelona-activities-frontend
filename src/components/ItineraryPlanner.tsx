@@ -308,7 +308,7 @@ function exportICS(itinerary: Itinerary) {
 }
 
 function shareWhatsApp(itinerary: Itinerary) {
-  const lines = ['� https://GoOnMap.es', '', '�🗺️ Mi plan para hoy en Barcelona:', ''];
+  const lines = ['https://GoOnMap.es', '', '📍 Mi ruta de eventos en Barcelona:', ''];
   itinerary.stops.forEach((stop, i) => {
     const cat = CATEGORIES.find(c => c.id === (stop.activity.category || inferCategory(stop.activity.name || '', stop.activity.body || ''))) || CATEGORIES.find(c => c.id === 'other')!;
     lines.push(`${i + 1}️⃣ ${cat.emoji} ${stop.activity.name} · ${fmtTime(stop.arrivalTime)}`);
