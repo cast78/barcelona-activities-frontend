@@ -257,13 +257,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.45rem 0.85rem 0.45rem 0.6rem;
+  padding: 0.45rem 0.85rem 0.2rem 0.6rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   transition: background 0.2s, box-shadow 0.2s;
 }
 .tracking-mode-btn__text {
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #6b7280;
   white-space: nowrap;
@@ -401,10 +401,10 @@ body {
 
 .map-route-control__btn {
   flex: 1;
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 0.85rem 0.2rem 0.6rem;
   font-family: inherit;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   border: none;
   display: flex;
@@ -492,7 +492,7 @@ body {
   }
   .map-route-control__btn {
     padding: 0.45rem 0.75rem 0.45rem 0.55rem;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     justify-content: center;
   }
 }
