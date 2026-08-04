@@ -413,7 +413,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
         {/* Header */}
         <div style={{ background: headerGrad, borderRadius: '20px 20px 0 0', padding: '1rem 1.1rem 0.9rem', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.8 }}>GoOnMap</div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.6px', opacity: 0.8 }}>GoOnMap</div>
             <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{t('planner.title')}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -442,7 +442,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
           {!itinerary && (
             <>
               <div>
-                <p style={{ margin: '0 0 0.6rem', fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t('planner.transport')}</p>
+                <p style={{ margin: '0 0 0.6rem', fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', letterSpacing: '0.4px' }}>{t('planner.transport')}</p>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {(['walking', 'cycling', 'metro'] as TravelMode[]).map(m => (
                     <button
@@ -532,17 +532,9 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
                           {!isLast && <div style={{ width: 2, flex: 1, background: '#e5e7eb', marginTop: 2 }} />}
                         </div>
                         <div style={{ flex: 1, background: '#f7f7fa', borderRadius: '10px', padding: '0.6rem 0.75rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            <p style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem', color: '#22223b' }}>
-                              {cat.emoji} {stop.activity.name}
-                            </p>
-                            {/* Google Calendar button per stop */}
-                            <button
-                              onClick={() => openGoogleCalendar(stop)}
-                              title="Añadir a Google Calendar"
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: 0, lineHeight: 1 }}
-                            >📆</button>
-                          </div>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem', color: '#22223b' }}>
+                            {cat.emoji} {stop.activity.name}
+                          </p>
                           <p style={{ margin: '0.2rem 0 0', fontSize: '0.72rem', color: '#667eea', fontWeight: 600 }}>
                             🕐 {fmtTime(stop.arrivalTime)} – {fmtTime(stop.departureTime)} · {fmtDuration(estimateDurationMin(stop.activity))} aprox.
                           </p>
@@ -560,7 +552,7 @@ const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({
 
               {/* Export actions */}
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.3rem', borderTop: '1px solid #e5e7eb' }}>
-                <p style={{ margin: '0 0 0.4rem', width: '100%', fontSize: '0.72rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Exportar itinerario</p>
+                <p style={{ margin: '0 0 0.4rem', width: '100%', fontSize: '0.72rem', fontWeight: 600, color: '#6b7280', letterSpacing: '0.4px' }}>Exportar itinerario</p>
                 <button
                   onClick={() => exportICS(itinerary)}
                   style={{ flex: 1, minWidth: 120, padding: '0.55rem 0.5rem', background: '#f0f4ff', border: '1px solid #c7d2fe', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600, color: '#3730a3' }}
