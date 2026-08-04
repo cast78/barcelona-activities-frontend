@@ -327,22 +327,6 @@ function shareWhatsApp(itinerary: Itinerary) {
   window.open(`https://wa.me/?text=${text}`, '_blank');
 }
 
-function openGoogleCalendar(stop: ItineraryStop) {
-  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
-  const loc = [stop.activity.venue_name, stop.activity.direccion, 'Barcelona'].filter(Boolean).join(', ');
-  const cat = CATEGORIES.find(c => c.id === (stop.activity.category || inferCategory(stop.activity.name || '', stop.activity.body || ''))) || CATEGORIES.find(c => c.id === 'other')!;
-  const mapsUrl = stop.activity.geo_epgs_4326_latlon ? `https://maps.google.com/?q=${stop.activity.geo_epgs_4326_latlon}` : null;
-  const details = ['Planificado con GoOnMap Barcelona', mapsUrl ? `📍 Ver en Google Maps: ${mapsUrl}` : ''].filter(Boolean).join('\n\n');
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: `${cat.emoji} ${stop.activity.name}`,
-    dates: `${fmt(stop.arrivalTime)}/${fmt(stop.departureTime)}`,
-    location: loc,
-    details,
-  });
-  window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
-}
-
 // ── UI Component ──────────────────────────────────────────────────────────────
 
 interface ItineraryPlannerProps {
