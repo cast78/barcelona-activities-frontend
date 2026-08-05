@@ -71,7 +71,8 @@
     "shareHeader": "👀 *Mira esta actividad en Barcelona:*",
     "shareFooter": "¡Únete si quieres! 🙌",
     "addToCalendar": "⏰ Añadir a Google Calendar",
-    "shareWhatsApp": "💬 Compartir por WhatsApp"
+    "shareWhatsApp": "💬 Compartir por WhatsApp",
+    "copyCoords": "Copiar"
   },
   "agenda": {
     "title": "🙋‍♂️ Mi Agenda",

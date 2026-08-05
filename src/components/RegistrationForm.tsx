@@ -58,6 +58,24 @@ const RegistrationForm: React.FC = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const q = addressLabel.trim();
     if (q.length < 3) { setSuggestions([]); setShowSuggestions(false); setIsGeocoding(false); return; }
+
+    // Si el usuario pega coordenadas (ej. "41.3801,2.1734"), hacer reverse geocoding directamente
+    const coordMatch = q.match(/^(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)$/);
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lon = parseFloat(coordMatch[2]);
+      setIsGeocoding(true);
+      debounceRef.current = setTimeout(async () => {
+        const label = await reverseGeocode(lat, lon);
+        setLocation(`${lat},${lon}`);
+        if (label) { justSelectedRef.current = true; setAddressLabel(label); }
+        setSuggestions([]);
+        setShowSuggestions(false);
+        setIsGeocoding(false);
+      }, 400);
+      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }
+
     setIsGeocoding(true);
     debounceRef.current = setTimeout(async () => {
       const results = await geocodeAddress(q);

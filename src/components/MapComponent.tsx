@@ -263,7 +263,20 @@ const MapContent: React.FC<{
       {/* Marcador GPS en tiempo real */}
       {liveCoords && (
         <Marker position={liveCoords} {...{ icon: liveIcon } as any}>
-          <Popup><strong>📍 Tu posición actual</strong></Popup>
+          <Popup {...{ maxWidth: 200 } as any}>
+            <div style={{ fontFamily: 'inherit' }}>
+              <p style={{ margin: '0 0 0.3rem', fontWeight: 700, fontSize: '0.87rem', color: '#111827' }}>📍 Tu posición actual</p>
+              <p style={{ margin: 0, fontSize: '0.72rem', color: '#6b7280', fontFamily: 'monospace', userSelect: 'all' }}>
+                {liveCoords[0].toFixed(6)}, {liveCoords[1].toFixed(6)}{' '}
+                <button
+                  onClick={() => navigator.clipboard.writeText(`${liveCoords[0].toFixed(6)},${liveCoords[1].toFixed(6)}`)}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '0.72rem', color: '#3b82f6', fontFamily: 'inherit', textDecoration: 'underline' }}
+                >
+                  {t('activity.copyCoords')}
+                </button>
+              </p>
+            </div>
+          </Popup>
         </Marker>
       )}
       {userCoords && radiusKm !== undefined && (

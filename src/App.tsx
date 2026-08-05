@@ -167,6 +167,7 @@ function App() {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserCoords([latitude, longitude]);
+        setUsingFallback(false); // ocultar badge en cuanto el GPS responda, aunque sea tras el timeout inicial
 
         // ¿El usuario se movió > MIN_MOVE_M desde la última comprobación?
         const prev = lastCheckedPosRef.current;
