@@ -66,7 +66,8 @@ const MapContent: React.FC<{
   onAttendChange?: () => void;
 }> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter, liveCoords, onAttendChange }) => {
   const map = useMap();
-  const { t } = useT();<Map<string, any>>(new Map());
+  const t = useT();
+  const markerRefs = React.useRef<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>(() => getLikeCountsLocal());
   const [attendingIds, setAttendingIds] = React.useState<Record<string, boolean>>(() => getAllAttendingLocal());
