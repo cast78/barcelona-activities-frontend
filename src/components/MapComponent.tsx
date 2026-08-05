@@ -13,6 +13,7 @@ import { getTimeBadge, getDistanceBadge } from './ActivityList';
 import type { Itinerary } from './ItineraryPlanner';
 import { getAllLikedLocal, getLikeCountsLocal, setLikedLocal, setLikeCountLocal, toggleLike,
   getAllAttendingLocal, getAttendCountsLocal, setAttendingLocal, setAttendCountLocal, toggleAttend } from '../api';
+import { useT } from '../i18n/useT';
 
 // Fix Leaflet marker icons for React-Leaflet
 // @ts-ignore
@@ -65,7 +66,7 @@ const MapContent: React.FC<{
   onAttendChange?: () => void;
 }> = ({ activities, userLocation, radiusKm, centerOn, onActivitySelect, openPopupForId, openPopupSeq, fitBoundsTrigger, itinerary, showRoute, shareHeader, shareFooter, liveCoords, onAttendChange }) => {
   const map = useMap();
-  const markerRefs = React.useRef<Map<string, any>>(new Map());
+  const { t } = useT();<Map<string, any>>(new Map());
   const [likedIds, setLikedIds] = React.useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = React.useState<Record<string, number>>(() => getLikeCountsLocal());
   const [attendingIds, setAttendingIds] = React.useState<Record<string, boolean>>(() => getAllAttendingLocal());
