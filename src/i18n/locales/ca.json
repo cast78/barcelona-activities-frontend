@@ -69,7 +69,9 @@
     "viewDetail": "Veure detall",
     "noActivities": "No hi ha activitats properes, segons els paràmetres de cerca.",
     "shareHeader": "👀 *Mira aquesta activitat a Barcelona:*",
-    "shareFooter": "Uneix-te si vols! 🙌"
+    "shareFooter": "Uneix-te si vols! 🙌",
+    "addToCalendar": "⏰ Afegir a Google Calendar",
+    "shareWhatsApp": "💬 Compartir per WhatsApp"
   },
   "agenda": {
     "title": "🙋‍♂️ La meva agenda",
