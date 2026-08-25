@@ -22,6 +22,11 @@
 | 03/08/2026 | Corregido `xmlns` del sitemap (0.5 → 0.9) | `public/sitemap.xml` | ✅ |
 | 03/08/2026 | Verificación dominio raíz DNS TXT en Vercel | Vercel DNS | ✅ |
 | 03/08/2026 | Renombrado menú "Crear actividad" → "Nueva actividad" (4 idiomas) | `src/i18n/locales/*.json` | ✅ |
+| 03/08/2026 | Generado `favicon.ico` (16/32/48px) + `favicon-192.png` desde `pwa-icon.png` | `public/` | ✅ |
+| 03/08/2026 | Generado `badge-icon.png` (96px monochrome, fondo transparente) para notificaciones PWA | `public/` | ✅ |
+| 03/08/2026 | Añadidos `link` tags favicon (ico + 192px) en `<head>` | `public/index.html` | ✅ |
+| 03/08/2026 | Añadidas entradas favicon al array `icons` del manifest | `public/manifest.json` | ✅ |
+| 03/08/2026 | Actualizado `showNotification()` con `icon` y `badge` | `src/notifications.ts` | ✅ |
 | Sesión ant. | Open Graph + Twitter Card | `public/index.html` | ✅ |
 | Sesión ant. | Meta description con keywords | `public/index.html` | ✅ |
 | Sesión ant. | Canonical URL | `public/index.html` | ✅ |
@@ -32,7 +37,7 @@
 
 ## Checklist técnico SEO
 
-- [x] Favicon configurado
+- [x] Favicon configurado (`favicon.ico` 16/32/48px + `favicon-192.png` 192px + entries en `manifest.json`)
 - [x] `lang` correcto (`es`)
 - [x] Meta description con keywords
 - [x] Open Graph completo
