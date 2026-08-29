@@ -68,6 +68,9 @@
     "onMap": "📍 Sur la carte",
     "viewDetail": "Voir détail",
     "noActivities": "Aucune activité à proximité selon les paramètres de recherche.",
+    "goonmapSection": "Recommandé par GoOnMap",
+    "goonmapRecommendation": "Recommandation de GoOnMap",
+    "allResults": "Résultats de votre recherche",
     "shareHeader": "👀 *Regarde cette activité à Barcelone :*",
     "shareFooter": "Rejoins si tu veux ! 🙌",
     "addToCalendar": "⏰ Ajouter à Google Agenda",
@@ -86,7 +89,20 @@
     "share": "Partager sur WhatsApp",
     "shareHint": "WhatsApp s'ouvrira avec votre liste de plans",
     "shareHeader": "📅 *Mon plan à Barcelone :*",
-    "shareFooter": "Rejoignez ceux que vous voulez ! 🙌"
+    "shareFooter": "Rejoignez ceux que vous voulez ! 🙌",
+    "tabMine": "Mon Agenda",
+    "tabGoonmap": "GoOnMap",
+    "plansCount_one": "1 plan recommandé",
+    "plansCount_other": "{{count}} plans recommandés",
+    "stopsCount_one": "1 étape",
+    "stopsCount_other": "{{count}} étapes",
+    "goonmapEmpty": "Aucun plan disponible",
+    "goonmapEmptyHint": "Les agendas recommandés par GoOnMap apparaîtront ici bientôt.",
+    "planRoute": "🗺️ Planifier l'itinéraire"
+  },
+  "goonmap": {
+    "layerShow": "Afficher les recommandations GoOnMap",
+    "layerHide": "Masquer les recommandations GoOnMap"
   },
   "planner": {
     "title": "🗺️ Planificateur d'itinéraire",

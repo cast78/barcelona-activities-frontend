@@ -17,6 +17,7 @@ export interface Activity {
   venue_name?: string;
   likes?: number;
   attendees?: number;
+  note?: string;
 }
 
 export interface EventFilters {
@@ -50,6 +51,47 @@ export const fetchEventsBySource = async (filters: EventFilters = {}): Promise<{
 export const fetchActivities = async (): Promise<Activity[]> => {
   const response = await axios.get(`${API_BASE_URL}/activities`);
   return response.data;
+};
+
+// ── GoOnMap curated agenda (recommendations) ─────────────────────────────────
+export type LocalizedText = { es: string; ca?: string; en?: string; fr?: string };
+
+// Activity within a plan, enriched with the curated suggested time / note.
+export interface PlanActivity extends Activity {
+  suggestedTime?: string;
+  note?: string;
+}
+
+export interface Plan {
+  id: string;
+  title: LocalizedText;
+  description?: LocalizedText;
+  cover?: string;
+  theme?: string;
+  emoji?: string;
+  valid_from?: string;
+  valid_to?: string;
+  start_coords?: string;
+  activities: PlanActivity[];
+}
+
+export interface RecommendationsPayload {
+  version: number;
+  updated_at: string | null;
+  activities: Activity[];
+  plans: Plan[];
+}
+
+export const fetchRecommendations = async (): Promise<RecommendationsPayload> => {
+  const response = await axios.get(`${API_BASE_URL}/recommendations`);
+  return response.data;
+};
+
+// Devuelve el texto en el idioma activo con fallback a español y luego a cualquiera disponible.
+export const localized = (text: LocalizedText | undefined, lang: string): string => {
+  if (!text) return '';
+  const key = (lang || 'es').slice(0, 2) as keyof LocalizedText;
+  return text[key] || text.es || Object.values(text).find(Boolean) || '';
 };
 
 // ── Geocoding (OpenStreetMap / Nominatim) ────────────────────────────────────

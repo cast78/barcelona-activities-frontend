@@ -3,31 +3,17 @@ import ReactDOM from 'react-dom';
 import { useT } from '../i18n/useT';
 import { CATEGORIES, inferCategory } from './QueryForm';
 import { toggleLike, setLikedLocal, getAllLikedLocal, getLikeCountsLocal, setLikeCountLocal, isLiked,
-  toggleAttend, setAttendingLocal, getAllAttendingLocal, getAttendCountsLocal, setAttendCountLocal, isAttending } from '../api';
-
-interface Activity {
-  id: string;
-  name: string;
-  start_date: string;
-  start_time?: string;
-  end_time?: string;
-  end_date: string;
-  geo_epgs_4326_latlon?: string;
-  body: string;
-  category?: string;
-  origen?: string;
-  direccion?: string;
-  venue_name?: string;
-  likes?: number;
-  attendees?: number;
-}
+  toggleAttend, setAttendingLocal, getAllAttendingLocal, getAttendCountsLocal, setAttendCountLocal, isAttending, Activity, Plan } from '../api';
 
 interface ActivityListProps {
   activities: Activity[];
+  recommended?: Activity[];
   userCoords?: [number, number] | null;
   onSelectOnMap?: (activity: Activity) => void;
   pinnedActivityId?: string | null;
   onAttendChange?: () => void;
+  isSheetOpen?: boolean;
+  plans?: Plan[];
 }
 
 function formatDate(d: string) {
@@ -185,7 +171,7 @@ export function sortByTimeAndDistance(activities: Activity[], userCoords: [numbe
   });
 }
 
-export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; userCoords?: [number, number] | null }> = ({ activity, onClose, userCoords }) => {
+export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; userCoords?: [number, number] | null; plans?: Plan[] }> = ({ activity, onClose, userCoords, plans }) => {
   const t = useT();
   const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
   const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
@@ -309,6 +295,26 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
               </p>
             </div>
 
+            {/* Consejo GoOnMap - debajo de descripción */}
+            {activity.origen === 'GoOnMap' && (() => {
+              let note: string | undefined = activity.note;
+              if (!note && plans) {
+                for (const plan of plans) {
+                  const stop = plan.activities.find(a => a.id === activity.id);
+                  if (stop && stop.note) {
+                    note = stop.note;
+                    break;
+                  }
+                }
+              }
+              return note ? (
+                <div style={{ background: '#fef3c7', borderRadius: '7px', padding: '0.6rem 0.75rem', borderLeft: '3px solid #fbbf24' }}>
+                  <p style={{ margin: '0 0 0.1rem', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#92400e' }}>💡 {t('activity.goonmapRecommendation')}</p>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#78350f', lineHeight: '1.4' }}>{note}</p>
+                </div>
+              ) : null;
+            })()}
+
             {/* Fecha + Hora en fila */}
             <div style={{ display: 'grid', gridTemplateColumns: formatTime(activity.start_time) ? '1fr 1fr' : '1fr', gap: '0.5rem' }}>
               <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
@@ -362,38 +368,56 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
 
             {/* Pie: botones like + asistir */}
             <div style={{ marginTop: '0.2rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button
-                onClick={handleModalLike}
-                title={liked ? t('activity.unlike') : t('activity.like')}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '0.25rem',
-                  fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
-                  color: liked ? '#ef4444' : '#9ca3af',
-                  transition: 'color 0.15s, transform 0.1s',
-                  transform: liked ? 'scale(1.15)' : 'scale(1)',
-                  padding: '0.2rem 0.3rem'
-                }}
-              >
-                {liked ? '❤️' : '🤍'}
-                <span style={{ fontSize: '0.72rem' }}>{likeCount}</span>
-              </button>
-              <button
-                onClick={handleModalAttend}
-                title={attending ? t('activity.unattend') : t('activity.attend')}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '0.25rem',
-                  fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
-                  color: attending ? '#22c55e' : '#9ca3af',
-                  transition: 'color 0.15s, transform 0.1s',
-                  transform: attending ? 'scale(1.15)' : 'scale(1)',
-                  padding: '0.2rem 0.3rem'
-                }}
-              >
-                <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
-                <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
-              </button>
+              {activity.origen === 'GoOnMap' ? (
+                // Actividades GoOnMap: solo badge visual
+                <div title={t('activity.goonmapRecommendation')} style={{ 
+                  display: 'flex', alignItems: 'center', gap: '0.3rem',
+                  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                  color: 'white',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 800
+                }}>
+                  ⭐
+                </div>
+              ) : (
+                // Actividades de búsqueda: botones like + attend
+                <>
+                  <button
+                    onClick={handleModalLike}
+                    title={liked ? t('activity.unlike') : t('activity.like')}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '0.25rem',
+                      fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
+                      color: liked ? '#ef4444' : '#9ca3af',
+                      transition: 'color 0.15s, transform 0.1s',
+                      transform: liked ? 'scale(1.15)' : 'scale(1)',
+                      padding: '0.2rem 0.3rem'
+                    }}
+                  >
+                    {liked ? '❤️' : '🤍'}
+                    <span style={{ fontSize: '0.72rem' }}>{likeCount}</span>
+                  </button>
+                  <button
+                    onClick={handleModalAttend}
+                    title={attending ? t('activity.unattend') : t('activity.attend')}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '0.25rem',
+                      fontFamily: 'inherit', fontSize: '0.78rem', fontWeight: 600,
+                      color: attending ? '#22c55e' : '#9ca3af',
+                      transition: 'color 0.15s, transform 0.1s',
+                      transform: attending ? 'scale(1.15)' : 'scale(1)',
+                      padding: '0.2rem 0.3rem'
+                    }}
+                  >
+                    <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
+                    <span style={{ fontSize: '0.72rem' }}>{attendCount}</span>
+                  </button>
+                </>
+              )}
             </div>
         </div>
       </div>
@@ -402,16 +426,17 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
   );
 };
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onSelectOnMap, pinnedActivityId, onAttendChange }) => {
+const ActivityList: React.FC<ActivityListProps> = ({ activities, recommended, userCoords, onSelectOnMap, pinnedActivityId, onAttendChange, isSheetOpen, plans }) => {
+
   const t = useT();
   const [selected, setSelected] = useState<Activity | null>(null);
   const pinnedRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
-    if (pinnedActivityId && pinnedRef.current) {
+    if (pinnedActivityId && pinnedRef.current && isSheetOpen) {
       pinnedRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  }, [pinnedActivityId]);
+  }, [pinnedActivityId, isSheetOpen]);
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>(() => getAllLikedLocal());
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>(() => getLikeCountsLocal());
   const [attendingIds, setAttendingIds] = useState<Record<string, boolean>>(() => getAllAttendingLocal());
@@ -462,9 +487,20 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
     } catch {}
   };
 
+  const recIds = React.useMemo(() => new Set((recommended ?? []).map(a => a.id)), [recommended]);
+  const combined = recIds.size > 0
+    ? [...(recommended as Activity[]), ...activities.filter(a => !recIds.has(a.id))]
+    : activities;
+  const recCount = recIds.size > 0 ? (recommended as Activity[]).length : 0;
+  const sectionHeaderStyle: React.CSSProperties = {
+    gridColumn: '1 / -1',
+    display: 'flex', alignItems: 'center', gap: '0.5rem',
+    margin: '0.2rem 0 0', fontWeight: 800, fontSize: '0.98rem'
+  };
+
   return (
     <div style={{ margin: '0.5rem 0' }}>
-      {activities.length === 0 ? (
+      {combined.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem 1rem 1rem', textAlign: 'center', gap: '1rem' }}>
           <img src="/City.jpeg" alt="No activities" style={{ width: '230px', height: '230px', objectFit: 'cover', borderRadius: '8px', opacity: 0.8 }} />
           <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0, lineHeight: '1.6', maxWidth: '280px' }}>
@@ -478,7 +514,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
           gap: '1rem',
           marginBottom: '1.5rem'
         }}>
-          {activities.map(activity => {
+          {combined.map((activity, idx) => {
             const catId = activity.category || inferCategory(activity.name || '', activity.body || '');
             const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'other') || null;
             const timeBadge = getTimeBadge(activity);
@@ -486,8 +522,14 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
             const activeBadge = timeBadge ?? distBadge;
             const isPinned = pinnedActivityId === activity.id;
             return (
+              <React.Fragment key={activity.id}>
+                {recCount > 0 && idx === 0 && (
+                  <div style={{ ...sectionHeaderStyle, color: '#764ba2' }}>⭐ {t('activity.goonmapSection')}</div>
+                )}
+                {recCount > 0 && idx === recCount && (
+                  <div style={{ ...sectionHeaderStyle, color: '#4b5563' }}>📋 {t('activity.allResults')}</div>
+                )}
               <div
-                key={activity.id}
                 ref={isPinned ? pinnedRef : null}
                 onClick={() => onSelectOnMap?.(activity)}
                 style={{
@@ -636,54 +678,71 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, userCoords, onS
                     >
                       {t('activity.viewDetail')} →
                     </button>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <button
-                        onClick={(e) => handleLike(activity, e)}
-                        title={likedIds[activity.id] ? t('activity.unlike') : t('activity.like')}
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', gap: '0.25rem',
-                          padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
-                          fontSize: '0.78rem', fontWeight: 600,
-                          color: likedIds[activity.id] ? '#ef4444' : '#9ca3af',
-                          transition: 'color 0.15s, transform 0.1s',
-                          transform: likedIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
-                        }}
-                      >
-                        {likedIds[activity.id] ? '❤️' : '🤍'}
-                        <span style={{ fontSize: '0.72rem' }}>
-                          {likeCounts[activity.id] ?? activity.likes ?? 0}
-                        </span>
-                      </button>
-                      <button
-                        onClick={(e) => handleAttend(activity, e)}
-                        title={attendingIds[activity.id] ? t('activity.unattend') : t('activity.attend')}
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', gap: '0.25rem',
-                          padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
-                          fontSize: '0.78rem', fontWeight: 600,
-                          color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af',
-                          transition: 'color 0.15s, transform 0.1s',
-                          transform: attendingIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
-                        }}
-                      >
-                        <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
-                        <span style={{ fontSize: '0.72rem' }}>
-                          {attendCounts[activity.id] ?? activity.attendees ?? 0}
-                        </span>
-                      </button>
-                    </div>
+                    {recIds.has(activity.id) ? (
+                      // Actividades GoOnMap: solo badge visual
+                      <div title={t('activity.goonmapRecommendation')} style={{ 
+                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                        background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                        color: 'white',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 800
+                      }}>
+                        ⭐
+                      </div>
+                    ) : (
+                      // Actividades de búsqueda: botones like + attend
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          onClick={(e) => handleLike(activity, e)}
+                          title={likedIds[activity.id] ? t('activity.unlike') : t('activity.like')}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.25rem',
+                            padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
+                            fontSize: '0.78rem', fontWeight: 600,
+                            color: likedIds[activity.id] ? '#ef4444' : '#9ca3af',
+                            transition: 'color 0.15s, transform 0.1s',
+                            transform: likedIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
+                          }}
+                        >
+                          {likedIds[activity.id] ? '❤️' : '🤍'}
+                          <span style={{ fontSize: '0.72rem' }}>
+                            {likeCounts[activity.id] ?? activity.likes ?? 0}
+                          </span>
+                        </button>
+                        <button
+                          onClick={(e) => handleAttend(activity, e)}
+                          title={attendingIds[activity.id] ? t('activity.unattend') : t('activity.attend')}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.25rem',
+                            padding: '0.3rem 0.2rem 0', fontFamily: 'inherit',
+                            fontSize: '0.78rem', fontWeight: 600,
+                            color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af',
+                            transition: 'color 0.15s, transform 0.1s',
+                            transform: attendingIds[activity.id] ? 'scale(1.15)' : 'scale(1)'
+                          }}
+                        >
+                          <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
+                          <span style={{ fontSize: '0.72rem' }}>
+                            {attendCounts[activity.id] ?? activity.attendees ?? 0}
+                          </span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+              </React.Fragment>
             );
           })}
         </div>
       )}
 
       {/* Modal de detalle */}
-      {selected && <ActivityModal activity={selected} onClose={() => setSelected(null)} userCoords={userCoords} />}
+      {selected && <ActivityModal activity={selected} onClose={() => setSelected(null)} userCoords={userCoords} plans={plans} />}
     </div>
   );
 };

@@ -69,6 +69,9 @@
     "onMap": "📍 On map",
     "viewDetail": "View details",
     "noActivities": "There are no activities nearby, based on the search parameters.",
+    "goonmapSection": "Recommended by GoOnMap",
+    "goonmapRecommendation": "GoOnMap recommendation",
+    "allResults": "Your search results",
     "shareHeader": "👀 *Check out this activity in Barcelona:*",
     "shareFooter": "Join if you want! 🙌",
     "addToCalendar": "⏰ Add to Google Calendar",
@@ -87,7 +90,20 @@
     "share": "Share on WhatsApp",
     "shareHint": "WhatsApp will open with your plan list",
     "shareHeader": "📅 *My plan in Barcelona:*",
-    "shareFooter": "Join the ones you like! 🙌"
+    "shareFooter": "Join the ones you like! 🙌",
+    "tabMine": "My Agenda",
+    "tabGoonmap": "GoOnMap",
+    "plansCount_one": "1 recommended plan",
+    "plansCount_other": "{{count}} recommended plans",
+    "stopsCount_one": "1 stop",
+    "stopsCount_other": "{{count}} stops",
+    "goonmapEmpty": "No plans available",
+    "goonmapEmptyHint": "GoOnMap's recommended agendas will appear here soon.",
+    "planRoute": "🗺️ Plan the route"
+  },
+  "goonmap": {
+    "layerShow": "Show GoOnMap recommendations",
+    "layerHide": "Hide GoOnMap recommendations"
   },
   "planner": {
     "title": "🗺️ Route planner",

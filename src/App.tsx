@@ -11,6 +11,8 @@ import ItineraryPlanner from './components/ItineraryPlanner';
 import type { Itinerary } from './components/ItineraryPlanner';
 import MyAgendaPanel from './components/MyAgendaPanel';
 import { Activity, fetchEventsBySource, isAttending } from './api';
+import type { Plan, PlanActivity } from './api';
+import { fetchRecommendations } from './api';
 import { requestNotificationPermission, showNotification } from './notifications';
 import RadiusSlider, { RADIUS_VALUES } from './components/RadiusSlider';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -24,15 +26,18 @@ const MailIcon = FaEnvelope as React.ElementType;
 type Page = 'main' | 'register';
 
 // Bottom sheet component that manages its own open/close state
-function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, onSelectOnMap, pinnedActivityId, onAttendChange }: {
+function BottomSheetPanel({ activities, recommended, isSearching, userCoords, open, agendaOpen, setOpen, onSelectOnMap, pinnedActivityId, onAttendChange, plans }: {
   activities: Activity[];
+  recommended?: Activity[];
   isSearching: boolean;
   userCoords: [number, number] | null;
   open: boolean;
+  agendaOpen: boolean; // bloquea el toggle mientras la Agenda está encima
   setOpen: (v: boolean) => void;
   onSelectOnMap: (activity: Activity) => void;
   pinnedActivityId?: string | null;
   onAttendChange?: () => void;
+  plans?: Plan[];
 }) {
   const t = useT();
 
@@ -52,7 +57,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
         role="button"
         aria-expanded={open}
         aria-label="Toggle activity list"
-        onClick={() => setOpen(!open)}
+        onClick={() => { if (!agendaOpen) setOpen(!open); }}
       >
         <div className="bottom-sheet-pill-wrap">
           <div className="bottom-sheet-pill" />
@@ -72,7 +77,7 @@ function BottomSheetPanel({ activities, isSearching, userCoords, open, setOpen, 
         <span className={`bottom-sheet-chevron${open ? ' bottom-sheet-chevron--up' : ''}`}>▲</span>
       </div>
       <div className="bottom-sheet-body">
-        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} userCoords={userCoords} onSelectOnMap={onSelectOnMap} pinnedActivityId={pinnedActivityId} onAttendChange={onAttendChange} />
+        <ActivityList activities={sortByTimeAndDistance(activities, userCoords)} recommended={recommended} userCoords={userCoords} onSelectOnMap={onSelectOnMap} pinnedActivityId={pinnedActivityId} onAttendChange={onAttendChange} isSheetOpen={open} plans={plans} />
       </div>
     </div>
   );
@@ -103,7 +108,14 @@ function App() {
   const [popupTrigger, setPopupTrigger] = useState(0);
   const [fitBoundsTrigger, setFitBoundsTrigger] = useState(0);
   const [showAgenda, setShowAgenda] = useState(false);
+  const [agendaReopenHint, setAgendaReopenHint] = useState(false);
+  const [agendaTab, setAgendaTab] = useState<'mine' | 'goonmap'>('mine');
+  const [agendaExpandedPlanId, setAgendaExpandedPlanId] = useState<string | null>(null);
   const [agendaRefreshKey, setAgendaRefreshKey] = useState(0);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [goonmapActivities, setGoonmapActivities] = useState<Activity[]>([]);
+  const [showGoonmap, setShowGoonmap] = useState(true);
+  const [plannerSeed, setPlannerSeed] = useState<Activity[] | null>(null);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showRoute, setShowRoute] = useState(false);
@@ -111,6 +123,11 @@ function App() {
   const [trackingMode, setTrackingMode] = useState(false);
   const trackingModeRef = useRef(false);
   const [showTrackingHint, setShowTrackingHint] = useState(() => !localStorage.getItem('goonmap_tracking_hint_seen'));
+
+  // Colapsar la lista de actividades siempre que la Agenda se abra
+  useEffect(() => {
+    if (showAgenda) setSheetOpen(false);
+  }, [showAgenda]);
 
   // Auto-ocultar el hint tras 5s y marcarlo como visto
   useEffect(() => {
@@ -125,11 +142,25 @@ function App() {
   // Sincronizar ref con el estado (para leer en el callback del watchPosition sin stale closure)
   useEffect(() => { trackingModeRef.current = trackingMode; }, [trackingMode]);
 
+  // Cargar la agenda GoOnMap (recomendaciones curadas) al iniciar
+  useEffect(() => {
+    fetchRecommendations()
+      .then(data => {
+        setPlans(data.plans || []);
+        setGoonmapActivities(data.activities || []);
+      })
+      .catch((err) => { console.log('❌ App.tsx - fetchRecommendations FAILED:', err); setPlans([]); setGoonmapActivities([]); });
+  }, []);
+
   // Auto-centrar el mapa cuando está en modo tracking y la posición cambia
   // Al desactivar: zoom out a nivel de barrio (zoom 13)
   const prevTrackingRef = useRef(false);
+  // Ventana de prioridad tras seleccionar un evento: el tracking no re-centra durante este tiempo
+  const manualCenterUntilRef = useRef(0);
   useEffect(() => {
     if (trackingMode && userCoords) {
+      // Selección manual reciente de un evento: no pisar su centrado
+      if (Date.now() < manualCenterUntilRef.current) { prevTrackingRef.current = trackingMode; return; }
       // Activado o posición actualizada en modo tracking → zoom nivel calle
       setCenterOn({ lat: userCoords[0], lng: userCoords[1], zoom: 16 });
     } else if (!trackingMode && prevTrackingRef.current && userCoords) {
@@ -144,10 +175,16 @@ function App() {
   const lastCheckedPosRef = useRef<[number, number] | null>(null);
   const lastNotifTimeRef = useRef<number>(0);
   const floatingPanelRef = useRef<HTMLDivElement>(null);
+  const activitiesRef = useRef<Activity[]>([]);
+
+  // Sincronizar ref con actividades para evitar recrear watchPosition
+  useEffect(() => {
+    activitiesRef.current = activities;
+  }, [activities]);
 
   useEffect(() => {
     if (!('geolocation' in navigator)) return;
-    if (activities.length === 0) return;
+    if (activitiesRef.current.length === 0) return;
 
     const PROXIMITY_KM = 1;
     const MIN_MOVE_M = 100;
@@ -180,7 +217,7 @@ function App() {
         const now = Date.now();
         if (now - lastNotifTimeRef.current < COOLDOWN_MS) return;
 
-        for (const act of activities) {
+        for (const act of activitiesRef.current) {
           if (notifiedIdsRef.current.has(act.id)) continue;
 
           // Verificar coordenadas
@@ -224,7 +261,7 @@ function App() {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [activities]);
+  }, []);
   // ─────────────────────────────────────────────────────────────────────────
 
   const handleGoToBarcelona = () => {
@@ -249,13 +286,27 @@ function App() {
   // Selección desde "Mi Agenda": centra y marca el evento en el mapa.
   // El panel de actividades permanece colapsado mientras la agenda esté abierta
   // (ver prop open del BottomSheetPanel).
-  const handleSelectFromAgenda = (activity: Activity) => {
+  const handleSelectFromAgenda = (activity: Activity | PlanActivity) => {
     if (!activity.geo_epgs_4326_latlon) return;
     const parts = activity.geo_epgs_4326_latlon.split(',').map(Number);
     if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-      setCenterOn({ lat: parts[0], lng: parts[1], zoom: 13 });
+      const vw = window.innerWidth;
+      const isMobile = vw < 768;
+      // Prioridad sobre el auto-centrado del tracking durante unos segundos
+      manualCenterUntilRef.current = Date.now() + 8000;
+      // Compensar los paneles visibles para que el punto quede en la zona libre del mapa:
+      // - Agenda: panel lateral derecho (solo permanece abierto en escritorio)
+      // - Lista: queda colapsada (solo el asa ~64px abajo)
+      const agendaWidth = isMobile ? 0 : Math.min(320, Math.round(vw * 0.92));
+      const bottomHandle = 64;
+      setCenterOn({ lat: parts[0], lng: parts[1], zoom: 13, offsetX: agendaWidth, offsetY: bottomHandle });
       setPinnedActivity(activity);
       setPopupTrigger(t => t + 1);
+      setSheetOpen(false);
+      if (isMobile) {
+        setShowAgenda(false);
+        setAgendaReopenHint(true);
+      }
     }
   };
   const [page, setPage] = useState<Page>('main');
@@ -495,6 +546,12 @@ function App() {
     });
   }
 
+  // Marcadores del mapa: resultados de búsqueda + capa GoOnMap (sin duplicar por id)
+  const _searchIds = new Set(filteredActivities.map(a => a.id));
+  const mapActivities = showGoonmap
+    ? [...filteredActivities, ...goonmapActivities.filter(a => !_searchIds.has(a.id))]
+    : filteredActivities;
+
   // Eventos dentro del radio actual sin filtro de categoría — para los contadores del mapa
   const activitiesInRadius = (() => {
     if (!lastLocation || !lastRadius || rawActivities.length === 0) return rawActivities;
@@ -536,7 +593,7 @@ function App() {
           </button>
           <button
             className={showAgenda ? 'sidebar-btn active' : 'sidebar-btn'}
-            onClick={() => { setShowAgenda(a => !a); setAgendaRefreshKey(k => k + 1); }}
+            onClick={() => { setShowAgenda(a => !a); setAgendaReopenHint(false); setAgendaRefreshKey(k => k + 1); }}
             aria-label={t('nav.agenda')}
           >
             <span style={{ marginRight: 1 }}>🙋‍♂️</span> {t('nav.agenda')}
@@ -579,8 +636,12 @@ function App() {
                     return acc;
                   }, {} as Record<string, number>)}
                   onChange={setSelectedCategories}
+                  goonmapActive={showGoonmap}
+                  onToggleGoonmap={() => setShowGoonmap(v => !v)}
+                  goonmapLabel={t('agenda.tabGoonmap')}
+                  goonmapTitle={showGoonmap ? t('goonmap.layerHide') : t('goonmap.layerShow')}
                 />
-                <MapComponent activities={filteredActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} liveCoords={userCoords} trackingMode={trackingMode} onAttendChange={() => setAgendaRefreshKey(k => k + 1)} />
+                <MapComponent activities={mapActivities} userLocation={lastLocation} radiusKm={lastRadius} centerOn={centerOn} onActivitySelect={setSelectedMapActivity} openPopupForId={pinnedActivity?.id} openPopupSeq={popupTrigger} fitBoundsTrigger={fitBoundsTrigger} itinerary={itinerary} showRoute={showRoute} shareHeader={t('activity.shareHeader')} shareFooter={t('activity.shareFooter')} liveCoords={userCoords} trackingMode={trackingMode} onAttendChange={() => setAgendaRefreshKey(k => k + 1)} />
 
                 {/* Stack derecho: botón En vivo + botón Ruta (mismo ancho) */}
                 <div className="map-btn-stack">
@@ -725,13 +786,16 @@ function App() {
                 {/* Bottom sheet de actividades — se abre de abajo hacia arriba */}
                 <BottomSheetPanel
                   activities={filteredActivities}
+                  recommended={showGoonmap ? goonmapActivities : []}
                   isSearching={isSearching}
                   userCoords={userCoords}
                   open={sheetOpen && !showAgenda}
+                  agendaOpen={showAgenda}
                   setOpen={setSheetOpen}
                   onSelectOnMap={handleSelectOnMap}
                   pinnedActivityId={pinnedActivity?.id}
                   onAttendChange={() => setAgendaRefreshKey(k => k + 1)}
+                  plans={plans}
                 />
               </div>
             </>
@@ -830,16 +894,19 @@ function App() {
           activity={selectedMapActivity}
           onClose={() => setSelectedMapActivity(null)}
           userCoords={userCoords}
+          plans={plans}
         />
       )}
 
       {/* Planificador de ruta */}
       {showPlanner && (
         <ItineraryPlanner
-          activities={activities}
+          activities={plannerSeed ?? activities}
           userCoords={userCoords}
-          endDate={endDate}
-          onClose={() => setShowPlanner(false)}
+          endDate={plannerSeed && plannerSeed.length
+            ? plannerSeed.reduce((max, a) => (a.start_date > max ? a.start_date : max), plannerSeed[0].start_date)
+            : endDate}
+          onClose={() => { setShowPlanner(false); setPlannerSeed(null); }}
           onItineraryReady={(itin) => { setItinerary(itin); setShowRoute(itin !== null); }}
           initialItinerary={itinerary}
         />
@@ -850,17 +917,48 @@ function App() {
         <MyAgendaPanel
           key={agendaRefreshKey}
           activities={activities}
-          onClose={() => setShowAgenda(false)}
+          plans={plans}
+          onClose={() => { setShowAgenda(false); setAgendaReopenHint(false); setSheetOpen(false); }}
           onAttendChange={() => setAgendaRefreshKey(k => k + 1)}
           onSelectOnMap={handleSelectFromAgenda}
+          onPlanRoute={(planActivities) => {
+            setPlannerSeed(planActivities);
+            setItinerary(null);
+            setShowAgenda(false);
+            setShowPlanner(true);
+          }}
           selectedActivityId={pinnedActivity?.id}
+          tab={agendaTab}
+          onTabChange={setAgendaTab}
+          expandedPlanId={agendaExpandedPlanId}
+          onExpandPlan={setAgendaExpandedPlanId}
         />
+      )}
+
+      {/* Botón flotante para volver a la Agenda (móvil, tras seleccionar un evento) */}
+      {agendaReopenHint && !showAgenda && (
+        <button
+          onClick={() => { setShowAgenda(true); setAgendaReopenHint(false); setAgendaRefreshKey(k => k + 1); }}
+          style={{
+            position: 'absolute', top: 12, right: 12, zIndex: 1015,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: '#fff', border: 'none', borderRadius: 999,
+            padding: '0.55rem 0.9rem', fontWeight: 800, fontSize: '0.82rem',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem',
+            boxShadow: '0 4px 14px rgba(102,126,234,0.45)',
+          }}
+          aria-label={t('nav.agenda')}
+        >
+          <span>←</span> {t('nav.agenda')}
+        </button>
       )}
     </div>
   );
 }
 
 export default App;
+
+
 
 
 

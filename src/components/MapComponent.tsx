@@ -27,6 +27,8 @@ export interface CenterOn {
   lat: number;
   lng: number;
   zoom: number;
+  offsetX?: number; // px de un panel a la derecha; desplaza el centro para dejar el punto visible
+  offsetY?: number; // px de un panel abajo (lista); sube el punto sobre el panel
 }
 
 interface MapComponentProps {
@@ -144,24 +146,29 @@ const MapContent: React.FC<{
   // Re-centrar cuando se pide desde fuera (botones 📍 y 🏠)
   React.useEffect(() => {
     if (!centerOn) return;
-    map.setView([centerOn.lat, centerOn.lng], centerOn.zoom, { animate: true });
+    const { lat, lng, zoom, offsetX = 0, offsetY = 0 } = centerOn;
+    if (offsetX || offsetY) {
+      // Desplaza el centro para que el punto quede en la zona visible (no bajo un panel)
+      const point = map.project([lat, lng], zoom).add([offsetX / 2, offsetY / 2]);
+      map.setView(map.unproject(point, zoom), zoom, { animate: true });
+    } else {
+      map.setView([lat, lng], zoom, { animate: true });
+    }
   }, [centerOn, map]);
 
   // Abrir popup del marker tras el pan/zoom (moveend)
   React.useEffect(() => {
     if (!openPopupForId) return;
+    let cancelled = false;
     const openIt = () => {
+      if (cancelled) return;
       const marker = markerRefs.current.get(openPopupForId);
-      if (marker) marker.openPopup();
+      if (marker && (marker as any)._map) marker.openPopup();
     };
-    // Si el mapa ya está quieto (mismo pin clicado de nuevo), abrir directamente
-    const marker = markerRefs.current.get(openPopupForId);
-    if (marker) {
-      marker.openPopup();
-    } else {
-      map.once('moveend', openIt);
-    }
-    return () => { map.off('moveend', openIt); };
+    // Abrir cuando el mapa termine de moverse; con fallback por si ya estaba quieto
+    map.once('moveend', openIt);
+    const timer = setTimeout(openIt, 600);
+    return () => { cancelled = true; map.off('moveend', openIt); clearTimeout(timer); };
   }, [openPopupForId, openPopupSeq, map]);
 
   // fitBounds: ajustar zoom para ver todos los markers de las actividades filtradas
@@ -229,6 +236,19 @@ const MapContent: React.FC<{
         ${hasBadge ? `<div style="position:absolute;top:-6px;right:-6px;background:${borderColor || '#f59e0b'};color:#fff;font-size:8px;font-weight:800;padding:1px 4px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3)">${badgeEmoji}</div>` : ''}
       </div>`;
     return (L as any).divIcon({ className: '', html, iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
+  };
+
+  // Marcador distintivo para la capa curada GoOnMap (estrella dorada).
+  const makeGoonmapIcon = () => {
+    const html = `
+      <div style="position:relative;width:30px;height:44px;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 41" width="30" height="44">
+          <path d="M12.5 0C5.596 0 0 5.596 0 12.5c0 9.375 12.5 28.5 12.5 28.5S25 21.875 25 12.5C25 5.596 19.404 0 12.5 0z"
+            fill="#f5a623" stroke="#fff" stroke-width="2"/>
+        </svg>
+        <div style="position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:13px;line-height:1;">⭐</div>
+      </div>`;
+    return (L as any).divIcon({ className: '', html, iconSize: [30, 44], iconAnchor: [15, 44], popupAnchor: [1, -36] });
   };
 
   const makeNumberedIcon = (num: number) => {
@@ -300,6 +320,10 @@ const MapContent: React.FC<{
             const distBadge = getDistanceBadge(activity, liveCoords ?? userCoords);
             const inItinerary = showRoute && itineraryStopIds.has(activity.id);
             const markerBadge = inItinerary ? undefined : (timeBadge ?? distBadge);
+            const isGoonmap = activity.origen === 'GoOnMap';
+            const markerIcon = isGoonmap
+              ? makeGoonmapIcon()
+              : makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor);
             return (
               <Marker
                 key={activity.id}
@@ -308,7 +332,7 @@ const MapContent: React.FC<{
                   if (m) markerRefs.current.set(activity.id, m);
                   else markerRefs.current.delete(activity.id);
                 }}
-                {...{ icon: makeActivityIcon(activity.likes, markerBadge?.label, markerBadge?.borderColor) } as any}
+                {...{ icon: markerIcon } as any}
               >
                 <Popup {...{ maxWidth: 240 } as any}>
                   <div style={{ fontFamily: 'inherit', minWidth: 210 }}>
@@ -468,34 +492,50 @@ const MapContent: React.FC<{
                           Ver detalle →
                         </button>
                       )}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <button
-                          onClick={(e) => handleMapLike(activity, e)}
-                          title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
-                          style={{
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '0.2rem',
-                            fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
-                            color: likedIds[activity.id] ? '#ef4444' : '#9ca3af', padding: 0
-                          }}
-                        >
-                          {likedIds[activity.id] ? '❤️' : '🤍'}
-                          <span style={{ fontSize: '0.7rem' }}>{likeCounts[activity.id] ?? activity.likes ?? 0}</span>
-                        </button>
-                        <button
-                          onClick={(e) => handleMapAttend(activity, e)}
-                          title={attendingIds[activity.id] ? 'Cancelar asistencia' : '¡Asistiré!'}
-                          style={{
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '0.2rem',
-                            fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
-                            color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af', padding: 0
-                          }}
-                        >
-                          <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
-                          <span style={{ fontSize: '0.72rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
-                        </button>
-                      </div>
+                      {activity.origen === 'GoOnMap' ? (
+                        // Actividades GoOnMap: solo badge visual
+                        <div title={t('activity.goonmapRecommendation')} style={{ 
+                          display: 'flex', alignItems: 'center', gap: '0.3rem',
+                          background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                          color: 'white',
+                          padding: '0.2rem 0.4rem',
+                          borderRadius: '8px',
+                          fontSize: '0.7rem',
+                          fontWeight: 800
+                        }}>
+                          ⭐
+                        </div>
+                      ) : (
+                        // Actividades de búsqueda: botones like + attend
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <button
+                            onClick={(e) => handleMapLike(activity, e)}
+                            title={likedIds[activity.id] ? 'Quitar me gusta' : 'Me gusta'}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', gap: '0.2rem',
+                              fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
+                              color: likedIds[activity.id] ? '#ef4444' : '#9ca3af', padding: 0
+                            }}
+                          >
+                            {likedIds[activity.id] ? '❤️' : '🤍'}
+                            <span style={{ fontSize: '0.7rem' }}>{likeCounts[activity.id] ?? activity.likes ?? 0}</span>
+                          </button>
+                          <button
+                            onClick={(e) => handleMapAttend(activity, e)}
+                            title={attendingIds[activity.id] ? 'Cancelar asistencia' : '¡Asistiré!'}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', gap: '0.2rem',
+                              fontFamily: 'inherit', fontSize: '0.75rem', fontWeight: 600,
+                              color: attendingIds[activity.id] ? '#22c55e' : '#9ca3af', padding: 0
+                            }}
+                          >
+                            <span style={{ fontSize: '1rem' }}>🙋‍♂️</span>
+                            <span style={{ fontSize: '0.72rem' }}>{attendCounts[activity.id] ?? activity.attendees ?? 0}</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Popup>
