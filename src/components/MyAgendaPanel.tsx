@@ -90,8 +90,14 @@ const MyAgendaPanel: React.FC<MyAgendaPanelProps> = ({ activities, plans, onClos
       const emoji = cat?.emoji || '📌';
       const time = a.suggestedTime || formatTime(a.start_time);
       const venue = a.venue_name || a.direccion || '';
+      const date = a.start_date ? formatDate(a.start_date) : '';
       lines.push(`${idx + 1}. ${emoji} *${a.name}*`);
-      const detail = `${time ? `🕒 ${time}h` : ''}${venue ? `${time ? '\n   ' : ''}📍 ${venue}` : ''}`;
+      const detail = [
+        date ? `📅 ${date}` : '',
+        time ? `🕒 ${time}h` : '',
+        venue ? `📍 ${venue}` : '',
+        a.note ? `💡 ${a.note}` : ''
+      ].filter(Boolean).join('\n   ');
       if (detail) lines.push(`   ${detail}`);
       lines.push('');
     });
