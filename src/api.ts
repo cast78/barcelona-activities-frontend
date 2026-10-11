@@ -18,6 +18,7 @@ export interface Activity {
   likes?: number;
   attendees?: number;
   note?: string;
+  recurring?: boolean;
 }
 
 export interface EventFilters {

@@ -400,12 +400,14 @@ const MyAgendaPanel: React.FC<MyAgendaPanelProps> = ({ activities, plans, onClos
                                 {emoji} {act.name}
                               </div>
                               <div style={{ fontSize: '0.72rem', color: '#6b7280', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: 2 }}>
-                                {act.start_date && <span>📅 {formatDate(act.start_date)}</span>}
+                                {act.recurring
+                                  ? <span>♾️ {t('activity.alwaysAvailable')}</span>
+                                  : act.start_date && <span>📅 {formatDate(act.start_date)}</span>}
                                 {time && <span>🕒 {time}h</span>}
                                 {venue && <span>📍 {venue}</span>}
                               </div>
                               {act.note && (
-                                <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: 2, fontStyle: 'italic' }}>
+                                <div style={{ background: '#fef3c7', borderRadius: '6px', padding: '0.35rem 0.5rem', borderLeft: '3px solid #fbbf24', marginTop: 4, fontSize: '0.7rem', color: '#78350f', lineHeight: 1.4 }}>
                                   💡 {act.note}
                                 </div>
                               )}

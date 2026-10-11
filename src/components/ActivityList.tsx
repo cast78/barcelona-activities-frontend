@@ -319,7 +319,9 @@ export const ActivityModal: React.FC<{ activity: Activity; onClose: () => void; 
             <div style={{ display: 'grid', gridTemplateColumns: formatTime(activity.start_time) ? '1fr 1fr' : '1fr', gap: '0.5rem' }}>
               <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
                 <p style={{ margin: '0 0 0.15rem', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#6b7280' }}>{t('activity.date')}</p>
-                <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>📅 {formatDate(activity.start_date)}</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#22223b', fontSize: '0.85rem' }}>
+                  {activity.recurring ? `♾️ ${t('activity.alwaysAvailable')}` : `📅 ${formatDate(activity.start_date)}`}
+                </p>
               </div>
               {formatTime(activity.start_time) && (
                 <div style={{ background: '#f7f7fa', borderRadius: '7px', padding: '0.5rem 0.75rem' }}>
@@ -624,14 +626,17 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, recommended, us
                     {(() => {
                       const startT = formatTime(activity.start_time);
                       const endT = activity.end_time && activity.end_time !== activity.start_time ? formatTime(activity.end_time) : null;
+                      const timeSuffix = startT ? ` · 🕐 ${startT}${endT ? ` - ${endT}` : ''}` : '';
                       return (
                         <span>
-                          📅 {formatDate(activity.start_date)}
-                          {startT ? ` · 🕐 ${startT}${endT ? ` - ${endT}` : ''}` : ''}
+                          {activity.recurring
+                            ? `♾️ ${t('activity.alwaysAvailable')}`
+                            : `📅 ${formatDate(activity.start_date)}`}
+                          {timeSuffix}
                         </span>
                       );
                     })()}
-                    {activity.end_date && activity.end_date.split('T')[0] !== activity.start_date.split('T')[0] && (
+                    {!activity.recurring && activity.end_date && activity.end_date.split('T')[0] !== activity.start_date.split('T')[0] && (
                       <span>→ {formatDate(activity.end_date)}</span>
                     )}
                   </div>

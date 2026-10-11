@@ -374,6 +374,15 @@ const MapContent: React.FC<{
                     {(() => {
                       const hasDate = !!activity.start_date;
                       const hasTime = !!activity.start_time;
+                      if (activity.recurring) {
+                        const rT = activity.start_time;
+                        const rEnd = activity.end_time && activity.end_time !== rT ? activity.end_time : null;
+                        return (
+                          <p style={{ margin: '0 0 0.3rem', fontSize: '0.74rem', color: '#667eea', fontWeight: 600 }}>
+                            ♾️ {t('activity.alwaysAvailable')}{rT ? ` · 🕐 ${rT}${rEnd ? ` - ${rEnd}` : ''}` : ''}
+                          </p>
+                        );
+                      }
                       if (!hasDate) return null;
                       const datePart = activity.start_date.split('T')[0];
                       const dateObj = new Date(datePart);
@@ -598,6 +607,11 @@ const MapContent: React.FC<{
 
                 {/* Fecha del evento */}
                 {(() => {
+                  if (stop.activity.recurring) {
+                    const rT = stop.activity.start_time;
+                    const rEnd = stop.activity.end_time && stop.activity.end_time !== rT ? stop.activity.end_time : null;
+                    return <p style={{ margin: '0 0 0.25rem', fontSize: '0.72rem', color: '#667eea', fontWeight: 600 }}>♾️ {t('activity.alwaysAvailable')}{rT ? ` · 🕐 ${rT}${rEnd ? ` - ${rEnd}` : ''}` : ''}</p>;
+                  }
                   if (!stop.activity.start_date) return null;
                   const dateObj = new Date(stop.activity.start_date);
                   const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
